@@ -2,12 +2,18 @@ package main
 
 import (
 	"strings"
+	"math/rand"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
+)
+
+const (
+	gridSize = 10
+	wallCount = 15
 )
 
 var (
@@ -30,7 +36,13 @@ var (
 			Bold(true)
 	cellStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#555555"))
+	wallStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#874BFD"))
 )
+
+type point struct {
+	x, y int
+}
 
 type keyMap struct {
 	Up    key.Binding
@@ -53,9 +65,11 @@ func (k keyMap) FullHelp() [][]key.Binding {
 }
 
 func newModel() model {
+	startX, startY := gridSize/2, gridSize/2
 	return model{
 		x: 10 / 2,
 		y: 10 / 2,
+		walls: generateWalls(startX, startY),
 		keys:       keys,
 		help:       help.New(),
 	}
@@ -91,8 +105,31 @@ var keys = keyMap{
 type model struct {
 	x, y int
 	width, height int
+	walls map[point]bool
 	keys keyMap
 	help help.Model
+}
+
+func generateWalls(PlayerX, PlayerY int) map[point]bool {
+	walls := make(map[point]bool)
+	for len(walls) < wallCount {
+		x := rand.Intn(gridSize)
+		y := rand.Intn(gridSize)
+		p := point{x, y}
+
+		if abs(x-PlayerX) <= 1 && abs(y-PlayerY) <= 1 {
+			continue
+		}
+		walls[p] = true
+	}
+	return walls
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 func (m model) Init() tea.Cmd {
@@ -109,18 +146,28 @@ func clamp(val, min, max int) int {
 	return val
 }
 
+func (m model) Move(newX, newY int) model {
+	newX = clamp(newX, 0, gridSize-1)
+	newY = clamp(newY, 0, gridSize-1)
+	if !m.walls[point{newX, newY}] {
+		m.x = newX
+		m.y = newY
+	}
+	return m
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
-			m.y = clamp(m.y-1, 0, 10-1)
+			m = m.Move(m.x, m.y-1)
 		case "down", "j":
-			m.y = clamp(m.y+1, 0, 10-1)
+			m = m.Move(m.x, m.y+1)
 		case "left", "h":
-			m.x = clamp(m.x-1, 0, 10-1)
+			m = m.Move(m.x-1, m.y)
 		case "right", "l":
-			m.x = clamp(m.x+1, 0, 10-1)
+			m = m.Move(m.x+1, m.y)
 		case "?":
 			m.help.ShowAll = !m.help.ShowAll
 		case "q", "ctrl+c":
@@ -135,9 +182,12 @@ func (m model) View() string {
 	for row := 0; row < 10; row++ {
 		var cells []string
 		for col := 0; col < 10; col++ {
-			if col == m.x && row == m.y {
+			switch {
+			case col == m.x && row == m.y:
 				cells = append(cells, playerStyle.Render(""))
-			} else {
+			case m.walls[point{col, row}]:
+				cells = append(cells, wallStyle.Render("▪"))
+			default:
 				cells = append(cells, cellStyle.Render("·"))
 			}
 		}
