@@ -17,6 +17,7 @@ const (
 	GridH      = 10
 	wallCount  = 10
 	waterCount = 10
+	moveRange  = 4
 )
 
 var (
@@ -24,7 +25,7 @@ var (
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("#874BFD")).
 			Padding(1, 2).
-			Width(32)
+			Width(46)
 	helpStyle = lipgloss.NewStyle().
 			Padding(1, 2)
 	cellStyle = lipgloss.NewStyle().
@@ -35,7 +36,9 @@ var (
 			Foreground(lipgloss.Color("#146fba"))
 	cursorStyle = lipgloss.NewStyle().
 		    	Foreground(lipgloss.Color("#FFFFFF")).
-    			Background(lipgloss.Color("#444444"))
+    			Background(lipgloss.Color("#222222"))
+	rangeStyle = lipgloss.NewStyle().
+    			Background(lipgloss.Color("#171717"))
 )
 
 var playerStyles = []lipgloss.Style{
@@ -71,6 +74,7 @@ func (k keyMap) ShortHelp() []key.Binding {
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
+		{k.Help, k.Quit},
 	}
 }
 
@@ -100,8 +104,8 @@ func NewModel(playerCount int) Model {
     return Model{
         Players:       players,
         CurrentPlayer: 0,
-        CursorX:       GridW / 2,
-        CursorY:       GridH / 2,
+        CursorX:       players[0].X,
+        CursorY:       players[0].Y,
         Walls:         walls,
         Water:         water,
         keys:          keys,
@@ -176,18 +180,45 @@ func (m Model) Move(newX, newY int) Model {
 	return m
 }
 
+func (m Model) isInRange(col, row int) bool {
+    current := m.Players[m.CurrentPlayer]
+    dx := utils.Abs(col - current.X)
+    dy := utils.Abs(row - current.Y)
+    return dx+dy <= moveRange && dx+dy > 0
+}
+
+func (m Model) inRange(x, y int) bool {
+    current := m.Players[m.CurrentPlayer]
+    dx := utils.Abs(x - current.X)
+    dy := utils.Abs(y - current.Y)
+    result := dx+dy <= moveRange
+    return result
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch {
         case key.Matches(msg, m.keys.Up):
-            m.CursorY = utils.Clamp(m.CursorY-1, 0, GridH-1)
+            newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
+            if m.inRange(m.CursorX, newY) {
+                m.CursorY = newY
+            }
         case key.Matches(msg, m.keys.Down):
-            m.CursorY = utils.Clamp(m.CursorY+1, 0, GridH-1)
+            newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
+            if m.inRange(m.CursorX, newY) {
+                m.CursorY = newY
+            }
         case key.Matches(msg, m.keys.Left):
-            m.CursorX = utils.Clamp(m.CursorX-1, 0, GridW-1)
+            newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
+            if m.inRange(newX, m.CursorY) {
+                m.CursorX = newX
+            }
         case key.Matches(msg, m.keys.Right):
-            m.CursorX = utils.Clamp(m.CursorX+1, 0, GridW-1)
+            newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
+            if m.inRange(newX, m.CursorY) {
+                m.CursorX = newX
+            }
 
         case key.Matches(msg, m.keys.Confirm):
             p := Point{m.CursorX, m.CursorY}
@@ -195,6 +226,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 m.Players[m.CurrentPlayer].X = m.CursorX
                 m.Players[m.CurrentPlayer].Y = m.CursorY
                 m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+                next := m.Players[m.CurrentPlayer]
+                m.CursorX = next.X
+                m.CursorY = next.Y
             }
         case key.Matches(msg, m.keys.Help):
             m.help.ShowAll = !m.help.ShowAll
@@ -228,31 +262,32 @@ func (m Model) View() string {
                     break
                 }
             }
-
-            switch {
-            case col == m.CursorX && row == m.CursorY:
-                if playerIdx >= 0 {
-                    cells = append(cells, cursorStyle.Render(
-                        m.Players[playerIdx].Style.Render("■"),
-                    ))
-                } else {
-                    cells = append(cells, cursorStyle.Render("·"))
-                }
-            case playerIdx >= 0:
-                symbol := "■"
-                if playerIdx == m.CurrentPlayer {
-                    symbol = "●"
-                }
-                cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
-            case m.Walls[p]:
-                cells = append(cells, wallStyle.Render("▪"))
-            case m.Water[p]:
-                cells = append(cells, waterStyle.Render("≈"))
-            default:
-                cells = append(cells, cellStyle.Render("·"))
-            }
+	switch {
+	case col == m.CursorX && row == m.CursorY:
+	    if playerIdx >= 0 {
+	        cells = append(cells, cursorStyle.Render(
+	            m.Players[playerIdx].Style.Render(" ■ "),
+	        ))
+	    } else {
+	        cells = append(cells, cursorStyle.Render(" · "))
+	    }
+	case playerIdx >= 0:
+	    symbol := " ■ "
+	    if playerIdx == m.CurrentPlayer {
+	        symbol = " ● "
+	    }
+	    cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
+	case m.Walls[p]:
+	    cells = append(cells, wallStyle.Render(" ■ "))
+	case m.Water[p]:
+	    cells = append(cells, waterStyle.Render(" ≈ "))
+	case m.isInRange(col, row) && !m.Walls[p] && !m.Water[p]:
+	    cells = append(cells, rangeStyle.Render(" · "))
+	default:
+	    cells = append(cells, cellStyle.Render(" · "))
+		}
         }
-        rows = append(rows, strings.Join(cells, " "))
+        rows = append(rows, strings.Join(cells, ""))
     }
 
     grid := strings.Join(rows, "\n")
