@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"hera/generate"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -8,7 +10,7 @@ import (
 )
 
 func main() {
-	p := tea.NewProgram(generate.NewModel())
+	p := tea.NewProgram(generate.NewModel(rand.Intn(3) + 2))
 	if _, err := p.Run(); err != nil {
 		log.Error(err)
 	}

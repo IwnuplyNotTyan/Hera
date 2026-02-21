@@ -27,20 +27,31 @@ var (
 			Width(32)
 	helpStyle = lipgloss.NewStyle().
 			Padding(1, 2)
-
-	playerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF75B7")).
-			Bold(true)
 	cellStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#555555"))
 	wallStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#874BFD"))
 	waterStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#146fba"))
+	cursorStyle = lipgloss.NewStyle().
+		    	Foreground(lipgloss.Color("#FFFFFF")).
+    			Background(lipgloss.Color("#444444"))
 )
+
+var playerStyles = []lipgloss.Style{
+    lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")).Bold(true),
+    lipgloss.NewStyle().Foreground(lipgloss.Color("#75FFBA")).Bold(true),
+    lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD700")).Bold(true),
+    lipgloss.NewStyle().Foreground(lipgloss.Color("#75B7FF")).Bold(true),
+}
 
 type Point struct {
 	X, Y int
+}
+
+type Player struct {
+    X, Y  int
+    Style lipgloss.Style
 }
 
 type keyMap struct {
@@ -48,6 +59,7 @@ type keyMap struct {
 	Down  key.Binding
 	Left  key.Binding
 	Right key.Binding
+	Confirm key.Binding
 	Help  key.Binding
 	Quit  key.Binding
 }
@@ -59,24 +71,42 @@ func (k keyMap) ShortHelp() []key.Binding {
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
-		{k.Help, k.Quit},
 	}
 }
 
-func NewModel() Model {
-	startX, startY := GridW/2, GridH/2
+func NewModel(playerCount int) Model {
+    if playerCount < 2 { playerCount = 2 }
+    if playerCount > 4 { playerCount = 4 }
 
-	walls := GenerateTiles(startX, startY, wallCount, nil)
-	water := GenerateTiles(startX, startY, waterCount, walls)
+    walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
+    water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
 
-	return Model{
-		X:     startX,
-		Y:     startY,
-		Walls: walls,
-		Water: water,
-		keys:  keys,
-		help:  help.New(),
-	}
+    starts := []Point{
+        {X: 1, Y: 1},
+        {X: GridW - 2, Y: GridH - 2},
+        {X: GridW - 2, Y: 1},
+        {X: 1, Y: GridH - 2},
+    }
+
+    players := make([]Player, playerCount)
+    for i := range players {
+        players[i] = Player{
+            X:     starts[i].X,
+            Y:     starts[i].Y,
+            Style: playerStyles[i],
+        }
+    }
+
+    return Model{
+        Players:       players,
+        CurrentPlayer: 0,
+        CursorX:       GridW / 2,
+        CursorY:       GridH / 2,
+        Walls:         walls,
+        Water:         water,
+        keys:          keys,
+        help:          help.New(),
+    }
 }
 
 var keys = keyMap{
@@ -96,6 +126,10 @@ var keys = keyMap{
 		key.WithKeys("right", "l"),
 		key.WithHelp("→/l", "move right"),
 	),
+	Confirm: key.NewBinding(
+        	key.WithKeys("enter"),
+        	key.WithHelp("enter", "move player"),
+    	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "toggle help"),
@@ -107,11 +141,13 @@ var keys = keyMap{
 }
 
 type Model struct {
-	Y, X  int
-	Walls map[Point]bool
-	Water map[Point]bool
-	keys  keyMap
-	help  help.Model
+    Players       []Player
+    CurrentPlayer int
+    CursorX, CursorY int
+    Walls         map[Point]bool
+    Water         map[Point]bool
+    keys          keyMap
+    help          help.Model
 }
 
 func GenerateTiles(playerX, playerY, count int, blocked map[Point]bool) map[Point]bool {
@@ -137,58 +173,91 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Move(newX, newY int) Model {
-	newX = utils.Clamp(newX, 0, GridW-1)
-	newY = utils.Clamp(newY, 0, GridH-1)
-	if !m.Walls[Point{newX, newY}] && !m.Water[Point{newX, newY}] {
-		m.X = newX
-		m.Y = newY
-	}
 	return m
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "up", "k":
-			m = m.Move(m.X, m.Y-1)
-		case "down", "j":
-			m = m.Move(m.X, m.Y+1)
-		case "left", "h":
-			m = m.Move(m.X-1, m.Y)
-		case "right", "l":
-			m = m.Move(m.X+1, m.Y)
-		case "?":
-			m.help.ShowAll = !m.help.ShowAll
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		}
-	}
-	return m, nil
+    switch msg := msg.(type) {
+    case tea.KeyMsg:
+        switch {
+        case key.Matches(msg, m.keys.Up):
+            m.CursorY = utils.Clamp(m.CursorY-1, 0, GridH-1)
+        case key.Matches(msg, m.keys.Down):
+            m.CursorY = utils.Clamp(m.CursorY+1, 0, GridH-1)
+        case key.Matches(msg, m.keys.Left):
+            m.CursorX = utils.Clamp(m.CursorX-1, 0, GridW-1)
+        case key.Matches(msg, m.keys.Right):
+            m.CursorX = utils.Clamp(m.CursorX+1, 0, GridW-1)
+
+        case key.Matches(msg, m.keys.Confirm):
+            p := Point{m.CursorX, m.CursorY}
+            if !m.Walls[p] && !m.Water[p] && !m.occupiedByOther(m.CursorX, m.CursorY) {
+                m.Players[m.CurrentPlayer].X = m.CursorX
+                m.Players[m.CurrentPlayer].Y = m.CursorY
+                m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+            }
+        case key.Matches(msg, m.keys.Help):
+            m.help.ShowAll = !m.help.ShowAll
+        case key.Matches(msg, m.keys.Quit):
+            return m, tea.Quit
+        }
+    }
+    return m, nil
+}
+
+func (m Model) occupiedByOther(x, y int) bool {
+    for i, p := range m.Players {
+        if i != m.CurrentPlayer && p.X == x && p.Y == y {
+            return true
+        }
+    }
+    return false
 }
 
 func (m Model) View() string {
-	var rows []string
-	for row := 0; row < GridH; row++ {
-		var cells []string
-		for col := 0; col < GridW; col++ {
-			switch {
-			case col == m.X && row == m.Y:
-				cells = append(cells, playerStyle.Render(""))
-			case m.Walls[Point{col, row}]:
-				cells = append(cells, wallStyle.Render("▪"))
-			case m.Water[Point{col, row}]:
-				cells = append(cells, waterStyle.Render("≈"))
-			default:
-				cells = append(cells, cellStyle.Render("·"))
-			}
-		}
-		rows = append(rows, strings.Join(cells, " "))
-	}
-	grid := strings.Join(rows, "\n")
+    var rows []string
+    for row := 0; row < GridH; row++ {
+        var cells []string
+        for col := 0; col < GridW; col++ {
+            p := Point{col, row}
 
-	box := boxStyle.Render(grid)
-	helpView := helpStyle.Render(m.help.View(m.keys))
+            playerIdx := -1
+            for i, pl := range m.Players {
+                if pl.X == col && pl.Y == row {
+                    playerIdx = i
+                    break
+                }
+            }
 
-	return lipgloss.JoinVertical(lipgloss.Left, box, helpView)
+            switch {
+            case col == m.CursorX && row == m.CursorY:
+                if playerIdx >= 0 {
+                    cells = append(cells, cursorStyle.Render(
+                        m.Players[playerIdx].Style.Render("■"),
+                    ))
+                } else {
+                    cells = append(cells, cursorStyle.Render("·"))
+                }
+            case playerIdx >= 0:
+                symbol := "■"
+                if playerIdx == m.CurrentPlayer {
+                    symbol = "●"
+                }
+                cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
+            case m.Walls[p]:
+                cells = append(cells, wallStyle.Render("▪"))
+            case m.Water[p]:
+                cells = append(cells, waterStyle.Render("≈"))
+            default:
+                cells = append(cells, cellStyle.Render("·"))
+            }
+        }
+        rows = append(rows, strings.Join(cells, " "))
+    }
+
+    grid := strings.Join(rows, "\n")
+    box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+    helpView := helpStyle.Render(m.help.View(m.keys))
+
+    return lipgloss.JoinVertical(lipgloss.Left, box, helpView)
 }
