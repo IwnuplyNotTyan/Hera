@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	gridSize = 10
+	gridW = 14
+	gridH = 10
 	wallCount = 10
 	waterCount = 10
 )
@@ -23,12 +24,12 @@ var (
 			Foreground(lipgloss.Color("#FAFAFA")).
 			Background(lipgloss.Color("#7D56F4")).
 			Padding(1, 2).
-			Width(25)
+			Width(32)
 	boxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("#874BFD")).
 			Padding(1, 2).
-			Width(23)
+			Width(32)
 	helpStyle = lipgloss.NewStyle().
 			Padding(1, 2)
 
@@ -68,14 +69,18 @@ func (k keyMap) FullHelp() [][]key.Binding {
 }
 
 func newModel() model {
-	startX, startY := gridSize/2, gridSize/2
+	startX, startY := gridW/2, gridH/2
+
+	walls := generateTiles(startX, startY, wallCount, nil)
+	water := generateTiles(startX, startY, waterCount, walls)
+
 	return model{
-		x: 10 / 2,
-		y: 10 / 2,
-		walls: generateWalls(startX, startY),
-		water: generateWater(startX, startY),
-		keys:       keys,
-		help:       help.New(),
+		x:     startX,
+		y:     startY,
+		walls: walls,
+		water: water,
+		keys:  keys,
+		help:  help.New(),
 	}
 }
 
@@ -115,35 +120,22 @@ type model struct {
 	help help.Model
 }
 
-
-func generateWater(PlayerX, PlayerY int) map[point]bool {
-	water := make(map[point]bool)
-	for len(water) < wallCount {
-		x := rand.Intn(gridSize)
-		y := rand.Intn(gridSize)
+func generateTiles(playerX, playerY, count int, blocked map[point]bool) map[point]bool {
+	tiles := make(map[point]bool)
+	for len(tiles) < count {
+		x := rand.Intn(gridW)
+		y := rand.Intn(gridH)
 		p := point{x, y}
 
-		if abs(x-PlayerX) <= 1 && abs(y-PlayerY) <= 1 {
+		if abs(x-playerX) <= 1 && abs(y-playerY) <= 1 {
 			continue
 		}
-		water[p] = true
-	}
-	return water
-}
-
-func generateWalls(PlayerX, PlayerY int) map[point]bool {
-	walls := make(map[point]bool)
-	for len(walls) < wallCount {
-		x := rand.Intn(gridSize)
-		y := rand.Intn(gridSize)
-		p := point{x, y}
-
-		if abs(x-PlayerX) <= 1 && abs(y-PlayerY) <= 1 {
+		if blocked[p] {
 			continue
 		}
-		walls[p] = true
+		tiles[p] = true
 	}
-	return walls
+	return tiles
 }
 
 func abs(x int) int {
@@ -168,8 +160,8 @@ func clamp(val, min, max int) int {
 }
 
 func (m model) Move(newX, newY int) model {
-	newX = clamp(newX, 0, gridSize-1)
-	newY = clamp(newY, 0, gridSize-1)
+	newX = clamp(newX, 0, gridW-1)
+	newY = clamp(newY, 0, gridH-1)
 	if !m.walls[point{newX, newY}] && !m.water[point{newX, newY}] {
 		m.x = newX
 		m.y = newY
@@ -200,9 +192,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var rows []string
-	for row := 0; row < 10; row++ {
+	for row := 0; row < gridH; row++ {
 		var cells []string
-		for col := 0; col < 10; col++ {
+		for col := 0; col < gridW; col++ {
 			switch {
 			case col == m.x && row == m.y:
 				cells = append(cells, playerStyle.Render(""))
