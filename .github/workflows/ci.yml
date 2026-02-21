@@ -56,6 +56,10 @@ jobs:
           cache: true
 
       - name: Build
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: 0
         run: go build -v -o ./bin/hera ./...
 
       - name: Upload binary
