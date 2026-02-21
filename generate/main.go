@@ -1,19 +1,20 @@
-package main
+package generate
 
 import (
 	"math/rand"
 	"strings"
 
+	"hera/utils"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/log"
 )
 
 const (
-	gridW      = 14
-	gridH      = 10
+	GridW      = 14
+	GridH      = 10
 	wallCount  = 10
 	waterCount = 10
 )
@@ -38,8 +39,8 @@ var (
 			Foreground(lipgloss.Color("#146fba"))
 )
 
-type point struct {
-	x, y int
+type Point struct {
+	X, Y int
 }
 
 type keyMap struct {
@@ -62,17 +63,17 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-func newModel() model {
-	startX, startY := gridW/2, gridH/2
+func NewModel() Model {
+	startX, startY := GridW/2, GridH/2
 
-	walls := generateTiles(startX, startY, wallCount, nil)
-	water := generateTiles(startX, startY, waterCount, walls)
+	walls := GenerateTiles(startX, startY, wallCount, nil)
+	water := GenerateTiles(startX, startY, waterCount, walls)
 
-	return model{
-		x:     startX,
-		y:     startY,
-		walls: walls,
-		water: water,
+	return Model{
+		X:     startX,
+		Y:     startY,
+		Walls: walls,
+		Water: water,
 		keys:  keys,
 		help:  help.New(),
 	}
@@ -105,22 +106,22 @@ var keys = keyMap{
 	),
 }
 
-type model struct {
-	x, y  int
-	walls map[point]bool
-	water map[point]bool
+type Model struct {
+	Y, X  int
+	Walls map[Point]bool
+	Water map[Point]bool
 	keys  keyMap
 	help  help.Model
 }
 
-func generateTiles(playerX, playerY, count int, blocked map[point]bool) map[point]bool {
-	tiles := make(map[point]bool)
+func GenerateTiles(playerX, playerY, count int, blocked map[Point]bool) map[Point]bool {
+	tiles := make(map[Point]bool)
 	for len(tiles) < count {
-		x := rand.Intn(gridW)
-		y := rand.Intn(gridH)
-		p := point{x, y}
+		x := rand.Intn(GridW)
+		y := rand.Intn(GridH)
+		p := Point{x, y}
 
-		if abs(x-playerX) <= 1 && abs(y-playerY) <= 1 {
+		if utils.Abs(x-playerX) <= 1 && utils.Abs(y-playerY) <= 1 {
 			continue
 		}
 		if blocked[p] {
@@ -131,49 +132,32 @@ func generateTiles(playerX, playerY, count int, blocked map[point]bool) map[poin
 	return tiles
 }
 
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func clamp(val, min, max int) int {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
-}
-
-func (m model) Move(newX, newY int) model {
-	newX = clamp(newX, 0, gridW-1)
-	newY = clamp(newY, 0, gridH-1)
-	if !m.walls[point{newX, newY}] && !m.water[point{newX, newY}] {
-		m.x = newX
-		m.y = newY
+func (m Model) Move(newX, newY int) Model {
+	newX = utils.Clamp(newX, 0, GridW-1)
+	newY = utils.Clamp(newY, 0, GridH-1)
+	if !m.Walls[Point{newX, newY}] && !m.Water[Point{newX, newY}] {
+		m.X = newX
+		m.Y = newY
 	}
 	return m
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
-			m = m.Move(m.x, m.y-1)
+			m = m.Move(m.X, m.Y-1)
 		case "down", "j":
-			m = m.Move(m.x, m.y+1)
+			m = m.Move(m.X, m.Y+1)
 		case "left", "h":
-			m = m.Move(m.x-1, m.y)
+			m = m.Move(m.X-1, m.Y)
 		case "right", "l":
-			m = m.Move(m.x+1, m.y)
+			m = m.Move(m.X+1, m.Y)
 		case "?":
 			m.help.ShowAll = !m.help.ShowAll
 		case "q", "ctrl+c":
@@ -183,17 +167,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m Model) View() string {
 	var rows []string
-	for row := 0; row < gridH; row++ {
+	for row := 0; row < GridH; row++ {
 		var cells []string
-		for col := 0; col < gridW; col++ {
+		for col := 0; col < GridW; col++ {
 			switch {
-			case col == m.x && row == m.y:
+			case col == m.X && row == m.Y:
 				cells = append(cells, playerStyle.Render(""))
-			case m.walls[point{col, row}]:
+			case m.Walls[Point{col, row}]:
 				cells = append(cells, wallStyle.Render("▪"))
-			case m.water[point{col, row}]:
+			case m.Water[Point{col, row}]:
 				cells = append(cells, waterStyle.Render("≈"))
 			default:
 				cells = append(cells, cellStyle.Render("·"))
@@ -209,9 +193,3 @@ func (m model) View() string {
 	return lipgloss.JoinVertical(lipgloss.Left, box, helpView)
 }
 
-func main() {
-	p := tea.NewProgram(newModel())
-	if _, err := p.Run(); err != nil {
-		log.Error(err)
-	}
-}

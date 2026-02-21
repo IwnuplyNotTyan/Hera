@@ -1,4 +1,4 @@
-module test
+module hera
 
 go 1.25.5
 

@@ -60,7 +60,7 @@ jobs:
           GOOS: linux
           GOARCH: amd64
           CGO_ENABLED: 0
-        run: go build -v -o ./bin/hera ./...
+        run: go build -v -o ./bin/hera ./cmd/hera/main.go
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
