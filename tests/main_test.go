@@ -59,10 +59,10 @@ func TestGenerateTiles_NoOverlapWithBlocked(t *testing.T) {
 
 func testModel() generate.Model {
 	walls := map[generate.Point]bool{
-		{3, 5}: true,
+		{X: 3, Y: 5}: true,
 	}
 	water := map[generate.Point]bool{
-		{5, 3}: true,
+		{X: 5, Y: 3}: true,
 	}
 	return generate.Model{
 		X:     4,
