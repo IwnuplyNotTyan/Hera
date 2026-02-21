@@ -13,7 +13,8 @@ import (
 
 const (
 	gridSize = 10
-	wallCount = 15
+	wallCount = 10
+	waterCount = 10
 )
 
 var (
@@ -38,6 +39,8 @@ var (
 			Foreground(lipgloss.Color("#555555"))
 	wallStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#874BFD"))
+	waterStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#146fba"))
 )
 
 type point struct {
@@ -70,6 +73,7 @@ func newModel() model {
 		x: 10 / 2,
 		y: 10 / 2,
 		walls: generateWalls(startX, startY),
+		water: generateWater(startX, startY),
 		keys:       keys,
 		help:       help.New(),
 	}
@@ -106,8 +110,25 @@ type model struct {
 	x, y int
 	width, height int
 	walls map[point]bool
+	water map[point]bool
 	keys keyMap
 	help help.Model
+}
+
+
+func generateWater(PlayerX, PlayerY int) map[point]bool {
+	water := make(map[point]bool)
+	for len(water) < wallCount {
+		x := rand.Intn(gridSize)
+		y := rand.Intn(gridSize)
+		p := point{x, y}
+
+		if abs(x-PlayerX) <= 1 && abs(y-PlayerY) <= 1 {
+			continue
+		}
+		water[p] = true
+	}
+	return water
 }
 
 func generateWalls(PlayerX, PlayerY int) map[point]bool {
@@ -149,7 +170,7 @@ func clamp(val, min, max int) int {
 func (m model) Move(newX, newY int) model {
 	newX = clamp(newX, 0, gridSize-1)
 	newY = clamp(newY, 0, gridSize-1)
-	if !m.walls[point{newX, newY}] {
+	if !m.walls[point{newX, newY}] && !m.water[point{newX, newY}] {
 		m.x = newX
 		m.y = newY
 	}
@@ -187,6 +208,8 @@ func (m model) View() string {
 				cells = append(cells, playerStyle.Render(""))
 			case m.walls[point{col, row}]:
 				cells = append(cells, wallStyle.Render("▪"))
+			case m.water[point{col, row}]:
+				cells = append(cells, waterStyle.Render("≈"))
 			default:
 				cells = append(cells, cellStyle.Render("·"))
 			}

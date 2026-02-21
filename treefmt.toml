@@ -1,4 +1,4 @@
 [formatter.goimports]
-command = "goimports-reviser"
+command = "goimports"
 includes = ["*.go"]
 priority = 1
