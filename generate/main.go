@@ -222,7 +222,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case key.Matches(msg, m.keys.Confirm):
             p := Point{m.CursorX, m.CursorY}
-            if !m.Walls[p] && !m.Water[p] && !m.occupiedByOther(m.CursorX, m.CursorY) {
+            if !m.Walls[p] && !m.Water[p] && !m.OccupiedByOther(m.CursorX, m.CursorY) {
                 m.Players[m.CurrentPlayer].X = m.CursorX
                 m.Players[m.CurrentPlayer].Y = m.CursorY
                 m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
@@ -239,7 +239,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     return m, nil
 }
 
-func (m Model) occupiedByOther(x, y int) bool {
+func (m Model) OccupiedByOther(x, y int) bool {
     for i, p := range m.Players {
         if i != m.CurrentPlayer && p.X == x && p.Y == y {
             return true
