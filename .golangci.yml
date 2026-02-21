@@ -1,8 +1,34 @@
+version: "2"
 linters:
   enable:
-    - thelper
-    - gofumpt
-    - tparallel
-    - unconvert
-    - unparam
-    - wastedassign
+    - godot
+    - misspell
+    - whitespace
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - errcheck
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/iwnuplynottyan/hera
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

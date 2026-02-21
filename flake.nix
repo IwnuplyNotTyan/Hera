@@ -16,6 +16,7 @@
 				go
 				gopls
 				gotools
+				golangci-lint			
 			];
 
 			shellHook = ''

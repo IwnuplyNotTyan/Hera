@@ -2,3 +2,9 @@
 command = "goimports"
 includes = ["*.go"]
 priority = 1
+
+[formatter.golangci-lint]
+command = "golangci-lint"
+options = ["run", "--fix"]
+includes = ["*.go"]
+priority = 2

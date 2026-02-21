@@ -1,8 +1,8 @@
 package main
 
 import (
-	"strings"
 	"math/rand"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -12,19 +12,13 @@ import (
 )
 
 const (
-	gridW = 14
-	gridH = 10
-	wallCount = 10
+	gridW      = 14
+	gridH      = 10
+	wallCount  = 10
 	waterCount = 10
 )
 
 var (
-	titleStyle = lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Background(lipgloss.Color("#7D56F4")).
-			Padding(1, 2).
-			Width(32)
 	boxStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("#874BFD")).
@@ -64,7 +58,7 @@ func (k keyMap) ShortHelp() []key.Binding {
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
-		{k.Help, k.Quit},                
+		{k.Help, k.Quit},
 	}
 }
 
@@ -112,12 +106,11 @@ var keys = keyMap{
 }
 
 type model struct {
-	x, y int
-	width, height int
+	x, y  int
 	walls map[point]bool
 	water map[point]bool
-	keys keyMap
-	help help.Model
+	keys  keyMap
+	help  help.Model
 }
 
 func generateTiles(playerX, playerY, count int, blocked map[point]bool) map[point]bool {
