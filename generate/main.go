@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -161,8 +162,8 @@ type Model struct {
 	Walls            map[Point]bool
 	Water            map[Point]bool
 	ShootMode        bool
-    	Moved		 bool
-	Shot 		 bool
+	Moved            bool
+	Shot             bool
 	keys             keyMap
 	help             help.Model
 }
@@ -194,118 +195,190 @@ func (m Model) Move(newX, newY int) Model {
 }
 
 func (m Model) currentRange() int {
-    if m.ShootMode {
-        return shootRange
-    }
-    return moveRange
+	if m.ShootMode {
+		return shootRange
+	}
+	return moveRange
 }
 
 func (m Model) isInRange(col, row int) bool {
-    current := m.Players[m.CurrentPlayer]
-    dx := utils.Abs(col - current.X)
-    dy := utils.Abs(row - current.Y)
-    r := m.currentRange()
-    return dx+dy <= r && dx+dy > 0
+	current := m.Players[m.CurrentPlayer]
+	dx := utils.Abs(col - current.X)
+	dy := utils.Abs(row - current.Y)
+	r := m.currentRange()
+	return dx+dy <= r && dx+dy > 0
 }
 
 func (m Model) inRange(x, y int) bool {
-    current := m.Players[m.CurrentPlayer]
-    dx := utils.Abs(x - current.X)
-    dy := utils.Abs(y - current.Y)
-    return dx+dy <= m.currentRange()
+	current := m.Players[m.CurrentPlayer]
+	dx := utils.Abs(x - current.X)
+	dy := utils.Abs(y - current.Y)
+	return dx+dy <= m.currentRange()
+}
+
+func (m Model) hasWallBetween(x0, y0, x1, y1 int) bool {
+	dx := utils.Abs(x1 - x0)
+	dy := utils.Abs(y1 - y0)
+	sx := 1
+	if x0 > x1 {
+		sx = -1
+	}
+	sy := 1
+	if y0 > y1 {
+		sy = -1
+	}
+	err := dx - dy
+
+	for {
+		if !(x0 == x1 && y0 == y1) && !(x0 == m.Players[m.CurrentPlayer].X && y0 == m.Players[m.CurrentPlayer].Y) {
+			if m.Walls[Point{x0, y0}] {
+				return true
+			}
+		}
+		if x0 == x1 && y0 == y1 {
+			break
+		}
+		e2 := 2 * err
+		if e2 > -dy {
+			err -= dy
+			x0 += sx
+		}
+		if e2 < dx {
+			err += dx
+			y0 += sy
+		}
+	}
+	return false
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-    if !m.Moved && !m.Shot {
-    } else if m.Moved {
-	    m.ShootMode = true
-    } else {
-	    m.ShootMode = false
-    }
+	if !m.Moved && !m.Shot {
+	} else if m.Moved {
+		m.ShootMode = true
+	} else {
+		m.ShootMode = false
+	}
 
-    switch msg := msg.(type) {
-    case tea.KeyMsg:
-        switch {
-        case key.Matches(msg, m.keys.Up):
-            newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
-            if m.inRange(m.CursorX, newY) {
-                m.CursorY = newY
-            }
-        case key.Matches(msg, m.keys.Down):
-            newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
-            if m.inRange(m.CursorX, newY) {
-                m.CursorY = newY
-            }
-        case key.Matches(msg, m.keys.Left):
-            newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
-            if m.inRange(newX, m.CursorY) {
-                m.CursorX = newX
-            }
-        case key.Matches(msg, m.keys.Right):
-            newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
-            if m.inRange(newX, m.CursorY) {
-                m.CursorX = newX
-            }
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Up):
+			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
+			if m.inRange(m.CursorX, newY) {
+				m.CursorY = newY
+			}
+		case key.Matches(msg, m.keys.Down):
+			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
+			if m.inRange(m.CursorX, newY) {
+				m.CursorY = newY
+			}
+		case key.Matches(msg, m.keys.Left):
+			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
+			if m.inRange(newX, m.CursorY) {
+				m.CursorX = newX
+			}
+		case key.Matches(msg, m.keys.Right):
+			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
+			if m.inRange(newX, m.CursorY) {
+				m.CursorX = newX
+			}
 
-        case key.Matches(msg, m.keys.Shoot):
-            if !m.Shot {
-        	m.ShootMode = !m.ShootMode
-        	current := m.Players[m.CurrentPlayer]
-        	m.CursorX = current.X
-        	m.CursorY = current.Y
-	    }
-	case key.Matches(msg, m.keys.Confirm):
-            p := Point{m.CursorX, m.CursorY}
+		case key.Matches(msg, m.keys.Shoot):
+			if !m.Shot {
+				m.ShootMode = !m.ShootMode
+				current := m.Players[m.CurrentPlayer]
+				m.CursorX = current.X
+				m.CursorY = current.Y
+			}
+		case key.Matches(msg, m.keys.Confirm):
+			p := Point{m.CursorX, m.CursorY}
+			current := m.Players[m.CurrentPlayer]
+			wallBlocked := m.hasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
 
-            if m.ShootMode && !m.Shot {
-                if !m.Walls[p] {
-                    for i, pl := range m.Players {
-                        if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
-                            m.Players = append(m.Players[:i], m.Players[i+1:]...)
-                            if m.CurrentPlayer >= len(m.Players) {
-                                m.CurrentPlayer = 0
-                            }
-                            break
-                        }
-                    }
-		    m.Shot = true
-		    m.ShootMode = false
-		    current := m.Players[m.CurrentPlayer]
-		    m.CursorX = current.X
-		    m.CursorY = current.Y
-                }
-	    } else if !m.ShootMode && !m.Moved {
-		    if !m.Walls[p] && !m.OccupiedByOther(m.CursorX, m.CursorY) {
-			        m.Players[m.CurrentPlayer].X = m.CursorX
-            			m.Players[m.CurrentPlayer].Y = m.CursorY
-        			m.Moved = true
-            			m.CursorX = m.Players[m.CurrentPlayer].X
-            			m.CursorY = m.Players[m.CurrentPlayer].Y
-		    }
-	    }
+			if m.ShootMode && !m.Shot {
+				if !m.Walls[p] && !wallBlocked {
+					for i, pl := range m.Players {
+						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
+							m.Players = append(m.Players[:i], m.Players[i+1:]...)
+							if m.CurrentPlayer >= len(m.Players) {
+								m.CurrentPlayer = 0
+							}
+							break
+						}
+					}
+					m.Shot = true
+					m.ShootMode = false
+					cur := m.Players[m.CurrentPlayer]
+					m.CursorX = cur.X
+					m.CursorY = cur.Y
+				}
+			} else if !m.ShootMode && !m.Moved {
+				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+					m.Players[m.CurrentPlayer].X = m.CursorX
+					m.Players[m.CurrentPlayer].Y = m.CursorY
+					m.Moved = true
+					m.CursorX = m.Players[m.CurrentPlayer].X
+					m.CursorY = m.Players[m.CurrentPlayer].Y
+				}
+			}
 
-	if m.Moved && m.Shot {
-        	m = m.nextTurn()
-    	}
+			if m.Moved && m.Shot {
+				m = m.nextTurn()
+			}
 
-        case key.Matches(msg, m.keys.Help):
-            m.help.ShowAll = !m.help.ShowAll
-        case key.Matches(msg, m.keys.Quit):
-            return m, tea.Quit
-        }
-    }
-    return m, nil
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, m.keys.Quit):
+			return m, tea.Quit
+		}
+	}
+	return m, nil
 }
 
 func (m Model) nextTurn() Model {
-    m.Moved = false
-    m.Shot  = false
-    m.ShootMode = false
-    m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
-    next := m.Players[m.CurrentPlayer]
-    m.CursorX = next.X
-    m.CursorY = next.Y
-    return m
+	m.Moved = false
+	m.Shot = false
+	m.ShootMode = false
+	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+	next := m.Players[m.CurrentPlayer]
+	m.CursorX = next.X
+	m.CursorY = next.Y
+	return m
+}
+func (m Model) cursorInfo() string {
+	p := Point{m.CursorX, m.CursorY}
+	current := m.Players[m.CurrentPlayer]
+	wallBlocked := m.hasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
+
+	for i, pl := range m.Players {
+		if pl.X == m.CursorX && pl.Y == m.CursorY {
+			if i == m.CurrentPlayer {
+				return pl.Style.Render(fmt.Sprintf("● Player %d (you)", i+1))
+			}
+			if wallBlocked {
+				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+					Render(fmt.Sprintf("■ Player %d — wall in the way", i+1))
+			}
+			return pl.Style.Render(fmt.Sprintf("■ Player %d", i+1))
+		}
+	}
+
+	switch {
+	case m.Walls[p]:
+		return wallStyle.Render("■ Wall — impassable")
+	case wallBlocked:
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+			Render("⊘ Wall in the way")
+	case m.Water[p]:
+		return waterStyle.Render("≈ Water — passable")
+	case m.isInRange(m.CursorX, m.CursorY):
+		if m.ShootMode {
+			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render("· In shoot range")
+		}
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("#AAAAAA")).Render("· In move range")
+	default:
+		return cellStyle.Render("· Empty — out of range")
+	}
 }
 
 func (m Model) OccupiedByOther(x, y int) bool {
@@ -318,61 +391,70 @@ func (m Model) OccupiedByOther(x, y int) bool {
 }
 
 func (m Model) View() string {
-    var modeStr string
-    if m.ShootMode {
-        modeStr = lipgloss.NewStyle().
-            Foreground(lipgloss.Color("#FF4444")).
-            Bold(true).
-            Render("♡ S ")
-    } else {
-        modeStr = lipgloss.NewStyle().
-            Foreground(lipgloss.Color("#AAAAAA")).
-            Render("♧ M ")
-    }
+	var modeStr string
+	if m.ShootMode {
+		modeStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF4444")).
+			Bold(true).
+			Render("♡ S ")
+	} else {
+		modeStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#AAAAAA")).
+			Render("♧ M ")
+	}
 
-    var rows []string
-    for row := 0; row < GridH; row++ {
-        var cells []string
-        for col := 0; col < GridW; col++ {
-            p := Point{col, row}
-            playerIdx := -1
-            for i, pl := range m.Players {
-                if pl.X == col && pl.Y == row {
-                    playerIdx = i
-                    break
-                }
-            }
-            switch {
-            case col == m.CursorX && row == m.CursorY:
-                if playerIdx >= 0 {
-                    cells = append(cells, cursorStyle.Render(
-                        m.Players[playerIdx].Style.Render(" ■ "),
-                    ))
-                } else {
-                    cells = append(cells, cursorStyle.Render(" · "))
-                }
-            case playerIdx >= 0:
-                symbol := " ■ "
-                if playerIdx == m.CurrentPlayer {
-                    symbol = " ● "
-                }
-                cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
-            case m.Walls[p]:
-                cells = append(cells, wallStyle.Render(" ■ "))
-            case m.Water[p]:
-                cells = append(cells, waterStyle.Render(" ≈ "))
-            case m.isInRange(col, row):
-                    cells = append(cells, rangeStyle.Render(" · "))
-            default:
-                cells = append(cells, cellStyle.Render(" · "))
-            }
-        }
-        rows = append(rows, strings.Join(cells, ""))
-    }
+	var rows []string
+	for row := 0; row < GridH; row++ {
+		var cells []string
+		for col := 0; col < GridW; col++ {
+			p := Point{col, row}
+			playerIdx := -1
+			for i, pl := range m.Players {
+				if pl.X == col && pl.Y == row {
+					playerIdx = i
+					break
+				}
+			}
+			switch {
+			case col == m.CursorX && row == m.CursorY:
+				if playerIdx >= 0 {
+					cells = append(cells, cursorStyle.Render(
+						m.Players[playerIdx].Style.Render(" ■ "),
+					))
+				} else {
+					cells = append(cells, cursorStyle.Render(" · "))
+				}
+			case playerIdx >= 0:
+				symbol := " ■ "
+				if playerIdx == m.CurrentPlayer {
+					symbol = " ● "
+				}
+				cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
+			case m.Walls[p]:
+				cells = append(cells, wallStyle.Render(" ■ "))
+			case m.Water[p]:
+				cells = append(cells, waterStyle.Render(" ≈ "))
+			case m.isInRange(col, row):
+				cells = append(cells, rangeStyle.Render(" · "))
+			default:
+				cells = append(cells, cellStyle.Render(" · "))
+			}
+		}
+		rows = append(rows, strings.Join(cells, ""))
+	}
 
-    grid := strings.Join(rows, "\n")
-    status := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, modeStr))
-    box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
-    helpView := helpStyle.Render(m.help.View(m.keys))
-    return lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	info := m.cursorInfo()
+	statusContent := lipgloss.JoinVertical(lipgloss.Left,
+		modeStr,
+		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
+			fmt.Sprintf("(%d, %d)", m.CursorX, m.CursorY),
+		),
+		info,
+	)
+	status := boxStyle.Render(statusContent)
+
+	grid := strings.Join(rows, "\n")
+	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+	helpView := helpStyle.Render(m.help.View(m.keys))
+	return lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
 }
