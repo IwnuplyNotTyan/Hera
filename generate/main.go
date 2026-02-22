@@ -216,6 +216,13 @@ func (m Model) inRange(x, y int) bool {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    if !m.Moved && !m.Shot {
+    } else if m.Moved {
+	    m.ShootMode = true
+    } else {
+	    m.ShootMode = false
+    }
+
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch {
@@ -242,13 +249,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
         case key.Matches(msg, m.keys.Shoot):
             if !m.Shot {
-                m.ShootMode = !m.ShootMode
-                current := m.Players[m.CurrentPlayer]
-                m.CursorX = current.X
-                m.CursorY = current.Y
-            }
-
-        case key.Matches(msg, m.keys.Confirm):
+        	m.ShootMode = !m.ShootMode
+        	current := m.Players[m.CurrentPlayer]
+        	m.CursorX = current.X
+        	m.CursorY = current.Y
+	    }
+	case key.Matches(msg, m.keys.Confirm):
             p := Point{m.CursorX, m.CursorY}
 
             if m.ShootMode && !m.Shot {
@@ -317,11 +323,11 @@ func (m Model) View() string {
         modeStr = lipgloss.NewStyle().
             Foreground(lipgloss.Color("#FF4444")).
             Bold(true).
-            Render("⁖ SHOOT")
+            Render("♡ S ")
     } else {
         modeStr = lipgloss.NewStyle().
             Foreground(lipgloss.Color("#AAAAAA")).
-            Render("⁕ MOVE ")
+            Render("♧ M ")
     }
 
     var rows []string
