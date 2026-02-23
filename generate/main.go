@@ -201,7 +201,7 @@ func (m Model) currentRange() int {
 	return moveRange
 }
 
-func (m Model) isInRange(col, row int) bool {
+func (m Model) IsInRange(col, row int) bool {
     current := m.Players[m.CurrentPlayer]
     dx := utils.Abs(col - current.X)
     dy := utils.Abs(row - current.Y)
@@ -209,7 +209,7 @@ func (m Model) isInRange(col, row int) bool {
     if dx+dy > r || dx+dy == 0 {
         return false
     }
-    return !m.hasWallBetween(current.X, current.Y, col, row)
+    return !m.HasWallBetween(current.X, current.Y, col, row)
 }
 
 func (m Model) inRange(x, y int) bool {
@@ -219,39 +219,41 @@ func (m Model) inRange(x, y int) bool {
 	return dx+dy <= m.currentRange()
 }
 
-func (m Model) hasWallBetween(x0, y0, x1, y1 int) bool {
-	dx := utils.Abs(x1 - x0)
-	dy := utils.Abs(y1 - y0)
-	sx := 1
-	if x0 > x1 {
-		sx = -1
-	}
-	sy := 1
-	if y0 > y1 {
-		sy = -1
-	}
-	err := dx - dy
+func (m Model) HasWallBetween(x0, y0, x1, y1 int) bool {
+    dx := utils.Abs(x1 - x0)
+    dy := utils.Abs(y1 - y0)
+    sx := 1
+    if x0 > x1 {
+        sx = -1
+    }
+    sy := 1
+    if y0 > y1 {
+        sy = -1
+    }
+    err := dx - dy
+    startX := m.Players[m.CurrentPlayer].X
+    startY := m.Players[m.CurrentPlayer].Y
 
-	for {
-		if !(x0 == x1 && y0 == y1) && !(x0 == m.Players[m.CurrentPlayer].X && y0 == m.Players[m.CurrentPlayer].Y) {
-			if m.Walls[Point{x0, y0}] {
-				return true
-			}
-		}
-		if x0 == x1 && y0 == y1 {
-			break
-		}
-		e2 := 2 * err
-		if e2 > -dy {
-			err -= dy
-			x0 += sx
-		}
-		if e2 < dx {
-			err += dx
-			y0 += sy
-		}
-	}
-	return false
+    for {
+        if (x0 != x1 || y0 != y1) && (x0 != startX || y0 != startY) {
+            if m.Walls[Point{x0, y0}] {
+                return true
+            }
+        }
+        if x0 == x1 && y0 == y1 {
+            break
+        }
+        e2 := 2 * err
+        if e2 > -dy {
+            err -= dy
+            x0 += sx
+        }
+        if e2 < dx {
+            err += dx
+            y0 += sy
+        }
+    }
+    return false
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -296,7 +298,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Confirm):
 			p := Point{m.CursorX, m.CursorY}
 			current := m.Players[m.CurrentPlayer]
-			wallBlocked := m.hasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
+			wallBlocked := m.HasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
 
 			if m.ShootMode && !m.Shot {
 				if !m.Walls[p] && !wallBlocked {
@@ -351,7 +353,7 @@ func (m Model) nextTurn() Model {
 func (m Model) cursorInfo() string {
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
-	wallBlocked := m.hasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
+	wallBlocked := m.HasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -374,7 +376,7 @@ func (m Model) cursorInfo() string {
 			Render("⊘ Wall in the way")
 	case m.Water[p]:
 		return waterStyle.Render("≈ Water — passable")
-	case m.isInRange(m.CursorX, m.CursorY):
+	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render("· In shoot range")
 		}
@@ -437,7 +439,7 @@ func (m Model) View() string {
 				cells = append(cells, wallStyle.Render(" ■ "))
 			case m.Water[p]:
 				cells = append(cells, waterStyle.Render(" ≈ "))
-			case m.isInRange(col, row):
+			case m.IsInRange(col, row):
 				cells = append(cells, rangeStyle.Render(" · "))
 			default:
 				cells = append(cells, cellStyle.Render(" · "))
