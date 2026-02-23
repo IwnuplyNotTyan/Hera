@@ -20,6 +20,7 @@ const (
 	waterCount = 10
 	moveRange  = 4
 	shootRange = 2
+	MaxHP	   = 3
 )
 
 var (
@@ -56,6 +57,7 @@ type Point struct {
 
 type Player struct {
 	X, Y  int
+	HP    int
 	Style lipgloss.Style
 }
 
@@ -104,6 +106,7 @@ func NewModel(playerCount int) Model {
 		players[i] = Player{
 			X:     starts[i].X,
 			Y:     starts[i].Y,
+			HP:    MaxHP,
 			Style: playerStyles[i],
 		}
 	}
@@ -299,24 +302,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p := Point{m.CursorX, m.CursorY}
 			current := m.Players[m.CurrentPlayer]
 			wallBlocked := m.HasWallBetween(current.X, current.Y, m.CursorX, m.CursorY)
-
 			if m.ShootMode && !m.Shot {
-				if !m.Walls[p] && !wallBlocked {
-					for i, pl := range m.Players {
-						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
-							m.Players = append(m.Players[:i], m.Players[i+1:]...)
-							if m.CurrentPlayer >= len(m.Players) {
-								m.CurrentPlayer = 0
-							}
-							break
-						}
-					}
-					m.Shot = true
-					m.ShootMode = false
-					cur := m.Players[m.CurrentPlayer]
-					m.CursorX = cur.X
-					m.CursorY = cur.Y
-				}
+    if !m.Walls[p] && !m.HasWallBetween(current.X, current.Y, m.CursorX, m.CursorY) {
+        for i, pl := range m.Players {
+            if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
+                m.Players[i].HP--
+                if m.Players[i].HP <= 0 {
+                    m.Players = append(m.Players[:i], m.Players[i+1:]...)
+                    if m.CurrentPlayer >= len(m.Players) {
+                        m.CurrentPlayer = 0
+                    }
+                }
+                break
+            }
+        }
+        m.Shot = true
+        m.ShootMode = false
+        cur := m.Players[m.CurrentPlayer]
+        m.CursorX = cur.X
+        m.CursorY = cur.Y
+    }
 			} else if !m.ShootMode && !m.Moved {
 				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
@@ -357,14 +362,15 @@ func (m Model) cursorInfo() string {
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
+			hp := strings.Repeat("♥ ", pl.HP) + strings.Repeat("♡ ", MaxHP-pl.HP)
 			if i == m.CurrentPlayer {
-				return pl.Style.Render(fmt.Sprintf("● Player %d (you)", i+1))
+				return pl.Style.Render(fmt.Sprintf("● Player %s (you)", hp))
 			}
 			if wallBlocked {
 				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(fmt.Sprintf("■ Player %d — wall in the way", i+1))
 			}
-			return pl.Style.Render(fmt.Sprintf("■ Player %d", i+1))
+			return pl.Style.Render(fmt.Sprintf("■ Player %s", hp))
 		}
 	}
 
@@ -396,6 +402,11 @@ func (m Model) OccupiedByOther(x, y int) bool {
 }
 
 func (m Model) View() string {
+	current := m.Players[m.CurrentPlayer]
+	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
+	hpStr := current.Style.Render(fmt.Sprintf("Player %d  %s", m.CurrentPlayer+1, hp))
+
+
 	var modeStr string
 	if m.ShootMode {
 		modeStr = lipgloss.NewStyle().
@@ -450,6 +461,7 @@ func (m Model) View() string {
 
 	info := m.cursorInfo()
 	statusContent := lipgloss.JoinVertical(lipgloss.Left,
+		hpStr,	
 		modeStr,
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
 			fmt.Sprintf("(%d, %d)", m.CursorX, m.CursorY),
