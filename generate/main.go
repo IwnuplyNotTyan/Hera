@@ -460,16 +460,21 @@ func (m Model) View() string {
 	}
 
 	info := m.cursorInfo()
-	statusContent := lipgloss.JoinVertical(lipgloss.Left,
-		hpStr,	
-		modeStr,
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
-			fmt.Sprintf("(%d, %d)", m.CursorX, m.CursorY),
-		),
-		info,
-	)
-	status := boxStyle.Render(statusContent)
 
+line1 := lipgloss.JoinHorizontal(lipgloss.Top,
+    modeStr,
+    " ",
+    hpStr,
+)
+
+line2 := lipgloss.JoinHorizontal(lipgloss.Top,
+    lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
+        fmt.Sprintf("(%d, %d)  ", m.CursorX, m.CursorY),
+    ),
+    info,
+)
+
+status := boxStyle.Render(fmt.Sprintf("%s\n%s", line1, line2))
 	grid := strings.Join(rows, "\n")
 	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := helpStyle.Render(m.help.View(m.keys))
