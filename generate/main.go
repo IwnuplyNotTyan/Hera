@@ -202,11 +202,14 @@ func (m Model) currentRange() int {
 }
 
 func (m Model) isInRange(col, row int) bool {
-	current := m.Players[m.CurrentPlayer]
-	dx := utils.Abs(col - current.X)
-	dy := utils.Abs(row - current.Y)
-	r := m.currentRange()
-	return dx+dy <= r && dx+dy > 0
+    current := m.Players[m.CurrentPlayer]
+    dx := utils.Abs(col - current.X)
+    dy := utils.Abs(row - current.Y)
+    r := m.currentRange()
+    if dx+dy > r || dx+dy == 0 {
+        return false
+    }
+    return !m.hasWallBetween(current.X, current.Y, col, row)
 }
 
 func (m Model) inRange(x, y int) bool {
