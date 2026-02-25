@@ -51,11 +51,25 @@ var playerStyles = []lipgloss.Style{
 	lipgloss.NewStyle().Foreground(lipgloss.Color("#75B7FF")).Bold(true),
 }
 
+
+var enemysStyles = []lipgloss.Style{
+	lipgloss.NewStyle().Foreground(lipgloss.Color("#ffcbe4")).Bold(true),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("#a2ffd0")).Bold(true),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("#ffdb1e")).Bold(true),
+	lipgloss.NewStyle().Foreground(lipgloss.Color("#84befe")).Bold(true),
+}
+
 type Point struct {
 	X, Y int
 }
 
 type Player struct {
+	X, Y  int
+	HP    int
+	Style lipgloss.Style
+}
+
+type Enemy struct {
 	X, Y  int
 	HP    int
 	Style lipgloss.Style
@@ -83,13 +97,15 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-func NewModel(playerCount int) Model {
+func NewModel(playerCount, enemysCount int) Model {
 	if playerCount < 2 {
 		playerCount = 2
 	}
 	if playerCount > 4 {
 		playerCount = 4
 	}
+
+	blocked := make(map[Point]bool)
 
 	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
 	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
@@ -111,9 +127,34 @@ func NewModel(playerCount int) Model {
 		}
 	}
 
+		for _, p := range players {
+        	blocked[Point{p.X, p.Y}] = true
+ 	}
+
+    	for p := range walls { blocked[p] = true }
+    	for p := range water { blocked[p] = true }
+
+    	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemysCount, blocked)
+    	enemyPositions := make([]Point, 0, enemysCount)
+    	for p := range enemyStarts {
+        	enemyPositions = append(enemyPositions, p)
+   	}
+
+	enemys := make([]Enemy, enemysCount)
+	for i := range enemys {
+		enemys[i] = Enemy{
+			X:     enemyPositions[i].X,
+			Y:     enemyPositions[i].Y,
+			HP:    MaxHP,
+			Style: enemysStyles[i],
+		}
+	}
+
 	return Model{
 		Players:       players,
+		Enemys:	       enemys,
 		CurrentPlayer: 0,
+		CurrentEnemy:  0,
 		CursorX:       players[0].X,
 		CursorY:       players[0].Y,
 		Walls:         walls,
@@ -160,7 +201,9 @@ var keys = keyMap{
 
 type Model struct {
 	Players          []Player
+	Enemys		 []Enemy
 	CurrentPlayer    int
+	CurrentEnemy	 int
 	CursorX, CursorY int
 	Walls            map[Point]bool
 	Water            map[Point]bool
@@ -316,6 +359,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 break
             }
         }
+for i, en := range m.Enemys {
+            if en.X == m.CursorX && en.Y == m.CursorY {
+                m.Enemys[i].HP--
+                if m.Enemys[i].HP <= 0 {
+                    m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+                }
+                break
+            }
+        }
         m.Shot = true
         m.ShootMode = false
         cur := m.Players[m.CurrentPlayer]
@@ -373,6 +425,16 @@ func (m Model) cursorInfo() string {
 			return pl.Style.Render(fmt.Sprintf("■ Player %s", hp))
 		}
 	}
+	for i, en := range m.Enemys {
+        if en.X == m.CursorX && en.Y == m.CursorY {
+            hp := strings.Repeat("♥ ", en.HP) + strings.Repeat("♡ ", MaxHP-en.HP)
+            if wallBlocked {
+                return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+                    Render(fmt.Sprintf("☠ Enemy %d — wall in the way", i+1))
+            }
+            return en.Style.Render(fmt.Sprintf("☠ Enemy %d %s", i+1, hp))
+        }
+    }
 
 	switch {
 	case m.Walls[p]:
@@ -393,12 +455,17 @@ func (m Model) cursorInfo() string {
 }
 
 func (m Model) OccupiedByOther(x, y int) bool {
-	for i, p := range m.Players {
-		if i != m.CurrentPlayer && p.X == x && p.Y == y {
-			return true
-		}
-	}
-	return false
+    for i, p := range m.Players {
+        if i != m.CurrentPlayer && p.X == x && p.Y == y {
+            return true
+        }
+    }
+    for _, e := range m.Enemys {
+        if e.X == x && e.Y == y {
+            return true
+        }
+    }
+    return false
 }
 
 func (m Model) View() string {
@@ -425,9 +492,16 @@ func (m Model) View() string {
 		for col := 0; col < GridW; col++ {
 			p := Point{col, row}
 			playerIdx := -1
+			enemyIdx := -1
 			for i, pl := range m.Players {
 				if pl.X == col && pl.Y == row {
 					playerIdx = i
+					break
+				}
+			}
+			for i, en := range m.Enemys {
+				if en.X == col && en.Y == row {
+					enemyIdx = i
 					break
 				}
 			}
@@ -437,6 +511,10 @@ func (m Model) View() string {
 					cells = append(cells, cursorStyle.Render(
 						m.Players[playerIdx].Style.Render(" ■ "),
 					))
+				} else if enemyIdx >= 0 { 
+        			cells = append(cells, cursorStyle.Render(
+        			    m.Enemys[enemyIdx].Style.Render(" ☠ "),
+        			))
 				} else {
 					cells = append(cells, cursorStyle.Render(" · "))
 				}
@@ -446,6 +524,12 @@ func (m Model) View() string {
 					symbol = " ● "
 				}
 				cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
+			case enemyIdx >= 0:
+				symbol := " ■ "
+				if enemyIdx == m.CurrentEnemy {
+					symbol = " ● "
+				}
+				cells = append(cells, m.Enemys[enemyIdx].Style.Render(symbol))
 			case m.Walls[p]:
 				cells = append(cells, wallStyle.Render(" ■ "))
 			case m.Water[p]:

@@ -50,7 +50,7 @@ func TestShoot_PlayerDiesAt0HP(t *testing.T) {
 }
 
 func TestHP_InitialValue(t *testing.T) {
-    m := generate.NewModel(2)
+    m := generate.NewModel(2, 2)
     for _, p := range m.Players {
         assert.Equal(t, generate.MaxHP, p.HP)
     }
