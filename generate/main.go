@@ -173,88 +173,96 @@ func NewModel(playerCount, enemysCount int) Model {
 }
 
 func (m Model) closestPlayer(ex, ey int) (int, int) {
-    if len(m.Players) == 0 {
-        return ex, ey
-    }
-    bestX, bestY := m.Players[0].X, m.Players[0].Y
-    bestDist := utils.Abs(ex-bestX) + utils.Abs(ey-bestY)
-    for _, pl := range m.Players[1:] {
-        d := utils.Abs(ex-pl.X) + utils.Abs(ey-pl.Y)
-        if d < bestDist {
-            bestDist = d
-            bestX, bestY = pl.X, pl.Y
-        }
-    }
-    return bestX, bestY
+	if len(m.Players) == 0 {
+		return ex, ey
+	}
+	bestX, bestY := m.Players[0].X, m.Players[0].Y
+	bestDist := utils.Abs(ex-bestX) + utils.Abs(ey-bestY)
+	for _, pl := range m.Players[1:] {
+		d := utils.Abs(ex-pl.X) + utils.Abs(ey-pl.Y)
+		if d < bestDist {
+			bestDist = d
+			bestX, bestY = pl.X, pl.Y
+		}
+	}
+	return bestX, bestY
 }
 
 func (m Model) enemyOccupied(x, y, skipIdx int) bool {
-    for i, e := range m.Enemys {
-        if i != skipIdx && e.X == x && e.Y == y {
-            return true
-        }
-    }
-    for _, p := range m.Players {
-        if p.X == x && p.Y == y {
-            return true
-        }
-    }
-    return false
+	for i, e := range m.Enemys {
+		if i != skipIdx && e.X == x && e.Y == y {
+			return true
+		}
+	}
+	for _, p := range m.Players {
+		if p.X == x && p.Y == y {
+			return true
+		}
+	}
+	return false
 }
 
 func (m Model) doEnemyTurn(idx int) Model {
-    if len(m.Players) == 0 || idx >= len(m.Enemys) {
-        return m
-    }
+	if len(m.Players) == 0 || idx >= len(m.Enemys) {
+		return m
+	}
 
-    en := m.Enemys[idx]
-    tx, ty := m.closestPlayer(en.X, en.Y)
+	en := m.Enemys[idx]
+	tx, ty := m.closestPlayer(en.X, en.Y)
 
-    for step := 0; step < moveRange; step++ {
-        en = m.Enemys[idx]
-        tx, ty = m.closestPlayer(en.X, en.Y)
-        dist := utils.Abs(en.X-tx) + utils.Abs(en.Y-ty)
+	for step := 0; step < moveRange; step++ {
+		en = m.Enemys[idx]
+		tx, ty = m.closestPlayer(en.X, en.Y)
+		dist := utils.Abs(en.X-tx) + utils.Abs(en.Y-ty)
 
-        if dist <= shootRange && !m.HasWallBetweenPoints(en.X, en.Y, tx, ty) {
-            for j, pl := range m.Players {
-                if pl.X == tx && pl.Y == ty {
-                    m.Players[j].HP--
-                    if m.Players[j].HP <= 0 {
-                        m.Players = append(m.Players[:j], m.Players[j+1:]...)
-                        if m.CurrentPlayer >= len(m.Players) {
-                            m.CurrentPlayer = 0
-                        }
-                    }
-                    break
-                }
-            }
-            return m
-        }
+		if dist <= shootRange && !m.HasWallBetweenPoints(en.X, en.Y, tx, ty) {
+			for j, pl := range m.Players {
+				if pl.X == tx && pl.Y == ty {
+					m.Players[j].HP--
+					if m.Players[j].HP <= 0 {
+						m.Players = append(m.Players[:j], m.Players[j+1:]...)
+						if m.CurrentPlayer >= len(m.Players) {
+							m.CurrentPlayer = 0
+						}
+					}
+					break
+				}
+			}
+			return m
+		}
 
-        moves := []Point{}
-        if tx > en.X { moves = append(moves, Point{en.X + 1, en.Y}) }
-        if tx < en.X { moves = append(moves, Point{en.X - 1, en.Y}) }
-        if ty > en.Y { moves = append(moves, Point{en.X, en.Y + 1}) }
-        if ty < en.Y { moves = append(moves, Point{en.X, en.Y - 1}) }
+		moves := []Point{}
+		if tx > en.X {
+			moves = append(moves, Point{en.X + 1, en.Y})
+		}
+		if tx < en.X {
+			moves = append(moves, Point{en.X - 1, en.Y})
+		}
+		if ty > en.Y {
+			moves = append(moves, Point{en.X, en.Y + 1})
+		}
+		if ty < en.Y {
+			moves = append(moves, Point{en.X, en.Y - 1})
+		}
 
-        moved := false
-        for _, mv := range moves {
-            if mv.X < 0 || mv.X >= GridW || mv.Y < 0 || mv.Y >= GridH {
-                continue
-            }
-            if m.Walls[mv] || m.enemyOccupied(mv.X, mv.Y, idx) {
-                continue
-            }
-            m.Enemys[idx].X = mv.X
-            m.Enemys[idx].Y = mv.Y
-            moved = true
-            break
-        }
-        if !moved {
-            break
-        }
-    }
-    return m
+		moved := false
+		for _, mv := range moves {
+			if mv.X < 0 || mv.X >= GridW || mv.Y < 0 || mv.Y >= GridH {
+				continue
+			}
+			if m.Walls[mv] || m.enemyOccupied(mv.X, mv.Y, idx) {
+				continue
+			}
+			m.Enemys[idx].X = mv.X
+			m.Enemys[idx].Y = mv.Y
+			moved = true
+			break
+		}
+		if !moved {
+			break
+		}
+	}
+	return m
 }
 
 var keys = keyMap{
@@ -305,8 +313,8 @@ type Model struct {
 	Shot             bool
 	keys             keyMap
 	help             help.Model
-	EnemyTurn	 bool
-	EnemyIdx	 int
+	EnemyTurn        bool
+	EnemyIdx         int
 }
 
 func GenerateTiles(playerX, playerY, count int, blocked map[Point]bool) map[Point]bool {
@@ -361,148 +369,160 @@ func (m Model) inRange(x, y int) bool {
 }
 
 func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
-    startX, startY := x0, y0
-    dx := utils.Abs(x1 - x0)
-    dy := utils.Abs(y1 - y0)
-    sx := 1
-    if x0 > x1 { sx = -1 }
-    sy := 1
-    if y0 > y1 { sy = -1 }
-    err := dx - dy
+	startX, startY := x0, y0
+	dx := utils.Abs(x1 - x0)
+	dy := utils.Abs(y1 - y0)
+	sx := 1
+	if x0 > x1 {
+		sx = -1
+	}
+	sy := 1
+	if y0 > y1 {
+		sy = -1
+	}
+	err := dx - dy
 
-    for {
-        isStart := x0 == startX && y0 == startY
-        isEnd   := x0 == x1    && y0 == y1
-        if !isStart && !isEnd {
-            if m.Walls[Point{x0, y0}] {
-                return true
-            }
-        }
-        if isEnd { break }
-        e2 := 2 * err
-        if e2 > -dy { err -= dy; x0 += sx }
-        if e2 < dx  { err += dx; y0 += sy }
-    }
-    return false
+	for {
+		isStart := x0 == startX && y0 == startY
+		isEnd := x0 == x1 && y0 == y1
+		if !isStart && !isEnd {
+			if m.Walls[Point{x0, y0}] {
+				return true
+			}
+		}
+		if isEnd {
+			break
+		}
+		e2 := 2 * err
+		if e2 > -dy {
+			err -= dy
+			x0 += sx
+		}
+		if e2 < dx {
+			err += dx
+			y0 += sy
+		}
+	}
+	return false
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-    if !m.Moved && !m.Shot {
-    } else if m.Moved {
-        m.ShootMode = true
-    } else {
-        m.ShootMode = false
-    }
+	if !m.Moved && !m.Shot {
+	} else if m.Moved {
+		m.ShootMode = true
+	} else {
+		m.ShootMode = false
+	}
 
-    switch msg := msg.(type) {
-    case enemyTurnMsg:
-        if len(m.Players) == 0 {
-            return m, tea.Quit
-        }
-        if msg.enemyIdx >= len(m.Enemys) {
-            m.EnemyTurn = false
-            m.EnemyIdx = 0
-            return m, nil
-        }
-        m.EnemyIdx = msg.enemyIdx
-        m = m.doEnemyTurn(msg.enemyIdx)
-        if len(m.Players) == 0 {
-            return m, tea.Quit
-        }
-        return m, enemyTurnCmd(msg.enemyIdx + 1)
+	switch msg := msg.(type) {
+	case enemyTurnMsg:
+		if len(m.Players) == 0 {
+			return m, tea.Quit
+		}
+		if msg.enemyIdx >= len(m.Enemys) {
+			m.EnemyTurn = false
+			m.EnemyIdx = 0
+			return m, nil
+		}
+		m.EnemyIdx = msg.enemyIdx
+		m = m.doEnemyTurn(msg.enemyIdx)
+		if len(m.Players) == 0 {
+			return m, tea.Quit
+		}
+		return m, enemyTurnCmd(msg.enemyIdx + 1)
 
-    case tea.KeyMsg:
-        if m.EnemyTurn {
-            return m, nil
-        }
+	case tea.KeyMsg:
+		if m.EnemyTurn {
+			return m, nil
+		}
 
-        switch {
-        case key.Matches(msg, m.keys.Up):
-            newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
-            if m.inRange(m.CursorX, newY) {
-                m.CursorY = newY
-            }
-        case key.Matches(msg, m.keys.Down):
-            newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
-            if m.inRange(m.CursorX, newY) {
-                m.CursorY = newY
-            }
-        case key.Matches(msg, m.keys.Left):
-            newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
-            if m.inRange(newX, m.CursorY) {
-                m.CursorX = newX
-            }
-        case key.Matches(msg, m.keys.Right):
-            newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
-            if m.inRange(newX, m.CursorY) {
-                m.CursorX = newX
-            }
-        case key.Matches(msg, m.keys.Shoot):
-            if !m.Shot {
-                m.ShootMode = !m.ShootMode
-                current := m.Players[m.CurrentPlayer]
-                m.CursorX = current.X
-                m.CursorY = current.Y
-            }
-        case key.Matches(msg, m.keys.Confirm):
-            p := Point{m.CursorX, m.CursorY}
-            current := m.Players[m.CurrentPlayer]
-            wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+		switch {
+		case key.Matches(msg, m.keys.Up):
+			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
+			if m.inRange(m.CursorX, newY) {
+				m.CursorY = newY
+			}
+		case key.Matches(msg, m.keys.Down):
+			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
+			if m.inRange(m.CursorX, newY) {
+				m.CursorY = newY
+			}
+		case key.Matches(msg, m.keys.Left):
+			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
+			if m.inRange(newX, m.CursorY) {
+				m.CursorX = newX
+			}
+		case key.Matches(msg, m.keys.Right):
+			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
+			if m.inRange(newX, m.CursorY) {
+				m.CursorX = newX
+			}
+		case key.Matches(msg, m.keys.Shoot):
+			if !m.Shot {
+				m.ShootMode = !m.ShootMode
+				current := m.Players[m.CurrentPlayer]
+				m.CursorX = current.X
+				m.CursorY = current.Y
+			}
+		case key.Matches(msg, m.keys.Confirm):
+			p := Point{m.CursorX, m.CursorY}
+			current := m.Players[m.CurrentPlayer]
+			wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
-            if m.ShootMode && !m.Shot {
-                if !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
-                    for i, pl := range m.Players {
-                        if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
-                            m.Players[i].HP--
-                            if m.Players[i].HP <= 0 {
-                                m.Players = append(m.Players[:i], m.Players[i+1:]...)
-                                if m.CurrentPlayer >= len(m.Players) {
-                                    m.CurrentPlayer = 0
-                                }
-                            }
-                            break
-                        }
-                    }
-                    for i, en := range m.Enemys {
-                        if en.X == m.CursorX && en.Y == m.CursorY {
-                            m.Enemys[i].HP--
-                            if m.Enemys[i].HP <= 0 {
-                                m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
-                            }
-                            break
-                        }
-                    }
-                    m.Shot = true
-                    m.ShootMode = false
-                    cur := m.Players[m.CurrentPlayer]
-                    m.CursorX = cur.X
-                    m.CursorY = cur.Y
-                }
-            } else if !m.ShootMode && !m.Moved {
-                if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
-                    m.Players[m.CurrentPlayer].X = m.CursorX
-                    m.Players[m.CurrentPlayer].Y = m.CursorY
-                    m.Moved = true
-                    m.CursorX = m.Players[m.CurrentPlayer].X
-                    m.CursorY = m.Players[m.CurrentPlayer].Y
-                }
-            }
+			if m.ShootMode && !m.Shot {
+				if !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+					for i, pl := range m.Players {
+						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
+							m.Players[i].HP--
+							if m.Players[i].HP <= 0 {
+								m.Players = append(m.Players[:i], m.Players[i+1:]...)
+								if m.CurrentPlayer >= len(m.Players) {
+									m.CurrentPlayer = 0
+								}
+							}
+							break
+						}
+					}
+					for i, en := range m.Enemys {
+						if en.X == m.CursorX && en.Y == m.CursorY {
+							m.Enemys[i].HP--
+							if m.Enemys[i].HP <= 0 {
+								m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+							}
+							break
+						}
+					}
+					m.Shot = true
+					m.ShootMode = false
+					cur := m.Players[m.CurrentPlayer]
+					m.CursorX = cur.X
+					m.CursorY = cur.Y
+				}
+			} else if !m.ShootMode && !m.Moved {
+				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+					m.Players[m.CurrentPlayer].X = m.CursorX
+					m.Players[m.CurrentPlayer].Y = m.CursorY
+					m.Moved = true
+					m.CursorX = m.Players[m.CurrentPlayer].X
+					m.CursorY = m.Players[m.CurrentPlayer].Y
+				}
+			}
 
-            if m.Moved && m.Shot {
-                m = m.nextTurn()
-                if m.CurrentPlayer == 0 {
-                    m.EnemyTurn = true
-                    return m, enemyTurnCmd(0)
-                }
-            }
+			if m.Moved && m.Shot {
+				m = m.nextTurn()
+				if m.CurrentPlayer == 0 {
+					m.EnemyTurn = true
+					return m, enemyTurnCmd(0)
+				}
+			}
 
-        case key.Matches(msg, m.keys.Help):
-            m.help.ShowAll = !m.help.ShowAll
-        case key.Matches(msg, m.keys.Quit):
-            return m, tea.Quit
-        }
-    }
-    return m, nil
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, m.keys.Quit):
+			return m, tea.Quit
+		}
+	}
+	return m, nil
 }
 
 func (m Model) nextTurn() Model {
@@ -517,9 +537,9 @@ func (m Model) nextTurn() Model {
 }
 
 func enemyTurnCmd(idx int) tea.Cmd {
-    return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-        return enemyTurnMsg{enemyIdx: idx}
-    })
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return enemyTurnMsg{enemyIdx: idx}
+	})
 }
 
 func (m Model) cursorInfo() string {
@@ -584,32 +604,32 @@ func (m Model) OccupiedByOther(x, y int) bool {
 }
 
 func (m Model) turnOrder() string {
-    var parts []string
+	var parts []string
 
-    for i, pl := range m.Players {
-        symbol := " ■ "
-        style := pl.Style
-        if i == m.CurrentPlayer && !m.EnemyTurn {
-            style = style.Underline(true).Bold(true)
-            symbol = " ● "
-        }
-        parts = append(parts, style.Render(symbol))
-    }
+	for i, pl := range m.Players {
+		symbol := " ■ "
+		style := pl.Style
+		if i == m.CurrentPlayer && !m.EnemyTurn {
+			style = style.Underline(true).Bold(true)
+			symbol = " ● "
+		}
+		parts = append(parts, style.Render(symbol))
+	}
 
-    parts = append(parts, lipgloss.NewStyle().
-        Foreground(lipgloss.Color("#444444")).Render(" · "))
+	parts = append(parts, lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#444444")).Render(" · "))
 
-    for i, en := range m.Enemys {
-        symbol := " ▲ "
-        style := en.Style
-        if m.EnemyTurn && i == m.EnemyIdx {
-            style = style.Underline(true).Bold(true)
-            symbol = " ♦ "
-        }
-        parts = append(parts, style.Render(symbol))
-    }
+	for i, en := range m.Enemys {
+		symbol := " ▲ "
+		style := en.Style
+		if m.EnemyTurn && i == m.EnemyIdx {
+			style = style.Underline(true).Bold(true)
+			symbol = " ♦ "
+		}
+		parts = append(parts, style.Render(symbol))
+	}
 
-    return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
+	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
 
 func (m Model) View() string {
@@ -617,7 +637,7 @@ func (m Model) View() string {
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
 	hpStyle := current.Style
 	if current.HP == 1 {
-	    hpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true).Blink(true)
+		hpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true).Blink(true)
 	}
 	hpStr := hpStyle.Render(fmt.Sprintf("Player %d  %s", m.CurrentPlayer+1, hp))
 

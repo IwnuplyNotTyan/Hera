@@ -11,12 +11,12 @@ import (
 
 func TestHasWallBetween_Clear(t *testing.T) {
 	m := testModel()
-	assert.False(t, m.HasWallBetween(4, 5, 4, 4))
+	assert.False(t, m.HasWallBetweenPoints(4, 5, 4, 4))
 }
 
 func TestHasWallBetween_WallBlocks(t *testing.T) {
 	m := testModel()
-	assert.True(t, m.HasWallBetween(4, 5, 2, 5))
+	assert.True(t, m.HasWallBetweenPoints(4, 5, 2, 5))
 }
 
 func TestHasWallBetween_StartNotCounted(t *testing.T) {
@@ -34,5 +34,5 @@ func TestHasWallBetween_StartNotCounted(t *testing.T) {
 		Walls: walls,
 		Water: map[generate.Point]bool{},
 	}
-	assert.False(t, m.HasWallBetween(4, 5, 4, 4))
+	assert.False(t, m.HasWallBetweenPoints(4, 5, 4, 4))
 }
