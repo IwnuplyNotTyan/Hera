@@ -5,6 +5,6 @@ priority = 1
 
 [formatter.golangci-lint]
 command = "golangci-lint"
-options = ["run"]
+options = ["fmt"]
 includes = ["*.go"]
 priority = 2
