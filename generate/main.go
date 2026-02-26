@@ -207,12 +207,9 @@ func (m Model) doEnemyTurn(idx int) Model {
 		return m
 	}
 
-	en := m.Enemys[idx]
-	tx, ty := m.closestPlayer(en.X, en.Y)
-
 	for step := 0; step < moveRange; step++ {
-		en = m.Enemys[idx]
-		tx, ty = m.closestPlayer(en.X, en.Y)
+		en := m.Enemys[idx]
+		tx, ty := m.closestPlayer(en.X, en.Y)
 		dist := utils.Abs(en.X-tx) + utils.Abs(en.Y-ty)
 
 		if dist <= shootRange && !m.HasWallBetweenPoints(en.X, en.Y, tx, ty) {
