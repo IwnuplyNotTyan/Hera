@@ -11,7 +11,7 @@ type keyMap struct {
 	Right   key.Binding
 	Confirm key.Binding
 	Shoot   key.Binding
-	Ult	key.Binding
+	Ult     key.Binding
 	Help    key.Binding
 	Quit    key.Binding
 }
@@ -66,4 +66,3 @@ var keys = keyMap{
 		key.WithHelp("q", "Quit"),
 	),
 }
-

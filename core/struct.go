@@ -51,4 +51,3 @@ type Model struct {
 	EnemyTurn        bool
 	EnemyIdx         int
 }
-

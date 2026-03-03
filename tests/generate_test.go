@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"hera/generate"
+	"hera/core"
 	"hera/utils"
 
 	"github.com/stretchr/testify/assert"
