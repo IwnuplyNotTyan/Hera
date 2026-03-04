@@ -1,9 +1,8 @@
 package tests
 
 import (
+	generate "hera/core"
 	"testing"
-
-	"hera/core"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/stretchr/testify/assert"

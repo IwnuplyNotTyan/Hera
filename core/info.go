@@ -8,6 +8,9 @@ import (
 )
 
 func (m Model) cursorInfo() string {
+	if len(m.Players) == 0 {
+		return ""
+	}
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
 	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)

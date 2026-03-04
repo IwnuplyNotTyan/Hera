@@ -183,6 +183,9 @@ func (m Model) currentRange() int {
 }
 
 func (m Model) IsInRange(col, row int) bool {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return false
+	}
 	current := m.Players[m.CurrentPlayer]
 	dx := utils.Abs(col - current.X)
 	dy := utils.Abs(row - current.Y)
@@ -194,6 +197,9 @@ func (m Model) IsInRange(col, row int) bool {
 }
 
 func (m Model) inRange(x, y int) bool {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return false
+	}
 	current := m.Players[m.CurrentPlayer]
 	dx := utils.Abs(x - current.X)
 	dy := utils.Abs(y - current.Y)

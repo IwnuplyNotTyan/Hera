@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"hera/core"
+	generate "hera/core"
 	"hera/utils"
 
 	"github.com/charmbracelet/lipgloss"

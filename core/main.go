@@ -39,7 +39,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		return m, enemyTurnCmd(msg.enemyIdx + 1)
-
 	case tea.KeyMsg:
 		if m.EnemyTurn {
 			return m, nil
@@ -135,6 +134,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if len(m.Players) == 0 {
+		return boxStyle.Render(
+			lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FF4444")).
+				Bold(true).
+				Render("Game Over"),
+		)
+	}
+
 	current := m.Players[m.CurrentPlayer]
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
 	hpStyle := current.Style
