@@ -4,6 +4,10 @@ func effectIcon(t EffectType) string {
 	switch t {
 	case EffectWet:
 		return "≈"
+	case EffectFire:
+		return "⽕"
+	case EffectSteam:
+		return "~"
 	default:
 		return "?"
 	}
@@ -28,13 +32,36 @@ func addEffect(effects []Effect, e Effect) []Effect {
 	return append(effects, e)
 }
 
+func removeEffect(effects []Effect, t EffectType) []Effect {
+	out := make([]Effect, 0, len(effects))
+	for _, e := range effects {
+		if e.Type != t {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+func resolveEffects(effects []Effect, new Effect) []Effect {
+	switch new.Type {
+	case EffectFire:
+		effects = removeEffect(effects, EffectWet)
+	case EffectWet:
+		effects = removeEffect(effects, EffectFire)
+	case EffectSteam:
+		effects = removeEffect(effects, EffectFire)
+		effects = removeEffect(effects, EffectWet)
+	}
+	return addEffect(effects, new)
+}
+
 func tickEffects(effects []Effect) []Effect {
-	result := effects[:0]
+	out := make([]Effect, 0, len(effects))
 	for _, e := range effects {
 		e.Duration--
 		if e.Duration > 0 {
-			result = append(result, e)
+			out = append(out, e)
 		}
 	}
-	return result
+	return out
 }

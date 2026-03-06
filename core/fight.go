@@ -43,7 +43,6 @@ func NewModel(playerCount, enemysCount int) Model {
 	for _, p := range players {
 		blocked[Point{p.X, p.Y}] = true
 	}
-
 	for p := range walls {
 		blocked[p] = true
 	}
@@ -76,6 +75,9 @@ func NewModel(playerCount, enemysCount int) Model {
 		CursorY:       players[0].Y,
 		Walls:         walls,
 		Water:         water,
+		FireTiles:     make(map[Point]int),
+		SteamTiles:    make(map[Point]int),
+		UltCharges:    maxUltCharges,
 		keys:          keys,
 		help:          help.New(),
 	}
@@ -253,28 +255,151 @@ func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	return false
 }
 
+// ultCross возвращает точки креста вокруг центра, не проходя сквозь стены
+func (m Model) ultCross(cx, cy int) []Point {
+	offsets := []Point{
+		{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
+	}
+	var pts []Point
+	for _, o := range offsets {
+		p := Point{cx + o.X, cy + o.Y}
+		if p.X < 0 || p.X >= GridW || p.Y < 0 || p.Y >= GridH {
+			continue
+		}
+		if m.Walls[p] {
+			continue
+		}
+		pts = append(pts, p)
+	}
+	return pts
+}
+
+// doUlt — ульта крестом 3×3 вокруг курсора
+func (m Model) doUlt() Model {
+	if m.UltCharges <= 0 {
+		return m
+	}
+	m.UltCharges--
+	m.UltMode = false
+	m.Shot = true
+
+	affected := m.ultCross(m.CursorX, m.CursorY)
+
+	for _, p := range affected {
+		if m.Water[p] {
+			// огонь + вода = пар, убираем воду визуально через SteamTiles
+			m.SteamTiles[p] = 2
+			// вода остаётся на карте но пар перекрывает
+		} else if m.SteamTiles[p] > 0 {
+			// уже пар — продлеваем
+			m.SteamTiles[p] = 2
+		} else {
+			m.FireTiles[p] = 2
+		}
+	}
+
+	// применяем эффекты всем кто стоит в зоне
+	for i, pl := range m.Players {
+		p := Point{pl.X, pl.Y}
+		for _, ap := range affected {
+			if ap == p {
+				if m.SteamTiles[p] > 0 {
+					m.Players[i].Effects = resolveEffects(
+						m.Players[i].Effects,
+						Effect{Type: EffectSteam, Duration: 2},
+					)
+				} else if m.FireTiles[p] > 0 {
+					// огонь не поджигает мокрых — вместо этого тушит
+					if hasEffect(pl.Effects, EffectWet) {
+						m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
+					} else {
+						m.Players[i].Effects = resolveEffects(
+							m.Players[i].Effects,
+							Effect{Type: EffectFire, Duration: 2},
+						)
+					}
+				}
+				break
+			}
+		}
+	}
+	for i, en := range m.Enemys {
+		p := Point{en.X, en.Y}
+		for _, ap := range affected {
+			if ap == p {
+				if m.SteamTiles[p] > 0 {
+					m.Enemys[i].Effects = resolveEffects(
+						m.Enemys[i].Effects,
+						Effect{Type: EffectSteam, Duration: 2},
+					)
+				} else if m.FireTiles[p] > 0 {
+					if hasEffect(en.Effects, EffectWet) {
+						m.Enemys[i].Effects = removeEffect(m.Enemys[i].Effects, EffectWet)
+					} else {
+						m.Enemys[i].Effects = resolveEffects(
+							m.Enemys[i].Effects,
+							Effect{Type: EffectFire, Duration: 2},
+						)
+					}
+				}
+				break
+			}
+		}
+	}
+
+	return m
+}
+
+func (m Model) tickFireTiles() Model {
+	for p, t := range m.FireTiles {
+		t--
+		if t <= 0 {
+			delete(m.FireTiles, p)
+		} else {
+			m.FireTiles[p] = t
+		}
+	}
+	for p, t := range m.SteamTiles {
+		t--
+		if t <= 0 {
+			delete(m.SteamTiles, p)
+		} else {
+			m.SteamTiles[p] = t
+		}
+	}
+	return m
+}
+
 func (m Model) nextTurn() Model {
-    m.Moved = false
-    m.Shot = false
-    m.ShootMode = false
+	m.Moved = false
+	m.Shot = false
+	m.ShootMode = false
+	m.UltMode = false
 
-    m.Players[m.CurrentPlayer].Effects = tickEffects(
-        m.Players[m.CurrentPlayer].Effects,
-    )
+	// тикаем эффекты текущего игрока
+	m.Players[m.CurrentPlayer].Effects = tickEffects(
+		m.Players[m.CurrentPlayer].Effects,
+	)
 
-    p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
-    if m.Water[p] {
-        m.Players[m.CurrentPlayer].Effects = addEffect(
-            m.Players[m.CurrentPlayer].Effects,
-            Effect{Type: EffectWet, Duration: 2},
-        )
-    }
+	// стоим на воде — обновляем wet
+	p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
+	if m.Water[p] {
+		m.Players[m.CurrentPlayer].Effects = resolveEffects(
+			m.Players[m.CurrentPlayer].Effects,
+			Effect{Type: EffectWet, Duration: 2},
+		)
+	}
 
-    m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
-    next := m.Players[m.CurrentPlayer]
-    m.CursorX = next.X
-    m.CursorY = next.Y
-    return m
+	// тикаем огонь/пар после последнего игрока в раунде
+	if m.CurrentPlayer == len(m.Players)-1 {
+		m = m.tickFireTiles()
+	}
+
+	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+	next := m.Players[m.CurrentPlayer]
+	m.CursorX = next.X
+	m.CursorY = next.Y
+	return m
 }
 
 func enemyTurnCmd(idx int) tea.Cmd {

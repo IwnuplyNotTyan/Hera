@@ -77,6 +77,9 @@ func (m Model) cursorInfo() string {
 			Render("⊘ Wall in the way")
 	case m.Water[p]:
 		return waterStyle.Render("≈ Water — passable")
+	case m.FireTiles[p] > 0:
+    		turns := m.FireTiles[p]
+    		return fireStyle.Render(fmt.Sprintf("⽕ Fire — %d turns left", turns))
 	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render("· In shoot range")

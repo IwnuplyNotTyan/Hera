@@ -39,6 +39,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		return m, enemyTurnCmd(msg.enemyIdx + 1)
+
 	case tea.KeyMsg:
 		if m.EnemyTurn {
 			return m, nil
@@ -47,37 +48,65 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Up):
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
-			if m.inRange(m.CursorX, newY) {
+			// свободный курсор только в режиме ульты, иначе ограничен дальностью
+			if m.UltMode || m.ShootMode || m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
-			if m.inRange(m.CursorX, newY) {
+			if m.UltMode || m.ShootMode || m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
-			if m.inRange(newX, m.CursorY) {
+			if m.UltMode || m.ShootMode || m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
-			if m.inRange(newX, m.CursorY) {
+			if m.UltMode || m.ShootMode || m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
+
+		case key.Matches(msg, m.keys.Ult):
+			// включаем режим ульты как режим стрельбы
+			if !m.Shot && m.UltCharges > 0 {
+				m.UltMode = !m.UltMode
+				m.ShootMode = false
+				// курсор на игрока при входе в режим
+				if m.UltMode {
+					cur := m.Players[m.CurrentPlayer]
+					m.CursorX = cur.X
+					m.CursorY = cur.Y
+				}
+			}
+
 		case key.Matches(msg, m.keys.Shoot):
 			if !m.Shot {
 				m.ShootMode = !m.ShootMode
-				current := m.Players[m.CurrentPlayer]
-				m.CursorX = current.X
-				m.CursorY = current.Y
+				m.UltMode = false
+				cur := m.Players[m.CurrentPlayer]
+				m.CursorX = cur.X
+				m.CursorY = cur.Y
 			}
+
 		case key.Matches(msg, m.keys.Confirm):
 			p := Point{m.CursorX, m.CursorY}
 			current := m.Players[m.CurrentPlayer]
 			wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
-			if m.ShootMode && !m.Shot {
+			if m.UltMode && !m.Shot {
+				// ульта — крест 3×3 вокруг курсора
+				m = m.doUlt()
+				cur := m.Players[m.CurrentPlayer]
+				m.CursorX = cur.X
+				m.CursorY = cur.Y
+
+			} else if m.ShootMode && !m.Shot {
+				// пар блокирует стрельбу
+				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSteam) {
+					break
+				}
 				if !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
 					for i, pl := range m.Players {
 						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -106,16 +135,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.CursorX = cur.X
 					m.CursorY = cur.Y
 				}
-			} else if !m.ShootMode && !m.Moved {
+
+			} else if !m.ShootMode && !m.UltMode && !m.Moved {
 				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
 					m.Players[m.CurrentPlayer].Y = m.CursorY
 
-					// эффект воды
+					// эффект воды при заходе
 					if m.Water[p] {
-						m.Players[m.CurrentPlayer].Effects = addEffect(
+						m.Players[m.CurrentPlayer].Effects = resolveEffects(
 							m.Players[m.CurrentPlayer].Effects,
 							Effect{Type: EffectWet, Duration: 2},
+						)
+					}
+					// огонь на тайле — поджигает если нет воды
+					if m.FireTiles[p] > 0 {
+						if !hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+							m.Players[m.CurrentPlayer].Effects = resolveEffects(
+								m.Players[m.CurrentPlayer].Effects,
+								Effect{Type: EffectFire, Duration: 2},
+							)
+						}
+					}
+					// пар на тайле
+					if m.SteamTiles[p] > 0 {
+						m.Players[m.CurrentPlayer].Effects = resolveEffects(
+							m.Players[m.CurrentPlayer].Effects,
+							Effect{Type: EffectSteam, Duration: 2},
 						)
 					}
 
@@ -148,7 +194,7 @@ func (m Model) View() string {
 			lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF4444")).
 				Bold(true).
-				Render("Game Over"),
+				Render("  ☠  Game Over  ☠  "),
 		)
 	}
 
@@ -161,15 +207,48 @@ func (m Model) View() string {
 	hpStr := hpStyle.Render(fmt.Sprintf("Player %d  %s", m.CurrentPlayer+1, hp))
 
 	var modeStr string
-	if m.ShootMode {
+	switch {
+	case m.UltMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF4400")).
+			Bold(true).
+			Render("⽕ U ")
+	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4444")).
 			Bold(true).
 			Render("♡ S ")
-	} else {
+	default:
 		modeStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#AAAAAA")).
 			Render("♧ M ")
+	}
+
+	// заряды ульты
+	var ultStr string
+	if m.UltCharges > 0 {
+		ultStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FF4400")).
+			Render(fmt.Sprintf(" ⽕×%d", m.UltCharges))
+	} else {
+		ultStr = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#444444")).
+			Render(" ⽕×0")
+	}
+
+	// предпросмотр зоны ульты — крест вокруг курсора
+	ultZone := make(map[Point]bool)
+	if m.UltMode {
+		cx, cy := m.CursorX, m.CursorY
+		// крест: центр + 4 соседа по горизонтали и вертикали (3×1 и 1×3)
+		for _, dp := range []Point{
+			{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
+		} {
+			np := Point{cx + dp.X, cy + dp.Y}
+			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.Walls[np] {
+				ultZone[np] = true
+			}
+		}
 	}
 
 	var rows []string
@@ -191,16 +270,16 @@ func (m Model) View() string {
 					break
 				}
 			}
+
+			isCursor := col == m.CursorX && row == m.CursorY
+			isUltZone := ultZone[p]
+
 			switch {
-			case col == m.CursorX && row == m.CursorY:
+			case isCursor:
 				if playerIdx >= 0 {
-					cells = append(cells, cursorStyle.Render(
-						m.Players[playerIdx].Style.Render(" ■ "),
-					))
+					cells = append(cells, cursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ ")))
 				} else if enemyIdx >= 0 {
-					cells = append(cells, cursorStyle.Render(
-						m.Enemys[enemyIdx].Style.Render(" ▲ "),
-					))
+					cells = append(cells, cursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ ")))
 				} else {
 					cells = append(cells, cursorStyle.Render(" · "))
 				}
@@ -209,17 +288,35 @@ func (m Model) View() string {
 				if playerIdx == m.CurrentPlayer {
 					symbol = " ● "
 				}
-				cells = append(cells, m.Players[playerIdx].Style.Render(symbol))
+				st := m.Players[playerIdx].Style
+				if isUltZone {
+					st = st.Background(lipgloss.Color("#2a0800"))
+				}
+				cells = append(cells, st.Render(symbol))
 			case enemyIdx >= 0:
 				symbol := " ▲ "
 				if enemyIdx == m.CurrentEnemy {
 					symbol = " ♦ "
 				}
-				cells = append(cells, m.Enemys[enemyIdx].Style.Render(symbol))
+				st := m.Enemys[enemyIdx].Style
+				if isUltZone {
+					st = st.Background(lipgloss.Color("#2a0800"))
+				}
+				cells = append(cells, st.Render(symbol))
 			case m.Walls[p]:
 				cells = append(cells, wallStyle.Render(" ■ "))
+			case m.SteamTiles[p] > 0:
+				cells = append(cells, steamStyle.Render(" ~ "))
 			case m.Water[p]:
-				cells = append(cells, waterStyle.Render(" ≈ "))
+				if isUltZone {
+					cells = append(cells, steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ "))
+				} else {
+					cells = append(cells, waterStyle.Render(" ≈ "))
+				}
+			case m.FireTiles[p] > 0:
+				cells = append(cells, fireStyle.Render(" ⁺ "))
+			case isUltZone:
+				cells = append(cells, ultZoneStyle.Render(" + "))
 			case m.IsInRange(col, row):
 				cells = append(cells, rangeStyle.Render(" · "))
 			default:
@@ -230,13 +327,13 @@ func (m Model) View() string {
 	}
 
 	info := m.cursorInfo()
-
 	line0 := m.turnOrder()
 
 	line1 := lipgloss.JoinHorizontal(lipgloss.Top,
 		modeStr,
 		" ",
 		hpStr,
+		ultStr,
 	)
 
 	line2 := lipgloss.JoinHorizontal(lipgloss.Top,

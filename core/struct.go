@@ -8,14 +8,19 @@ import (
 type EffectType string
 
 const (
-	GridW                 = 14
-	GridH                 = 10
-	wallCount             = 10
-	waterCount            = 10
-	moveRange             = 4
-	shootRange            = 2
-	MaxHP                 = 3
-	EffectWet  EffectType = "wet"
+	GridW      = 14
+	GridH      = 10
+	wallCount  = 10
+	waterCount = 10
+	moveRange  = 4
+	shootRange = 2
+	MaxHP      = 3
+
+	EffectWet   EffectType = "wet"
+	EffectFire  EffectType = "fire"
+	EffectSteam EffectType = "steam"
+
+	maxUltCharges = 3
 )
 
 type Effect struct {
@@ -53,7 +58,11 @@ type Model struct {
 	CursorX, CursorY int
 	Walls            map[Point]bool
 	Water            map[Point]bool
+	FireTiles        map[Point]int
+	SteamTiles       map[Point]int
 	ShootMode        bool
+	UltMode          bool
+	UltCharges       int
 	Moved            bool
 	Shot             bool
 	keys             keyMap
