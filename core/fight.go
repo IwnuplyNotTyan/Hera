@@ -176,10 +176,19 @@ func (m Model) Move(newX, newY int) Model {
 }
 
 func (m Model) currentRange() int {
+	r := moveRange
 	if m.ShootMode {
 		return shootRange
 	}
-	return moveRange
+	if len(m.Players) > 0 && m.CurrentPlayer < len(m.Players) {
+		if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+			r -= 2
+		}
+	}
+	if r < 1 {
+		r = 1
+	}
+	return r
 }
 
 func (m Model) IsInRange(col, row int) bool {
@@ -245,14 +254,27 @@ func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 }
 
 func (m Model) nextTurn() Model {
-	m.Moved = false
-	m.Shot = false
-	m.ShootMode = false
-	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
-	next := m.Players[m.CurrentPlayer]
-	m.CursorX = next.X
-	m.CursorY = next.Y
-	return m
+    m.Moved = false
+    m.Shot = false
+    m.ShootMode = false
+
+    m.Players[m.CurrentPlayer].Effects = tickEffects(
+        m.Players[m.CurrentPlayer].Effects,
+    )
+
+    p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
+    if m.Water[p] {
+        m.Players[m.CurrentPlayer].Effects = addEffect(
+            m.Players[m.CurrentPlayer].Effects,
+            Effect{Type: EffectWet, Duration: 2},
+        )
+    }
+
+    m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+    next := m.Players[m.CurrentPlayer]
+    m.CursorX = next.X
+    m.CursorY = next.Y
+    return m
 }
 
 func enemyTurnCmd(idx int) tea.Cmd {

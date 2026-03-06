@@ -110,6 +110,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
 					m.Players[m.CurrentPlayer].Y = m.CursorY
+
+					// эффект воды
+					if m.Water[p] {
+						m.Players[m.CurrentPlayer].Effects = addEffect(
+							m.Players[m.CurrentPlayer].Effects,
+							Effect{Type: EffectWet, Duration: 2},
+						)
+					}
+
 					m.Moved = true
 					m.CursorX = m.Players[m.CurrentPlayer].X
 					m.CursorY = m.Players[m.CurrentPlayer].Y

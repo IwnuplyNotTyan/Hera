@@ -5,30 +5,40 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type EffectType string
+
 const (
-	GridW      = 14
-	GridH      = 10
-	wallCount  = 10
-	waterCount = 10
-	moveRange  = 4
-	shootRange = 2
-	MaxHP      = 3
+	GridW                 = 14
+	GridH                 = 10
+	wallCount             = 10
+	waterCount            = 10
+	moveRange             = 4
+	shootRange            = 2
+	MaxHP                 = 3
+	EffectWet  EffectType = "wet"
 )
+
+type Effect struct {
+	Type     EffectType
+	Duration int
+}
 
 type Point struct {
 	X, Y int
 }
 
 type Player struct {
-	X, Y  int
-	HP    int
-	Style lipgloss.Style
+	X, Y    int
+	HP      int
+	Effects []Effect
+	Style   lipgloss.Style
 }
 
 type Enemy struct {
-	X, Y  int
-	HP    int
-	Style lipgloss.Style
+	X, Y    int
+	HP      int
+	Effects []Effect
+	Style   lipgloss.Style
 }
 
 type enemyTurnMsg struct {

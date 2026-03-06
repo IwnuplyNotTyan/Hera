@@ -18,24 +18,54 @@ func (m Model) cursorInfo() string {
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", pl.HP) + strings.Repeat("♡ ", MaxHP-pl.HP)
+
+			effectStr := ""
+			for _, e := range pl.Effects {
+				effectStr += fmt.Sprintf(" %s %d ", effectIcon(e.Type), e.Duration)
+			}
+
 			if i == m.CurrentPlayer {
-				return pl.Style.Render(fmt.Sprintf("● Player %s (you)", hp))
+				result := pl.Style.Render(fmt.Sprintf("● Player %s (you)", hp))
+				if effectStr != "" {
+					result += "\n" + lipgloss.NewStyle().
+						Foreground(lipgloss.Color("#146fba")).
+						Render(effectStr)
+				}
+				return result
 			}
 			if wallBlocked {
 				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(fmt.Sprintf("■ Player %d — wall in the way", i+1))
 			}
-			return pl.Style.Render(fmt.Sprintf("■ Player %s", hp))
+			result := pl.Style.Render(fmt.Sprintf("■ Player %d %s", i+1, hp))
+			if effectStr != "" {
+				result += "\n" + lipgloss.NewStyle().
+					Foreground(lipgloss.Color("#146fba")).
+					Render(effectStr)
+			}
+			return result
 		}
 	}
 	for i, en := range m.Enemys {
 		if en.X == m.CursorX && en.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", en.HP) + strings.Repeat("♡ ", MaxHP-en.HP)
+
+			effectStr := ""
+			for _, e := range en.Effects {
+				effectStr += fmt.Sprintf(" %s %d ", effectIcon(e.Type), e.Duration)
+			}
+
 			if wallBlocked {
 				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(fmt.Sprintf("▲ Enemy %d — wall in the way", i+1))
 			}
-			return en.Style.Render(fmt.Sprintf("▲ Enemy %d %s", i+1, hp))
+			result := en.Style.Render(fmt.Sprintf("▲ Enemy %d %s", i+1, hp))
+			if effectStr != "" {
+				result += "\n" + lipgloss.NewStyle().
+					Foreground(lipgloss.Color("#146fba")).
+					Render(effectStr)
+			}
+			return result
 		}
 	}
 
