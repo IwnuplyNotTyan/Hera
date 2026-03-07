@@ -33,10 +33,11 @@ type Point struct {
 }
 
 type Player struct {
-	X, Y    int
-	HP      int
-	Effects []Effect
-	Style   lipgloss.Style
+	X, Y       int
+	HP         int
+	Effects    []Effect
+	UltCharges int
+	Style      lipgloss.Style
 }
 
 type Enemy struct {
@@ -62,7 +63,7 @@ type Model struct {
 	SteamTiles       map[Point]int
 	ShootMode        bool
 	UltMode          bool
-	UltCharges       int
+	UltAxis          string
 	Moved            bool
 	Shot             bool
 	keys             keyMap

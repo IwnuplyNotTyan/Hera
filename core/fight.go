@@ -33,10 +33,11 @@ func NewModel(playerCount, enemysCount int) Model {
 	players := make([]Player, playerCount)
 	for i := range players {
 		players[i] = Player{
-			X:     starts[i].X,
-			Y:     starts[i].Y,
-			HP:    MaxHP,
-			Style: playerStyles[i],
+			X:          starts[i].X,
+			Y:          starts[i].Y,
+			HP:         MaxHP,
+			UltCharges: maxUltCharges,
+			Style:      playerStyles[i],
 		}
 	}
 
@@ -77,7 +78,6 @@ func NewModel(playerCount, enemysCount int) Model {
 		Water:         water,
 		FireTiles:     make(map[Point]int),
 		SteamTiles:    make(map[Point]int),
-		UltCharges:    maxUltCharges,
 		keys:          keys,
 		help:          help.New(),
 	}
@@ -255,7 +255,6 @@ func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	return false
 }
 
-// ultCross возвращает точки креста вокруг центра, не проходя сквозь стены
 func (m Model) ultCross(cx, cy int) []Point {
 	offsets := []Point{
 		{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
@@ -274,31 +273,36 @@ func (m Model) ultCross(cx, cy int) []Point {
 	return pts
 }
 
-// doUlt — ульта крестом 3×3 вокруг курсора
+func (m Model) ultInAxisRange(cx, cy int) bool {
+	current := m.Players[m.CurrentPlayer]
+	return cx == current.X || cy == current.Y
+}
+
 func (m Model) doUlt() Model {
-	if m.UltCharges <= 0 {
+	current := m.Players[m.CurrentPlayer]
+	if current.UltCharges <= 0 {
 		return m
 	}
-	m.UltCharges--
+
+	if !m.ultInAxisRange(m.CursorX, m.CursorY) {
+		return m
+	}
+
+	m.Players[m.CurrentPlayer].UltCharges--
 	m.UltMode = false
+	m.UltAxis = ""
 	m.Shot = true
 
 	affected := m.ultCross(m.CursorX, m.CursorY)
 
 	for _, p := range affected {
-		if m.Water[p] {
-			// огонь + вода = пар, убираем воду визуально через SteamTiles
-			m.SteamTiles[p] = 2
-			// вода остаётся на карте но пар перекрывает
-		} else if m.SteamTiles[p] > 0 {
-			// уже пар — продлеваем
+		if m.Water[p] || m.SteamTiles[p] > 0 {
 			m.SteamTiles[p] = 2
 		} else {
 			m.FireTiles[p] = 2
 		}
 	}
 
-	// применяем эффекты всем кто стоит в зоне
 	for i, pl := range m.Players {
 		p := Point{pl.X, pl.Y}
 		for _, ap := range affected {
@@ -309,7 +313,6 @@ func (m Model) doUlt() Model {
 						Effect{Type: EffectSteam, Duration: 2},
 					)
 				} else if m.FireTiles[p] > 0 {
-					// огонь не поджигает мокрых — вместо этого тушит
 					if hasEffect(pl.Effects, EffectWet) {
 						m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
 					} else {
@@ -375,13 +378,12 @@ func (m Model) nextTurn() Model {
 	m.Shot = false
 	m.ShootMode = false
 	m.UltMode = false
+	m.UltAxis = ""
 
-	// тикаем эффекты текущего игрока
 	m.Players[m.CurrentPlayer].Effects = tickEffects(
 		m.Players[m.CurrentPlayer].Effects,
 	)
 
-	// стоим на воде — обновляем wet
 	p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
 	if m.Water[p] {
 		m.Players[m.CurrentPlayer].Effects = resolveEffects(
@@ -390,7 +392,6 @@ func (m Model) nextTurn() Model {
 		)
 	}
 
-	// тикаем огонь/пар после последнего игрока в раунде
 	if m.CurrentPlayer == len(m.Players)-1 {
 		m = m.tickFireTiles()
 	}

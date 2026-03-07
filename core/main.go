@@ -31,6 +31,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.enemyIdx >= len(m.Enemys) {
 			m.EnemyTurn = false
 			m.EnemyIdx = 0
+			if len(m.Players) > 0 {
+				cur := m.Players[m.CurrentPlayer]
+				m.CursorX = cur.X
+				m.CursorY = cur.Y
+				m.UltMode = false
+				m.UltAxis = ""
+			}
 			return m, nil
 		}
 		m.EnemyIdx = msg.enemyIdx
@@ -48,32 +55,50 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Up):
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
-			// свободный курсор только в режиме ульты, иначе ограничен дальностью
-			if m.UltMode || m.ShootMode || m.inRange(m.CursorX, newY) {
+			if m.UltMode {
+				if m.UltAxis == "" || m.UltAxis == "v" {
+					m.UltAxis = "v"
+					m.CursorY = newY
+				}
+			} else if m.ShootMode || m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
-			if m.UltMode || m.ShootMode || m.inRange(m.CursorX, newY) {
+			if m.UltMode {
+				if m.UltAxis == "" || m.UltAxis == "v" {
+					m.UltAxis = "v"
+					m.CursorY = newY
+				}
+			} else if m.ShootMode || m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
-			if m.UltMode || m.ShootMode || m.inRange(newX, m.CursorY) {
+			if m.UltMode {
+				if m.UltAxis == "" || m.UltAxis == "h" {
+					m.UltAxis = "h"
+					m.CursorX = newX
+				}
+			} else if m.ShootMode || m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
-			if m.UltMode || m.ShootMode || m.inRange(newX, m.CursorY) {
+			if m.UltMode {
+				if m.UltAxis == "" || m.UltAxis == "h" {
+					m.UltAxis = "h"
+					m.CursorX = newX
+				}
+			} else if m.ShootMode || m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
 
 		case key.Matches(msg, m.keys.Ult):
-			// включаем режим ульты как режим стрельбы
-			if !m.Shot && m.UltCharges > 0 {
+			if !m.Shot && m.Players[m.CurrentPlayer].UltCharges > 0 {
 				m.UltMode = !m.UltMode
+				m.UltAxis = ""
 				m.ShootMode = false
-				// курсор на игрока при входе в режим
 				if m.UltMode {
 					cur := m.Players[m.CurrentPlayer]
 					m.CursorX = cur.X
@@ -96,15 +121,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
 			if m.UltMode && !m.Shot {
-				// ульта — крест 3×3 вокруг курсора
 				m = m.doUlt()
 				cur := m.Players[m.CurrentPlayer]
 				m.CursorX = cur.X
 				m.CursorY = cur.Y
 
 			} else if m.ShootMode && !m.Shot {
-				// пар блокирует стрельбу
 				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSteam) {
+					m.Shot = true
+					m.ShootMode = false
 					break
 				}
 				if !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
@@ -141,14 +166,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
 					m.Players[m.CurrentPlayer].Y = m.CursorY
 
-					// эффект воды при заходе
 					if m.Water[p] {
 						m.Players[m.CurrentPlayer].Effects = resolveEffects(
 							m.Players[m.CurrentPlayer].Effects,
 							Effect{Type: EffectWet, Duration: 2},
 						)
 					}
-					// огонь на тайле — поджигает если нет воды
 					if m.FireTiles[p] > 0 {
 						if !hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
 							m.Players[m.CurrentPlayer].Effects = resolveEffects(
@@ -157,7 +180,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							)
 						}
 					}
-					// пар на тайле
 					if m.SteamTiles[p] > 0 {
 						m.Players[m.CurrentPlayer].Effects = resolveEffects(
 							m.Players[m.CurrentPlayer].Effects,
@@ -224,23 +246,21 @@ func (m Model) View() string {
 			Render("♧ M ")
 	}
 
-	// заряды ульты
+	ultCharges := m.Players[m.CurrentPlayer].UltCharges
 	var ultStr string
-	if m.UltCharges > 0 {
+	if ultCharges > 0 {
 		ultStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4400")).
-			Render(fmt.Sprintf(" ⽕×%d", m.UltCharges))
+			Render(fmt.Sprintf(" ⽕×%d", ultCharges))
 	} else {
 		ultStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#444444")).
 			Render(" ⽕×0")
 	}
 
-	// предпросмотр зоны ульты — крест вокруг курсора
 	ultZone := make(map[Point]bool)
 	if m.UltMode {
 		cx, cy := m.CursorX, m.CursorY
-		// крест: центр + 4 соседа по горизонтали и вертикали (3×1 и 1×3)
 		for _, dp := range []Point{
 			{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
 		} {

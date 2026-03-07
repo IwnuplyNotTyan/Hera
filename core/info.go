@@ -7,6 +7,34 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
+
+func renderEffects(effects []Effect) string {
+	if len(effects) == 0 {
+		return ""
+	}
+	var parts []string
+	for _, e := range effects {
+		icon := effectIcon(e.Type)
+		var s string
+		switch e.Type {
+		case EffectFire:
+			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Bold(true).
+				Render(fmt.Sprintf("%s %d", icon, e.Duration))
+		case EffectWet:
+			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true).
+				Render(fmt.Sprintf("%s %d", icon, e.Duration))
+		case EffectSteam:
+			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true).
+				Render(fmt.Sprintf("%s %d", icon, e.Duration))
+		default:
+			s = fmt.Sprintf("%s %d", icon, e.Duration)
+		}
+		parts = append(parts, s)
+	}
+	return strings.Join(parts, effectSep)
+}
+
 func (m Model) cursorInfo() string {
 	if len(m.Players) == 0 {
 		return ""
@@ -18,18 +46,12 @@ func (m Model) cursorInfo() string {
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", pl.HP) + strings.Repeat("♡ ", MaxHP-pl.HP)
-
-			effectStr := ""
-			for _, e := range pl.Effects {
-				effectStr += fmt.Sprintf(" %s %d ", effectIcon(e.Type), e.Duration)
-			}
+			effectStr := renderEffects(pl.Effects)
 
 			if i == m.CurrentPlayer {
 				result := pl.Style.Render(fmt.Sprintf("● Player %s (you)", hp))
 				if effectStr != "" {
-					result += "\n" + lipgloss.NewStyle().
-						Foreground(lipgloss.Color("#146fba")).
-						Render(effectStr)
+					result += "\n" + effectStr
 				}
 				return result
 			}
@@ -39,21 +61,16 @@ func (m Model) cursorInfo() string {
 			}
 			result := pl.Style.Render(fmt.Sprintf("■ Player %d %s", i+1, hp))
 			if effectStr != "" {
-				result += "\n" + lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#146fba")).
-					Render(effectStr)
+				result += "\n" + effectStr
 			}
 			return result
 		}
 	}
+
 	for i, en := range m.Enemys {
 		if en.X == m.CursorX && en.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", en.HP) + strings.Repeat("♡ ", MaxHP-en.HP)
-
-			effectStr := ""
-			for _, e := range en.Effects {
-				effectStr += fmt.Sprintf(" %s %d ", effectIcon(e.Type), e.Duration)
-			}
+			effectStr := renderEffects(en.Effects)
 
 			if wallBlocked {
 				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
@@ -61,9 +78,7 @@ func (m Model) cursorInfo() string {
 			}
 			result := en.Style.Render(fmt.Sprintf("▲ Enemy %d %s", i+1, hp))
 			if effectStr != "" {
-				result += "\n" + lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#146fba")).
-					Render(effectStr)
+				result += "\n" + effectStr
 			}
 			return result
 		}
@@ -75,17 +90,30 @@ func (m Model) cursorInfo() string {
 	case wallBlocked:
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 			Render("⊘ Wall in the way")
+	case m.SteamTiles[p] > 0:
+		return steamStyle.Render(fmt.Sprintf("~ Steam — %d turns left", m.SteamTiles[p]))
 	case m.Water[p]:
 		return waterStyle.Render("≈ Water — passable")
 	case m.FireTiles[p] > 0:
-    		turns := m.FireTiles[p]
-    		return fireStyle.Render(fmt.Sprintf("⽕ Fire — %d turns left", turns))
+		return fireStyle.Render(fmt.Sprintf("⽕ Fire — %d turns left", m.FireTiles[p]))
 	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render("· In shoot range")
 		}
+		if m.UltMode {
+			if m.ultInAxisRange(m.CursorX, m.CursorY) {
+				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render("⽕ Ult target")
+			}
+			return cellStyle.Render("· Out of ult axis")
+		}
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#AAAAAA")).Render("· In move range")
 	default:
+		if m.UltMode {
+			if m.ultInAxisRange(m.CursorX, m.CursorY) {
+				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render("⽕ Ult target")
+			}
+			return cellStyle.Render("· Out of ult axis")
+		}
 		return cellStyle.Render("· Empty — out of range")
 	}
 }
