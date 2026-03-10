@@ -18,8 +18,8 @@ func testModel() generate.Model {
 		{X: 5, Y: 3}: true,
 	}
 	players := []generate.Player{
-		{X: 4, Y: 5, Style: lipgloss.NewStyle()},
-		{X: 9, Y: 9, Style: lipgloss.NewStyle()},
+		{X: 4, Y: 5, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
+		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
 	}
 	return generate.Model{
 		Players:       players,
@@ -28,6 +28,9 @@ func testModel() generate.Model {
 		CursorY:       5,
 		Walls:         walls,
 		Water:         water,
+		FireTiles:     map[generate.Point]int{},
+		SteamTiles:    map[generate.Point]int{},
+		Enemys:        []generate.Enemy{},
 	}
 }
 
@@ -80,15 +83,23 @@ func TestMove_ClampedAtBorder(t *testing.T) {
 	assert.Equal(t, generate.GridW-1, m.CursorX)
 }
 
-func TestTurnAdvances(t *testing.T) {
-	m := testModel()
-	assert.Equal(t, 0, m.CurrentPlayer)
-	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
-	assert.Equal(t, 1, m.CurrentPlayer)
-}
-
 func TestOccupiedByOther(t *testing.T) {
 	m := testModel()
 	assert.True(t, m.OccupiedByOther(9, 9))
 	assert.False(t, m.OccupiedByOther(6, 6))
+}
+
+func TestOccupiedByOther_True(t *testing.T) {
+	m := testModel()
+	assert.True(t, m.OccupiedByOther(9, 9))
+}
+
+func TestOccupiedByOther_False(t *testing.T) {
+	m := testModel()
+	assert.False(t, m.OccupiedByOther(6, 6))
+}
+
+func TestOccupiedByOther_SelfNotCounted(t *testing.T) {
+	m := testModel()
+	assert.False(t, m.OccupiedByOther(4, 5))
 }

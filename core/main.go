@@ -56,6 +56,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Up):
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
 			if m.UltMode {
+				cur := m.Players[m.CurrentPlayer]
+				if m.CursorX == cur.X && m.CursorY == cur.Y {
+					m.UltAxis = ""
+				}
 				if m.UltAxis == "" || m.UltAxis == "v" {
 					m.UltAxis = "v"
 					m.CursorY = newY
@@ -66,6 +70,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Down):
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
 			if m.UltMode {
+				cur := m.Players[m.CurrentPlayer]
+				if m.CursorX == cur.X && m.CursorY == cur.Y {
+					m.UltAxis = ""
+				}
 				if m.UltAxis == "" || m.UltAxis == "v" {
 					m.UltAxis = "v"
 					m.CursorY = newY
@@ -76,6 +84,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Left):
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
 			if m.UltMode {
+				cur := m.Players[m.CurrentPlayer]
+				if m.CursorX == cur.X && m.CursorY == cur.Y {
+					m.UltAxis = ""
+				}
 				if m.UltAxis == "" || m.UltAxis == "h" {
 					m.UltAxis = "h"
 					m.CursorX = newX
@@ -86,6 +98,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Right):
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
 			if m.UltMode {
+				cur := m.Players[m.CurrentPlayer]
+				if m.CursorX == cur.X && m.CursorY == cur.Y {
+					m.UltAxis = ""
+				}
 				if m.UltAxis == "" || m.UltAxis == "h" {
 					m.UltAxis = "h"
 					m.CursorX = newX
@@ -258,6 +274,15 @@ func (m Model) View() string {
 			Render(" ⽕×0")
 	}
 
+	// зона достижимости (BFS по стенам) для хода или стрельбы
+	// в UltMode не нужна — показываем только крест ульты
+	var reachableZone map[Point]bool
+	if !m.EnemyTurn && !m.UltMode && len(m.Players) > 0 {
+		cur := m.Players[m.CurrentPlayer]
+		r := m.currentRange()
+		reachableZone = m.Reachable(cur.X, cur.Y, r)
+	}
+
 	ultZone := make(map[Point]bool)
 	if m.UltMode {
 		cx, cy := m.CursorX, m.CursorY
@@ -293,6 +318,7 @@ func (m Model) View() string {
 
 			isCursor := col == m.CursorX && row == m.CursorY
 			isUltZone := ultZone[p]
+			isReachable := reachableZone[p]
 
 			switch {
 			case isCursor:
@@ -309,8 +335,13 @@ func (m Model) View() string {
 					symbol = " ● "
 				}
 				st := m.Players[playerIdx].Style
-				if isUltZone {
+				switch {
+				case isUltZone:
 					st = st.Background(lipgloss.Color("#2a0800"))
+				case isReachable && m.ShootMode:
+					st = st.Background(lipgloss.Color("#1a0505"))
+				case isReachable:
+					st = st.Background(lipgloss.Color("#171717"))
 				}
 				cells = append(cells, st.Render(symbol))
 			case enemyIdx >= 0:
@@ -319,8 +350,13 @@ func (m Model) View() string {
 					symbol = " ♦ "
 				}
 				st := m.Enemys[enemyIdx].Style
-				if isUltZone {
+				switch {
+				case isUltZone:
 					st = st.Background(lipgloss.Color("#2a0800"))
+				case isReachable && m.ShootMode:
+					st = st.Background(lipgloss.Color("#1a0505"))
+				case isReachable:
+					st = st.Background(lipgloss.Color("#171717"))
 				}
 				cells = append(cells, st.Render(symbol))
 			case m.Walls[p]:
@@ -337,8 +373,12 @@ func (m Model) View() string {
 				cells = append(cells, fireStyle.Render(" ⁺ "))
 			case isUltZone:
 				cells = append(cells, ultZoneStyle.Render(" + "))
-			case m.IsInRange(col, row):
-				cells = append(cells, rangeStyle.Render(" · "))
+			case reachableZone[p]:
+				if m.ShootMode {
+					cells = append(cells, shootRangeStyle.Render(" · "))
+				} else {
+					cells = append(cells, rangeStyle.Render(" · "))
+				}
 			default:
 				cells = append(cells, cellStyle.Render(" · "))
 			}

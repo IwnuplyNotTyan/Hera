@@ -207,6 +207,41 @@ func (m Model) IsInRange(col, row int) bool {
 	return !m.HasWallBetweenPoints(current.X, current.Y, col, row)
 }
 
+func (m Model) Reachable(sx, sy, r int) map[Point]bool {
+	type state struct {
+		x, y, steps int
+	}
+	visited := map[Point]bool{}
+	result := map[Point]bool{}
+	queue := []state{{sx, sy, 0}}
+	visited[Point{sx, sy}] = true
+
+	dirs := []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+		for _, d := range dirs {
+			nx, ny := cur.x+d.X, cur.y+d.Y
+			np := Point{nx, ny}
+			if nx < 0 || nx >= GridW || ny < 0 || ny >= GridH {
+				continue
+			}
+			if visited[np] {
+				continue
+			}
+			if m.Walls[np] {
+				continue
+			}
+			visited[np] = true
+			if cur.steps+1 <= r {
+				result[np] = true
+				queue = append(queue, state{nx, ny, cur.steps + 1})
+			}
+		}
+	}
+	return result
+}
+
 func (m Model) inRange(x, y int) bool {
 	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
 		return false
@@ -283,7 +318,6 @@ func (m Model) doUlt() Model {
 	if current.UltCharges <= 0 {
 		return m
 	}
-
 	if !m.ultInAxisRange(m.CursorX, m.CursorY) {
 		return m
 	}

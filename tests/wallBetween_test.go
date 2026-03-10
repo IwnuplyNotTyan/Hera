@@ -23,15 +23,18 @@ func TestHasWallBetween_StartNotCounted(t *testing.T) {
 		{X: 4, Y: 5}: true,
 	}
 	players := []generate.Player{
-		{X: 4, Y: 5, Style: lipgloss.NewStyle()},
-		{X: 9, Y: 9, Style: lipgloss.NewStyle()},
+		{X: 4, Y: 5, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
+		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
 	}
 	m := generate.Model{
 		Players:       players,
 		CurrentPlayer: 0,
 		CursorX:       4, CursorY: 5,
-		Walls: walls,
-		Water: map[generate.Point]bool{},
+		Walls:      walls,
+		Water:      map[generate.Point]bool{},
+		FireTiles:  map[generate.Point]int{},
+		SteamTiles: map[generate.Point]int{},
+		Enemys:     []generate.Enemy{},
 	}
 	assert.False(t, m.HasWallBetweenPoints(4, 5, 4, 4))
 }

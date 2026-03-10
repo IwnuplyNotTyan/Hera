@@ -32,6 +32,9 @@ var (
 	ultZoneStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4400")).
 			Background(lipgloss.Color("#1a0800"))
+	shootRangeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#883333")).
+			Background(lipgloss.Color("#1a0505"))
 )
 
 var playerStyles = []lipgloss.Style{
