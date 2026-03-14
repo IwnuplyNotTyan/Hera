@@ -111,6 +111,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Ult):
+			cur := m.Players[m.CurrentPlayer]
+			m.CursorX = cur.X
+			m.CursorY = cur.Y
 			if !m.Shot && m.Players[m.CurrentPlayer].UltCharges > 0 {
 				m.UltMode = !m.UltMode
 				m.UltAxis = ""
