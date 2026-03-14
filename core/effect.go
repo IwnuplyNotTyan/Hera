@@ -6,7 +6,7 @@ func effectIcon(t EffectType) string {
 		return "≈"
 	case EffectFire:
 		return "⽕"
-	case EffectSteam:
+	case EffectSmoke:
 		return "~"
 	default:
 		return "?"
@@ -48,7 +48,7 @@ func resolveEffects(effects []Effect, new Effect) []Effect {
 		effects = removeEffect(effects, EffectWet)
 	case EffectWet:
 		effects = removeEffect(effects, EffectFire)
-	case EffectSteam:
+	case EffectSmoke:
 		effects = removeEffect(effects, EffectFire)
 		effects = removeEffect(effects, EffectWet)
 	}

@@ -64,7 +64,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "v"
 					m.CursorY = newY
 				}
-			} else if m.ShootMode || m.inRange(m.CursorX, newY) {
+			} else if m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
@@ -78,7 +78,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "v"
 					m.CursorY = newY
 				}
-			} else if m.ShootMode || m.inRange(m.CursorX, newY) {
+			} else if m.inRange(m.CursorX, newY) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
@@ -92,7 +92,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "h"
 					m.CursorX = newX
 				}
-			} else if m.ShootMode || m.inRange(newX, m.CursorY) {
+			} else if m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
@@ -106,7 +106,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "h"
 					m.CursorX = newX
 				}
-			} else if m.ShootMode || m.inRange(newX, m.CursorY) {
+			} else if m.inRange(newX, m.CursorY) {
 				m.CursorX = newX
 			}
 
@@ -143,12 +143,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = cur.Y
 
 			} else if m.ShootMode && !m.Shot {
-				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSteam) {
+				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
 					m.Shot = true
 					m.ShootMode = false
 					break
 				}
-				if !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+				if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
 					for i, pl := range m.Players {
 						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
 							m.Players[i].HP--
@@ -196,10 +196,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							)
 						}
 					}
-					if m.SteamTiles[p] > 0 {
+					if m.SmokeTiles[p] > 0 {
 						m.Players[m.CurrentPlayer].Effects = resolveEffects(
 							m.Players[m.CurrentPlayer].Effects,
-							Effect{Type: EffectSteam, Duration: 2},
+							Effect{Type: EffectSmoke, Duration: 2},
 						)
 					}
 
@@ -281,44 +281,23 @@ func (m Model) View() string {
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
 	}
 
-	// В UltMode показываем:
-	//   ultAxisZone — вся ось (горизонталь или вертикаль) от игрока, зона прицела
-	//   ultCrossZone — крест 5 клеток вокруг курсора, превью урона
+	// ultAxisZone — крест осей X и Y от позиции игрока (всегда обе)
+	// ultCrossZone — крест 5 клеток вокруг курсора (превью урона)
 	ultAxisZone := make(map[Point]bool)
 	ultCrossZone := make(map[Point]bool)
 	if m.UltMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		cx, cy := m.CursorX, m.CursorY
-
-		// ось прицела — по зафиксированной оси от игрока
-		switch m.UltAxis {
-		case "h":
-			for x := 0; x < GridW; x++ {
-				if x != cur.X {
-					ultAxisZone[Point{x, cur.Y}] = true
-				}
-			}
-		case "v":
-			for y := 0; y < GridH; y++ {
-				if y != cur.Y {
-					ultAxisZone[Point{cur.X, y}] = true
-				}
-			}
-		default:
-			// ось не выбрана — показываем обе оси
-			for x := 0; x < GridW; x++ {
-				if x != cur.X {
-					ultAxisZone[Point{x, cur.Y}] = true
-				}
-			}
-			for y := 0; y < GridH; y++ {
-				if y != cur.Y {
-					ultAxisZone[Point{cur.X, y}] = true
-				}
+		for x := 0; x < GridW; x++ {
+			if x != cur.X {
+				ultAxisZone[Point{x, cur.Y}] = true
 			}
 		}
-
-		// крест урона вокруг курсора (без стен)
+		for y := 0; y < GridH; y++ {
+			if y != cur.Y {
+				ultAxisZone[Point{cur.X, y}] = true
+			}
+		}
 		for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 			np := Point{cx + dp.X, cy + dp.Y}
 			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.Walls[np] {
@@ -397,7 +376,7 @@ func (m Model) View() string {
 				cells = append(cells, st.Render(symbol))
 			case m.Walls[p]:
 				cells = append(cells, wallStyle.Render(" ■ "))
-			case m.SteamTiles[p] > 0:
+			case m.SmokeTiles[p] > 0:
 				cells = append(cells, steamStyle.Render(" ~ "))
 			case m.Water[p]:
 				switch {

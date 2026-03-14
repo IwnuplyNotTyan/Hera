@@ -18,7 +18,7 @@ const (
 
 	EffectWet   EffectType = "wet"
 	EffectFire  EffectType = "fire"
-	EffectSteam EffectType = "steam"
+	EffectSmoke EffectType = "smoke"
 
 	maxUltCharges = 3
 )
@@ -60,7 +60,7 @@ type Model struct {
 	Walls            map[Point]bool
 	Water            map[Point]bool
 	FireTiles        map[Point]int
-	SteamTiles       map[Point]int
+	SmokeTiles       map[Point]int
 	ShootMode        bool
 	UltMode          bool
 	UltAxis          string

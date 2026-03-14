@@ -24,7 +24,7 @@ func renderEffects(effects []Effect) string {
 		case EffectWet:
 			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true).
 				Render(fmt.Sprintf("%s %d", icon, e.Duration))
-		case EffectSteam:
+		case EffectSmoke:
 			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true).
 				Render(fmt.Sprintf("%s %d", icon, e.Duration))
 		default:
@@ -91,8 +91,8 @@ func (m Model) cursorInfo() string {
 	case wallBlocked:
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 			Render("⊘ Wall in the way")
-	case m.SteamTiles[p] > 0:
-		return steamStyle.Render(fmt.Sprintf("~ Steam — %d turns left", m.SteamTiles[p]))
+	case m.SmokeTiles[p] > 0:
+		return steamStyle.Render(fmt.Sprintf("~ Smoke — %d turns left", m.SmokeTiles[p]))
 	case m.Water[p]:
 		return waterStyle.Render("≈ Water — passable")
 	case m.FireTiles[p] > 0:

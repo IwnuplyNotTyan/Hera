@@ -77,7 +77,7 @@ func NewModel(playerCount, enemysCount int) Model {
 		Walls:         walls,
 		Water:         water,
 		FireTiles:     make(map[Point]int),
-		SteamTiles:    make(map[Point]int),
+		SmokeTiles:    make(map[Point]int),
 		keys:          keys,
 		help:          help.New(),
 	}
@@ -330,8 +330,8 @@ func (m Model) doUlt() Model {
 	affected := m.ultCross(m.CursorX, m.CursorY)
 
 	for _, p := range affected {
-		if m.Water[p] || m.SteamTiles[p] > 0 {
-			m.SteamTiles[p] = 2
+		if m.Water[p] || m.SmokeTiles[p] > 0 {
+			m.SmokeTiles[p] = 2
 		} else {
 			m.FireTiles[p] = 2
 		}
@@ -341,10 +341,10 @@ func (m Model) doUlt() Model {
 		p := Point{pl.X, pl.Y}
 		for _, ap := range affected {
 			if ap == p {
-				if m.SteamTiles[p] > 0 {
+				if m.SmokeTiles[p] > 0 {
 					m.Players[i].Effects = resolveEffects(
 						m.Players[i].Effects,
-						Effect{Type: EffectSteam, Duration: 2},
+						Effect{Type: EffectSmoke, Duration: 2},
 					)
 				} else if m.FireTiles[p] > 0 {
 					if hasEffect(pl.Effects, EffectWet) {
@@ -364,10 +364,10 @@ func (m Model) doUlt() Model {
 		p := Point{en.X, en.Y}
 		for _, ap := range affected {
 			if ap == p {
-				if m.SteamTiles[p] > 0 {
+				if m.SmokeTiles[p] > 0 {
 					m.Enemys[i].Effects = resolveEffects(
 						m.Enemys[i].Effects,
-						Effect{Type: EffectSteam, Duration: 2},
+						Effect{Type: EffectSmoke, Duration: 2},
 					)
 				} else if m.FireTiles[p] > 0 {
 					if hasEffect(en.Effects, EffectWet) {
@@ -396,12 +396,12 @@ func (m Model) tickFireTiles() Model {
 			m.FireTiles[p] = t
 		}
 	}
-	for p, t := range m.SteamTiles {
+	for p, t := range m.SmokeTiles {
 		t--
 		if t <= 0 {
-			delete(m.SteamTiles, p)
+			delete(m.SmokeTiles, p)
 		} else {
-			m.SteamTiles[p] = t
+			m.SmokeTiles[p] = t
 		}
 	}
 	return m
