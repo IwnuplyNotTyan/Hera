@@ -144,7 +144,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cur := m.Players[m.CurrentPlayer]
 				m.CursorX = cur.X
 				m.CursorY = cur.Y
-
 			} else if m.ShootMode && !m.Shot {
 				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
 					m.Shot = true
@@ -179,7 +178,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.CursorX = cur.X
 					m.CursorY = cur.Y
 				}
-
 			} else if !m.ShootMode && !m.UltMode && !m.Moved {
 				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
