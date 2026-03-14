@@ -41,7 +41,8 @@ func (m Model) cursorInfo() string {
 	}
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
-	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+	// wallBlocked — только для shoot/move режимов, не для ult
+	wallBlocked := !m.UltMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -96,24 +97,17 @@ func (m Model) cursorInfo() string {
 		return waterStyle.Render("≈ Water — passable")
 	case m.FireTiles[p] > 0:
 		return fireStyle.Render(fmt.Sprintf("⽕ Fire — %d turns left", m.FireTiles[p]))
+	case m.UltMode:
+		if m.ultInAxisRange(m.CursorX, m.CursorY) {
+			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render("⽕ Ult target")
+		}
+		return cellStyle.Render("· Out of ult axis")
 	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render("· In shoot range")
 		}
-		if m.UltMode {
-			if m.ultInAxisRange(m.CursorX, m.CursorY) {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render("⽕ Ult target")
-			}
-			return cellStyle.Render("· Out of ult axis")
-		}
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#AAAAAA")).Render("· In move range")
 	default:
-		if m.UltMode {
-			if m.ultInAxisRange(m.CursorX, m.CursorY) {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render("⽕ Ult target")
-			}
-			return cellStyle.Render("· Out of ult axis")
-		}
 		return cellStyle.Render("· Empty — out of range")
 	}
 }

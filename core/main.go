@@ -274,8 +274,6 @@ func (m Model) View() string {
 			Render(" ⽕×0")
 	}
 
-	// зона достижимости (BFS по стенам) для хода или стрельбы
-	// в UltMode не нужна — показываем только крест ульты
 	var reachableZone map[Point]bool
 	if !m.EnemyTurn && !m.UltMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
@@ -283,15 +281,48 @@ func (m Model) View() string {
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
 	}
 
-	ultZone := make(map[Point]bool)
-	if m.UltMode {
+	// В UltMode показываем:
+	//   ultAxisZone — вся ось (горизонталь или вертикаль) от игрока, зона прицела
+	//   ultCrossZone — крест 5 клеток вокруг курсора, превью урона
+	ultAxisZone := make(map[Point]bool)
+	ultCrossZone := make(map[Point]bool)
+	if m.UltMode && len(m.Players) > 0 {
+		cur := m.Players[m.CurrentPlayer]
 		cx, cy := m.CursorX, m.CursorY
-		for _, dp := range []Point{
-			{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
-		} {
+
+		// ось прицела — по зафиксированной оси от игрока
+		switch m.UltAxis {
+		case "h":
+			for x := 0; x < GridW; x++ {
+				if x != cur.X {
+					ultAxisZone[Point{x, cur.Y}] = true
+				}
+			}
+		case "v":
+			for y := 0; y < GridH; y++ {
+				if y != cur.Y {
+					ultAxisZone[Point{cur.X, y}] = true
+				}
+			}
+		default:
+			// ось не выбрана — показываем обе оси
+			for x := 0; x < GridW; x++ {
+				if x != cur.X {
+					ultAxisZone[Point{x, cur.Y}] = true
+				}
+			}
+			for y := 0; y < GridH; y++ {
+				if y != cur.Y {
+					ultAxisZone[Point{cur.X, y}] = true
+				}
+			}
+		}
+
+		// крест урона вокруг курсора (без стен)
+		for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 			np := Point{cx + dp.X, cy + dp.Y}
 			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.Walls[np] {
-				ultZone[np] = true
+				ultCrossZone[np] = true
 			}
 		}
 	}
@@ -317,7 +348,8 @@ func (m Model) View() string {
 			}
 
 			isCursor := col == m.CursorX && row == m.CursorY
-			isUltZone := ultZone[p]
+			isUltCross := ultCrossZone[p]
+			isUltAxis := ultAxisZone[p]
 			isReachable := reachableZone[p]
 
 			switch {
@@ -336,8 +368,10 @@ func (m Model) View() string {
 				}
 				st := m.Players[playerIdx].Style
 				switch {
-				case isUltZone:
+				case isUltCross:
 					st = st.Background(lipgloss.Color("#2a0800"))
+				case isUltAxis:
+					st = st.Background(lipgloss.Color("#1a0a00"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
@@ -351,8 +385,10 @@ func (m Model) View() string {
 				}
 				st := m.Enemys[enemyIdx].Style
 				switch {
-				case isUltZone:
+				case isUltCross:
 					st = st.Background(lipgloss.Color("#2a0800"))
+				case isUltAxis:
+					st = st.Background(lipgloss.Color("#1a0a00"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
@@ -364,16 +400,21 @@ func (m Model) View() string {
 			case m.SteamTiles[p] > 0:
 				cells = append(cells, steamStyle.Render(" ~ "))
 			case m.Water[p]:
-				if isUltZone {
+				switch {
+				case isUltCross:
 					cells = append(cells, steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ "))
-				} else {
+				case isUltAxis:
+					cells = append(cells, waterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ "))
+				default:
 					cells = append(cells, waterStyle.Render(" ≈ "))
 				}
 			case m.FireTiles[p] > 0:
 				cells = append(cells, fireStyle.Render(" ⁺ "))
-			case isUltZone:
+			case isUltCross:
 				cells = append(cells, ultZoneStyle.Render(" + "))
-			case reachableZone[p]:
+			case isUltAxis:
+				cells = append(cells, ultAxisStyle.Render(" · "))
+			case isReachable:
 				if m.ShootMode {
 					cells = append(cells, shootRangeStyle.Render(" · "))
 				} else {
