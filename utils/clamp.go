@@ -9,10 +9,3 @@ func Clamp(val, min, max int) int {
 	}
 	return val
 }
-
-func Abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}

@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"hera/generate"
+	generate "hera/core"
 	"hera/utils"
 
 	"github.com/stretchr/testify/assert"
@@ -17,11 +17,10 @@ func TestGenerateTiles_Count(t *testing.T) {
 func TestGenerateTiles_NotNearPlayer(t *testing.T) {
 	playerX, playerY := 5, 5
 	tiles := generate.GenerateTiles(playerX, playerY, 20, nil)
-
 	for p := range tiles {
 		assert.False(t,
 			utils.Abs(p.X-playerX) <= 1 && utils.Abs(p.Y-playerY) <= 1,
-			"Tile close to the player: %v ", p,
+			"tile too close to player: %v", p,
 		)
 	}
 }
@@ -29,8 +28,7 @@ func TestGenerateTiles_NotNearPlayer(t *testing.T) {
 func TestGenerateTiles_NoOverlapWithBlocked(t *testing.T) {
 	walls := generate.GenerateTiles(5, 5, 10, nil)
 	water := generate.GenerateTiles(5, 5, 10, walls)
-
 	for p := range water {
-		assert.False(t, walls[p], "Water and wall overlap: %v", p)
+		assert.False(t, walls[p], "water and wall overlap at %v", p)
 	}
 }

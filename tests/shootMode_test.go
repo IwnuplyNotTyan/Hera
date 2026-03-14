@@ -9,5 +9,7 @@ import (
 func TestIsInRange_ShootModeSmaller(t *testing.T) {
 	m := testModel()
 	m.ShootMode = true
-	assert.False(t, m.IsInRange(4, 2)) // dy = 3
+	assert.True(t, m.IsInRange(4, 4))
+	assert.True(t, m.IsInRange(4, 3))
+	assert.False(t, m.IsInRange(4, 2))
 }

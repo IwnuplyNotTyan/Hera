@@ -3,7 +3,7 @@ package main
 import (
 	"math/rand"
 
-	"hera/generate"
+	generate "hera/core"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
