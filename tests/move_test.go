@@ -29,7 +29,7 @@ func testModel() generate.Model {
 		Walls:         walls,
 		Water:         water,
 		FireTiles:     map[generate.Point]int{},
-		SteamTiles:    map[generate.Point]int{},
+		SmokeTiles:    map[generate.Point]int{},
 		Enemys:        []generate.Enemy{},
 	}
 }

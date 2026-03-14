@@ -43,7 +43,7 @@ func TestReachable_BlockedByWall(t *testing.T) {
 		Walls:      walls,
 		Water:      map[generate.Point]bool{},
 		FireTiles:  map[generate.Point]int{},
-		SteamTiles: map[generate.Point]int{},
+		SmokeTiles: map[generate.Point]int{},
 		Enemys:     []generate.Enemy{},
 	}
 	zone := m.Reachable(4, 5, 4)

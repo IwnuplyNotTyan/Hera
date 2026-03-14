@@ -33,7 +33,7 @@ func TestHasWallBetween_StartNotCounted(t *testing.T) {
 		Walls:      walls,
 		Water:      map[generate.Point]bool{},
 		FireTiles:  map[generate.Point]int{},
-		SteamTiles: map[generate.Point]int{},
+		SmokeTiles: map[generate.Point]int{},
 		Enemys:     []generate.Enemy{},
 	}
 	assert.False(t, m.HasWallBetweenPoints(4, 5, 4, 4))
