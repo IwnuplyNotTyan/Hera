@@ -414,6 +414,21 @@ func (m Model) nextTurn() Model {
 	m.UltMode = false
 	m.UltAxis = ""
 
+	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) {
+		m.Players[m.CurrentPlayer].HP--
+		if m.Players[m.CurrentPlayer].HP <= 0 {
+			m.Players = append(m.Players[:m.CurrentPlayer], m.Players[m.CurrentPlayer+1:]...)
+			if len(m.Players) == 0 {
+				return m
+			}
+			m.CurrentPlayer = m.CurrentPlayer % len(m.Players)
+			next := m.Players[m.CurrentPlayer]
+			m.CursorX = next.X
+			m.CursorY = next.Y
+			return m
+		}
+	}
+
 	m.Players[m.CurrentPlayer].Effects = tickEffects(
 		m.Players[m.CurrentPlayer].Effects,
 	)
