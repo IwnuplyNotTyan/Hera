@@ -1,4 +1,4 @@
-name: security 
+name: Security 
 
 on:
   pull_request:
@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   security-events: write
 
 jobs:
@@ -23,7 +24,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.8'
+          go-version-file: go.mod
           cache: true
 
       - name: Build
