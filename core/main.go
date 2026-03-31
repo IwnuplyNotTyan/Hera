@@ -395,6 +395,8 @@ func (m Model) View() string {
 			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cells = append(cells, shootRangeStyle.Render(" · "))
+				} else if m.UltMode {
+					cells = append(cells, cellStyle.Render(" · "))
 				} else {
 					cells = append(cells, rangeStyle.Render(" · "))
 				}
