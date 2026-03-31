@@ -216,6 +216,16 @@ func (m Model) Reachable(sx, sy, r int) map[Point]bool {
 	queue := []state{{sx, sy, 0}}
 	visited[Point{sx, sy}] = true
 
+	occupied := map[Point]bool{}
+	for i, pl := range m.Players {
+		if i != m.CurrentPlayer {
+			occupied[Point{pl.X, pl.Y}] = true
+		}
+	}
+	for _, en := range m.Enemys {
+		occupied[Point{en.X, en.Y}] = true
+	}
+
 	dirs := []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 	for len(queue) > 0 {
 		cur := queue[0]
@@ -235,7 +245,9 @@ func (m Model) Reachable(sx, sy, r int) map[Point]bool {
 			visited[np] = true
 			if cur.steps+1 <= r {
 				result[np] = true
-				queue = append(queue, state{nx, ny, cur.steps + 1})
+				if !occupied[np] {
+					queue = append(queue, state{nx, ny, cur.steps + 1})
+				}
 			}
 		}
 	}
@@ -329,6 +341,11 @@ func (m Model) doUlt() Model {
 
 	affected := m.ultCross(m.CursorX, m.CursorY)
 
+	affectedSet := make(map[Point]bool, len(affected))
+	for _, p := range affected {
+		affectedSet[p] = true
+	}
+
 	for _, p := range affected {
 		if m.Water[p] || m.SmokeTiles[p] > 0 {
 			m.SmokeTiles[p] = 2
@@ -339,47 +356,44 @@ func (m Model) doUlt() Model {
 
 	for i, pl := range m.Players {
 		p := Point{pl.X, pl.Y}
-		for _, ap := range affected {
-			if ap == p {
-				if m.SmokeTiles[p] > 0 {
-					m.Players[i].Effects = resolveEffects(
-						m.Players[i].Effects,
-						Effect{Type: EffectSmoke, Duration: 2},
-					)
-				} else if m.FireTiles[p] > 0 {
-					if hasEffect(pl.Effects, EffectWet) {
-						m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
-					} else {
-						m.Players[i].Effects = resolveEffects(
-							m.Players[i].Effects,
-							Effect{Type: EffectFire, Duration: 2},
-						)
-					}
-				}
-				break
+		if !affectedSet[p] {
+			continue
+		}
+		if m.SmokeTiles[p] > 0 {
+			m.Players[i].Effects = resolveEffects(
+				m.Players[i].Effects,
+				Effect{Type: EffectSmoke, Duration: 2},
+			)
+		} else if m.FireTiles[p] > 0 {
+			if hasEffect(pl.Effects, EffectWet) {
+				m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
+			} else {
+				m.Players[i].Effects = resolveEffects(
+					m.Players[i].Effects,
+					Effect{Type: EffectFire, Duration: 2},
+				)
 			}
 		}
 	}
+
 	for i, en := range m.Enemys {
 		p := Point{en.X, en.Y}
-		for _, ap := range affected {
-			if ap == p {
-				if m.SmokeTiles[p] > 0 {
-					m.Enemys[i].Effects = resolveEffects(
-						m.Enemys[i].Effects,
-						Effect{Type: EffectSmoke, Duration: 2},
-					)
-				} else if m.FireTiles[p] > 0 {
-					if hasEffect(en.Effects, EffectWet) {
-						m.Enemys[i].Effects = removeEffect(m.Enemys[i].Effects, EffectWet)
-					} else {
-						m.Enemys[i].Effects = resolveEffects(
-							m.Enemys[i].Effects,
-							Effect{Type: EffectFire, Duration: 2},
-						)
-					}
-				}
-				break
+		if !affectedSet[p] {
+			continue
+		}
+		if m.SmokeTiles[p] > 0 {
+			m.Enemys[i].Effects = resolveEffects(
+				m.Enemys[i].Effects,
+				Effect{Type: EffectSmoke, Duration: 2},
+			)
+		} else if m.FireTiles[p] > 0 {
+			if hasEffect(en.Effects, EffectWet) {
+				m.Enemys[i].Effects = removeEffect(m.Enemys[i].Effects, EffectWet)
+			} else {
+				m.Enemys[i].Effects = resolveEffects(
+					m.Enemys[i].Effects,
+					Effect{Type: EffectFire, Duration: 2},
+				)
 			}
 		}
 	}

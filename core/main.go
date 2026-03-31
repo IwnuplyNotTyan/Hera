@@ -282,8 +282,6 @@ func (m Model) View() string {
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
 	}
 
-	// ultAxisZone — крест осей X и Y от позиции игрока (всегда обе)
-	// ultCrossZone — крест 5 клеток вокруг курсора (превью урона)
 	ultAxisZone := make(map[Point]bool)
 	ultCrossZone := make(map[Point]bool)
 	if m.UltMode && len(m.Players) > 0 {
@@ -394,9 +392,11 @@ func (m Model) View() string {
 				cells = append(cells, ultZoneStyle.Render(" + "))
 			case isUltAxis:
 				cells = append(cells, ultAxisStyle.Render(" · "))
-			case isReachable:
+			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cells = append(cells, shootRangeStyle.Render(" · "))
+				} else if m.UltMode {
+					cells = append(cells, cellStyle.Render(" · "))
 				} else {
 					cells = append(cells, rangeStyle.Render(" · "))
 				}
