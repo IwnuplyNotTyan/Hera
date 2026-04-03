@@ -5,14 +5,14 @@
 
 <p align="center">
   <a href="https://github.com/IwnuplyNotTyan/Hera/actions/workflows/ci.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/IwnuplyNotTyan/Hera/ci.yml?style=flat-square" alt="Build Status"/>
+    <img src="https://img.shields.io/github/actions/workflow/status/IwnuplyNotTyan/Hera/ci.yml" alt="Build Status"/>
   </a>
-  <img src="https://img.shields.io/github/license/IwnuplyNotTyan/Hera?style=flat-square" alt="License"/>
-  <img src="https://img.shields.io/github/stars/IwnuplyNotTyan/Hera?style=flat-square" alt="Stars"/>
-  <img src="https://img.shields.io/github/last-commit/IwnuplyNotTyan/Hera?style=flat-square" alt="Last Commit"/>
+  <img src="https://img.shields.io/github/license/IwnuplyNotTyan/Hera" alt="License"/>
+  <img src="https://img.shields.io/github/stars/IwnuplyNotTyan/Hera" alt="Stars"/>
+  <img src="https://img.shields.io/github/last-commit/IwnuplyNotTyan/Hera" alt="Last Commit"/>
 </p>
 
-![Screenshot](https://github.com/IwnuplyNotTyan/Hera/blob/main/github/assets/screenshot.png?raw=true)
+![Screenshot](https://github.com/IwnuplyNotTyan/Hera/blob/main/.github/assets/screenshot.png?raw=true)
 
 ---
 
