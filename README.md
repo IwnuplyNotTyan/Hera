@@ -34,7 +34,7 @@ go build -o ./bin/hera ./cmd/hera/main.go
 ---
 
 ## 👩‍💻 Author
-- [iwnuplynottyan](github.com/iwnuplynottyan)
+- [iwnuplynottyan](https://github.com/iwnuplynottyan)
 
 ---
 
@@ -43,12 +43,12 @@ go build -o ./bin/hera ./cmd/hera/main.go
 - [Bubbles](https://github.com/charmbracelet/bubbles) — Modular widgets/components
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Terminal styling
 - [Log](https://github.com/charmbracelet/log) - Pretty logs
-- [Testify](https://github.com/stretchr/testify) - Enchaned test
+- [Testify](https://github.com/stretchr/testify) - Enchaned testing
 
 ---
 
 ## 📄 License
-[MIT](PLACEHOLDER_LICENSE_LINK).
+[MIT](https://github.com/IwnuplyNotTyan/Hera/blob/main/LICENSE).
 
 <div align="center">
   <h1>Made with ❤️ </h1>
