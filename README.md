@@ -1,2 +1,55 @@
-# Hera
-🐙 ~ Less 3
+<div align="center">
+  <h1>🐙 ~ Hera</h1>
+  <p>Turn Based RogueLike?</p>
+</div>
+
+<p align="center">
+  <a href="https://github.com/IwnuplyNotTyan/Hera/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/IwnuplyNotTyan/Hera/ci.yml?style=flat-square" alt="Build Status"/>
+  </a>
+  <img src="https://img.shields.io/github/license/IwnuplyNotTyan/Hera?style=flat-square" alt="License"/>
+  <img src="https://img.shields.io/github/stars/IwnuplyNotTyan/Hera?style=flat-square" alt="Stars"/>
+  <img src="https://img.shields.io/github/last-commit/IwnuplyNotTyan/Hera?style=flat-square" alt="Last Commit"/>
+</p>
+
+![Screenshot](https://github.com/IwnuplyNotTyan/Hera/blob/main/github/assets/screenshot.png?raw=true)
+
+---
+
+## 🪭 Tree 
+-  [Build](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#build)
+-  [Author](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#Author)
+-  [Libs](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#Libraries-Used)
+-  [License](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#License)
+
+---
+
+## 🪻 Build 
+```sh
+git clone https://github.com/IwnuplyNotTyan/Hera && cd Hera
+go mod download
+go build -o ./bin/hera ./cmd/hera/main.go
+```
+
+---
+
+## 👩‍💻 Author
+- [iwnuplynottyan](github.com/iwnuplynottyan)
+
+---
+
+## 🛠️ Libraries Used
+- [Bubble Tea](https://github.com/charmbracelet/bubbletea) — TUI framework, core architecture
+- [Bubbles](https://github.com/charmbracelet/bubbles) — Modular widgets/components
+- [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Terminal styling
+- [Log](https://github.com/charmbracelet/log) - Pretty logs
+- [Testify](https://github.com/stretchr/testify) - Enchaned test
+
+---
+
+## 📄 License
+[MIT](PLACEHOLDER_LICENSE_LINK).
+
+<div align="center">
+  <h1>Made with ❤️ </h1>
+</div>
