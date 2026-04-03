@@ -17,10 +17,10 @@
 ---
 
 ## 🪭 Tree 
--  [Build](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#build)
--  [Author](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#Author)
--  [Libs](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#Libraries-Used)
--  [License](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#License)
+-  [Build](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#-build)
+-  [Author](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#%E2%80%8D-author)
+-  [Libs](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#%EF%B8%8F-libraries-used)
+-  [License](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#-license)
 
 ---
 
