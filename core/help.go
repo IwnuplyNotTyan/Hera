@@ -2,6 +2,8 @@ package generate
 
 import (
 	"github.com/charmbracelet/bubbles/key"
+
+	"hera/i18n"
 )
 
 type keyMap struct {
@@ -14,6 +16,7 @@ type keyMap struct {
 	Ult     key.Binding
 	Help    key.Binding
 	Quit    key.Binding
+	loc     i18n.Localizer
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
@@ -28,41 +31,46 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-var keys = keyMap{
-	Up: key.NewBinding(
-		key.WithKeys("up", "k"),
-		key.WithHelp("↑/K", "Move Up"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("down", "j"),
-		key.WithHelp("↓/J", "Move Down"),
-	),
-	Left: key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/H", "Move Left"),
-	),
-	Right: key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/L", "Move Right"),
-	),
-	Confirm: key.NewBinding(
-		key.WithKeys("x"),
-		key.WithHelp("X", "Move Player"),
-	),
-	Shoot: key.NewBinding(
-		key.WithKeys("z"),
-		key.WithHelp("Z", "Change Mode"),
-	),
-	Ult: key.NewBinding(
-		key.WithKeys("c"),
-		key.WithHelp("C", "Second Attack"),
-	),
-	Help: key.NewBinding(
-		key.WithKeys("?"),
-		key.WithHelp("?", "Toggle Help"),
-	),
-	Quit: key.NewBinding(
-		key.WithKeys("q", "esc", "ctrl+c"),
-		key.WithHelp("q", "Quit"),
-	),
+func newKeyMap(loc i18n.Localizer) keyMap {
+	return keyMap{
+		Up: key.NewBinding(
+			key.WithKeys("up", "k"),
+			key.WithHelp(loc.T("keys.up"), loc.T("help.moveUp")),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("down", "j"),
+			key.WithHelp(loc.T("keys.down"), loc.T("help.moveDown")),
+		),
+		Left: key.NewBinding(
+			key.WithKeys("left", "h"),
+			key.WithHelp(loc.T("keys.left"), loc.T("help.moveLeft")),
+		),
+		Right: key.NewBinding(
+			key.WithKeys("right", "l"),
+			key.WithHelp(loc.T("keys.right"), loc.T("help.moveRight")),
+		),
+		Confirm: key.NewBinding(
+			key.WithKeys("x"),
+			key.WithHelp(loc.T("keys.confirm"), loc.T("help.movePlayer")),
+		),
+		Shoot: key.NewBinding(
+			key.WithKeys("z"),
+			key.WithHelp(loc.T("keys.shoot"), loc.T("help.changeMode")),
+		),
+		Ult: key.NewBinding(
+			key.WithKeys("c"),
+			key.WithHelp(loc.T("keys.ult"), loc.T("help.secondAttack")),
+		),
+		Help: key.NewBinding(
+			key.WithKeys("?"),
+			key.WithHelp(loc.T("keys.help"), loc.T("help.toggleHelp")),
+		),
+		Quit: key.NewBinding(
+			key.WithKeys("q", "esc", "ctrl+c"),
+			key.WithHelp(loc.T("keys.quit"), loc.T("help.quit")),
+		),
+		loc: loc,
+	}
 }
+
+var keys keyMap

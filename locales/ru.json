@@ -1,0 +1,71 @@
+{
+  "game": {
+    "gameOver": "☠  Конец игры  ☠",
+    "coordinates": "({x}, {y})"
+  },
+  "player": {
+    "you": "ты",
+    "wallInWay": "стена на пути"
+  },
+  "enemy": {
+    "wallInWay": "стена на пути"
+  },
+  "status": {
+    "move": "♧ M ",
+    "shoot": "♡ S ",
+    "ult": "⽕ U ",
+    "ultCharges": "⽕×{n}",
+    "ultChargesZero": "⽕×0"
+  },
+  "effects": {
+    "fire": {
+      "name": "⽕",
+      "description": "Огонь — {n} ходов"
+    },
+    "wet": {
+      "name": "≈",
+      "description": "Вода — проходимо"
+    },
+    "smoke": {
+      "name": "~",
+      "description": "Дым — {n} ходов"
+    }
+  },
+  "tiles": {
+    "wall": {
+      "name": "■",
+      "description": "Стена — непроходимо"
+    },
+    "wallInWay": "Стена на пути",
+    "water": {
+      "name": "≈",
+      "description": "Вода — проходимо"
+    },
+    "fire": {
+      "name": "⽕",
+      "description": "Огонь — {n} ходов"
+    },
+    "smoke": {
+      "name": "~",
+      "description": "Дым — {n} ходов"
+    },
+    "empty": "Пусто — вне досягаемости",
+    "inShootRange": "В зоне выстрела",
+    "inMoveRange": "В зоне движения"
+  },
+  "range": {
+    "ultTarget": "⽕ Цель ульты",
+    "outOfUltAxis": "Вне оси ульты"
+  },
+  "help": {
+    "moveUp": "Вверх",
+    "moveDown": "Вниз",
+    "moveLeft": "Влево",
+    "moveRight": "Вправо",
+    "movePlayer": "Двинуть игрока",
+    "changeMode": "Сменить режим",
+    "secondAttack": "Вторая атака",
+    "toggleHelp": "Помощь",
+    "quit": "Выход"
+  }
+}
