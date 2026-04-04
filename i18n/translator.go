@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,6 +17,11 @@ type Localizer interface {
 	AvailableLanguages() []string
 }
 
+var (
+	//go:embed locales/*.json
+	embeddedLocales embed.FS
+)
+
 type Translator struct {
 	translations map[string]map[string]interface{}
 	currentLang  string
@@ -28,6 +34,10 @@ func NewTranslator(localesPath string, defaultLang string) (*Translator, error) 
 		translations: make(map[string]map[string]interface{}),
 		defaultLang:  defaultLang,
 		currentLang:  defaultLang,
+	}
+
+	if err := t.loadEmbedded(); err == nil {
+		return t, nil
 	}
 
 	files, err := os.ReadDir(localesPath)
@@ -55,6 +65,38 @@ func NewTranslator(localesPath string, defaultLang string) (*Translator, error) 
 	}
 
 	return t, nil
+}
+
+func (t *Translator) loadEmbedded() error {
+	entries, err := embeddedLocales.ReadDir("locales")
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+
+		lang := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		data, err := embeddedLocales.ReadFile(filepath.Join("locales", entry.Name()))
+		if err != nil {
+			return fmt.Errorf("failed to read embedded locale %s: %w", entry.Name(), err)
+		}
+
+		var translations map[string]interface{}
+		if err := json.Unmarshal(data, &translations); err != nil {
+			return fmt.Errorf("failed to parse embedded locale %s: %w", entry.Name(), err)
+		}
+
+		t.translations[lang] = flattenMap(translations)
+	}
+
+	if len(t.translations) == 0 {
+		return fmt.Errorf("no embedded locales found")
+	}
+
+	return nil
 }
 
 func flattenMap(m map[string]interface{}) map[string]interface{} {
@@ -127,58 +169,44 @@ func (t *Translator) T(key string, args ...interface{}) string {
 }
 
 func (t *Translator) interpolate(template string, args ...interface{}) string {
-	parts := strings.Split(template, "{")
-
-	if len(parts) == 1 {
+	if len(args) == 0 {
 		return template
 	}
 
-	var result strings.Builder
-	result.WriteString(parts[0])
+	result := template
 
-	for i := 1; i < len(parts); i++ {
-		closing := strings.Index(parts[i], "}")
-		if closing == -1 {
-			result.WriteString("{")
-			result.WriteString(parts[i])
-			continue
+	switch firstArg := args[0].(type) {
+	case map[string]interface{}:
+		for key, val := range firstArg {
+			result = strings.ReplaceAll(result, "{"+key+"}", fmt.Sprintf("%v", val))
 		}
-
-		key := parts[i][:closing]
-		rest := parts[i][closing+1:]
-
-		found := false
-		for j, arg := range args {
-			switch v := arg.(type) {
-			case map[string]interface{}:
-				if val, ok := v[key]; ok {
-					result.WriteString(fmt.Sprintf("%v", val))
-					found = true
-					break
-				}
-			default:
-				if key == "n" || key == "x" || key == "y" {
-					result.WriteString(fmt.Sprintf("%v", v))
-					found = true
-					break
-				}
-				if j == 0 {
-					result.WriteString(fmt.Sprintf("%v", v))
-					found = true
-					break
-				}
-			}
+		for i := 1; i < len(args); i++ {
+			placeholder := fmt.Sprintf("{%d}", i)
+			result = strings.ReplaceAll(result, placeholder, fmt.Sprintf("%v", args[i]))
 		}
-
-		if !found {
-			result.WriteString("{")
-			result.WriteString(key)
+	case int:
+		result = strings.ReplaceAll(result, "{n}", fmt.Sprintf("%d", firstArg))
+		result = strings.ReplaceAll(result, "{0}", fmt.Sprintf("%d", firstArg))
+		if len(args) > 1 {
+			result = strings.ReplaceAll(result, "{hp}", fmt.Sprintf("%v", args[1]))
 		}
-
-		result.WriteString(rest)
+		for i := 1; i < len(args); i++ {
+			placeholder := fmt.Sprintf("{%d}", i)
+			result = strings.ReplaceAll(result, placeholder, fmt.Sprintf("%v", args[i]))
+		}
+	default:
+		result = strings.ReplaceAll(result, "{n}", fmt.Sprintf("%v", firstArg))
+		result = strings.ReplaceAll(result, "{0}", fmt.Sprintf("%v", firstArg))
+		if len(args) > 1 {
+			result = strings.ReplaceAll(result, "{hp}", fmt.Sprintf("%v", args[1]))
+		}
+		for i := 1; i < len(args); i++ {
+			placeholder := fmt.Sprintf("{%d}", i)
+			result = strings.ReplaceAll(result, placeholder, fmt.Sprintf("%v", args[i]))
+		}
 	}
 
-	return result.String()
+	return result
 }
 
 func (t *Translator) AvailableLanguages() []string {

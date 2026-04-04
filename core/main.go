@@ -407,6 +407,7 @@ func (m Model) View() string {
 	}
 
 	info := m.cursorInfo()
+	info = utils.PadString(info, 40)
 	line0 := m.turnOrder()
 
 	line1 := lipgloss.JoinHorizontal(lipgloss.Top,

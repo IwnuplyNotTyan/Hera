@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	generate "hera/core"
+	"hera/i18n"
 	"hera/utils"
 
 	"github.com/charmbracelet/lipgloss"
@@ -11,6 +12,7 @@ import (
 )
 
 func testModel() generate.Model {
+	loc, _ := i18n.NewTranslator("../locales", "en")
 	walls := map[generate.Point]bool{
 		{X: 3, Y: 5}: true,
 	}
@@ -31,6 +33,7 @@ func testModel() generate.Model {
 		FireTiles:     map[generate.Point]int{},
 		SmokeTiles:    map[generate.Point]int{},
 		Enemys:        []generate.Enemy{},
+		Localizer:     loc,
 	}
 }
 

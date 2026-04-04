@@ -3,17 +3,17 @@
     "gameOver": " Game Over "
   },
   "status": {
-    "player": "Player {n} ",
+    "player": "Player {n} {hp}",
     "move": "♧ M",
-    "shoot": "♡ S ",
-    "ult": "⽕ U ",
+    "shoot": "♡ S",
+    "ult": "⽕ U",
     "ultCharges": "⽕×{n}",
     "ultChargesZero": "⽕×0"
   },
   "cursor": {
     "coordinates": "({x}, {y}) ",
     "player": {
-      "you": "● Player {n} {hp} (you)",
+      "you": "● Player {n}(you)",
       "other": "■ Player {n} {hp}",
       "wallBlocked": "■ Player {n} — wall in the way"
     },
@@ -40,13 +40,6 @@
     "fire": "⽕ {n}",
     "wet": "≈ {n}",
     "smoke": "~ {n}"
-  },
-  "turnOrder": {
-    "player": "■",
-    "playerCurrent": "●",
-    "enemy": "▲",
-    "enemyCurrent": "♦",
-    "separator": " · "
   },
   "help": {
     "moveUp": "Move Up",
