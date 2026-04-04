@@ -72,5 +72,3 @@ func newKeyMap(loc i18n.Localizer) keyMap {
 		loc: loc,
 	}
 }
-
-var keys keyMap
