@@ -38,6 +38,15 @@ go build -o ./bin/hera ./cmd/hera/main.go
 | eng | Only English Locales |
 
 
+**Supported flags:**
+
+| Short | Long     | Desc            |
+|-------|----------|-----------------|
+| -h    | --help   | Help            |
+| -l    | --lang   | Change language |
+| -v    | --version| Version         |
+
+
 ---
 
 ## 👩‍💻 Author
@@ -51,6 +60,7 @@ go build -o ./bin/hera ./cmd/hera/main.go
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Terminal styling
 - [Log](https://github.com/charmbracelet/log) - Pretty logs
 - [Testify](https://github.com/stretchr/testify) - Enchaned testing
+- [Fang](https://github.com/charmbracelet/fang) - Powerfull flags
 
 ---
 
