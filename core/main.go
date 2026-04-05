@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"fmt"
 	"strings"
 
 	"hera/utils"
@@ -8,9 +9,11 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	bz "github.com/lrstanley/bubblezone"
 )
 
 func (m Model) Init() tea.Cmd {
+	m.Z = bz.New()
 	return nil
 }
 
@@ -45,6 +48,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		return m, enemyTurnCmd(msg.enemyIdx + 1)
+
+	case tea.MouseMsg:
+		if m.EnemyTurn {
+			return m, nil
+		}
+		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
+			return m, nil
+		}
+		for col := 0; col < GridW; col++ {
+			for row := 0; row < GridH; row++ {
+				if m.Z.Get(fmt.Sprintf("cell-%d-%d", col, row)).InBounds(msg) {
+					m.CursorX = col
+					m.CursorY = row
+					break
+				}
+			}
+		}
 
 	case tea.KeyMsg:
 		if m.EnemyTurn {
@@ -329,14 +349,15 @@ func (m Model) View() string {
 			isUltAxis := ultAxisZone[p]
 			isReachable := reachableZone[p]
 
+			cellContent := ""
 			switch {
 			case isCursor:
 				if playerIdx >= 0 {
-					cells = append(cells, cursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ ")))
+					cellContent = cursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
 				} else if enemyIdx >= 0 {
-					cells = append(cells, cursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ ")))
+					cellContent = cursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
 				} else {
-					cells = append(cells, cursorStyle.Render(" · "))
+					cellContent = cursorStyle.Render(" · ")
 				}
 			case playerIdx >= 0:
 				symbol := " ■ "
@@ -354,7 +375,7 @@ func (m Model) View() string {
 				case isReachable:
 					st = st.Background(lipgloss.Color("#171717"))
 				}
-				cells = append(cells, st.Render(symbol))
+				cellContent = st.Render(symbol)
 			case enemyIdx >= 0:
 				symbol := " ▲ "
 				if enemyIdx == m.CurrentEnemy {
@@ -371,37 +392,38 @@ func (m Model) View() string {
 				case isReachable:
 					st = st.Background(lipgloss.Color("#171717"))
 				}
-				cells = append(cells, st.Render(symbol))
+				cellContent = st.Render(symbol)
 			case m.Walls[p]:
-				cells = append(cells, wallStyle.Render(" ■ "))
+				cellContent = wallStyle.Render(" ■ ")
 			case m.SmokeTiles[p] > 0:
-				cells = append(cells, steamStyle.Render(" ~ "))
+				cellContent = steamStyle.Render(" ~ ")
 			case m.Water[p]:
 				switch {
 				case isUltCross:
-					cells = append(cells, steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ "))
+					cellContent = steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
 				case isUltAxis:
-					cells = append(cells, waterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ "))
+					cellContent = waterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
 				default:
-					cells = append(cells, waterStyle.Render(" ≈ "))
+					cellContent = waterStyle.Render(" ≈ ")
 				}
 			case m.FireTiles[p] > 0:
-				cells = append(cells, fireStyle.Render(" ⁺ "))
+				cellContent = fireStyle.Render(" ⁺ ")
 			case isUltCross:
-				cells = append(cells, ultZoneStyle.Render(" + "))
+				cellContent = ultZoneStyle.Render(" + ")
 			case isUltAxis:
-				cells = append(cells, ultAxisStyle.Render(" · "))
+				cellContent = ultAxisStyle.Render(" · ")
 			case m.IsInRange(col, row):
 				if m.ShootMode {
-					cells = append(cells, shootRangeStyle.Render(" · "))
+					cellContent = shootRangeStyle.Render(" · ")
 				} else if m.UltMode {
-					cells = append(cells, cellStyle.Render(" · "))
+					cellContent = cellStyle.Render(" · ")
 				} else {
-					cells = append(cells, rangeStyle.Render(" · "))
+					cellContent = rangeStyle.Render(" · ")
 				}
 			default:
-				cells = append(cells, cellStyle.Render(" · "))
+				cellContent = cellStyle.Render(" · ")
 			}
+			cells = append(cells, m.Z.Mark(fmt.Sprintf("cell-%d-%d", col, row), cellContent))
 		}
 		rows = append(rows, strings.Join(cells, ""))
 	}
@@ -428,5 +450,5 @@ func (m Model) View() string {
 	grid := strings.Join(rows, "\n")
 	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := helpStyle.Render(m.help.View(m.keys))
-	return lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	return m.Z.Scan(lipgloss.JoinVertical(lipgloss.Left, box, status, helpView))
 }

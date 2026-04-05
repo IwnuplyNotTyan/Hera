@@ -3,6 +3,7 @@ package generate
 import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/lrstanley/bubblezone"
 
 	"hera/i18n"
 )
@@ -73,4 +74,7 @@ type Model struct {
 	EnemyTurn        bool
 	EnemyIdx         int
 	Localizer        i18n.Localizer
+	Z                *zone.Manager
+	lastClickX       int
+	lastClickY       int
 }

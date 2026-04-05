@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	bz "github.com/lrstanley/bubblezone"
 )
 
 func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
@@ -82,6 +83,7 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
 		keys:          newKeyMap(loc),
 		help:          help.New(),
 		Localizer:     loc,
+		Z:             bz.New(),
 	}
 }
 
