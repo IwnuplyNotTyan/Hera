@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -31,6 +32,9 @@ func NewTranslator(localesPath string, defaultLang string) (*Translator, error) 
 	}
 
 	if err := t.loadEmbedded(); err == nil {
+		if err := t.validateLoadedLocales(); err != nil {
+			return nil, err
+		}
 		return t, nil
 	}
 
@@ -58,7 +62,21 @@ func NewTranslator(localesPath string, defaultLang string) (*Translator, error) 
 		t.translations[lang] = flattenMap(translations)
 	}
 
+	if err := t.validateLoadedLocales(); err != nil {
+		return nil, err
+	}
+
 	return t, nil
+}
+
+func (t *Translator) validateLoadedLocales() error {
+	if len(t.translations) == 0 {
+		return fmt.Errorf("no locales loaded")
+	}
+	if _, ok := t.translations[t.defaultLang]; !ok {
+		return fmt.Errorf("default language %q not found in loaded locales", t.defaultLang)
+	}
+	return nil
 }
 
 func (t *Translator) loadEmbedded() error {
@@ -73,7 +91,7 @@ func (t *Translator) loadEmbedded() error {
 		}
 
 		lang := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-		data, err := embeddedLocales.ReadFile(filepath.Join("locales", entry.Name()))
+		data, err := embeddedLocales.ReadFile(path.Join("locales", entry.Name()))
 		if err != nil {
 			return fmt.Errorf("failed to read embedded locale %s: %w", entry.Name(), err)
 		}

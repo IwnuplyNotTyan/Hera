@@ -13,7 +13,7 @@
   "cursor": {
     "coordinates": "({x}, {y}) ",
     "player": {
-      "you": "● Игрок {n}(ты)",
+      "you": "● Ты {n}",
       "other": "■ Игрок {n} {hp}",
       "wallBlocked": "■ Игрок {n} — стена на пути"
     },
