@@ -31,6 +31,13 @@ go mod download
 go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
+**Supported tags:**
+
+| Tag | Desc                 |
+|-----|----------------------|
+| eng | Only English Locales |
+
+
 ---
 
 ## 👩‍💻 Author

@@ -1,7 +1,6 @@
 package i18n
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,11 +15,6 @@ type Localizer interface {
 	SetLanguage(lang string) error
 	AvailableLanguages() []string
 }
-
-var (
-	//go:embed locales/*.json
-	embeddedLocales embed.FS
-)
 
 type Translator struct {
 	translations map[string]map[string]interface{}
