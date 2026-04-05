@@ -59,8 +59,12 @@ func (m Model) cursorInfo() string {
 				return result
 			}
 			if wallBlocked {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
-					Render(loc.T("cursor.player.wallBlocked", i+1))
+				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+					Render(loc.T("cursor.player.wallBlocked", i+1, hp))
+				if effectStr != "" {
+					result += "\n" + effectStr
+				}
+				return result
 			}
 			result := pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
 			if effectStr != "" {
@@ -76,8 +80,12 @@ func (m Model) cursorInfo() string {
 			effectStr := renderEffects(en.Effects, loc)
 
 			if wallBlocked {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
-					Render(loc.T("cursor.enemy.wallBlocked", i+1))
+				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+					Render(loc.T("cursor.enemy.wallBlocked", i+1, hp))
+				if effectStr != "" {
+					result += "\n" + effectStr
+				}
+				return result
 			}
 			result := en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
 			if effectStr != "" {

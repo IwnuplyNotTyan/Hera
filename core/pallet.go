@@ -18,6 +18,9 @@ var (
 			Foreground(lipgloss.Color("#874BFD"))
 	waterStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#146fba"))
+	waterRangeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#5DA9E9")).
+			Background(lipgloss.Color("#0a1a2a"))
 	cursorStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFFFF")).
 			Background(lipgloss.Color("#222222"))

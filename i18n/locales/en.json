@@ -15,11 +15,11 @@
     "player": {
       "you": "● You {n}",
       "other": "■ Player {n} {hp}",
-      "wallBlocked": "■ Player {n} — wall in the way"
+      "wallBlocked": "■ Player {n} {hp}— wall in the way"
     },
     "enemy": {
       "default": "▲ Enemy {n} {hp}",
-      "wallBlocked": "▲ Enemy {n} — wall in the way"
+      "wallBlocked": "▲ Enemy {n} {hp}— wall in the way"
     },
     "tile": {
       "wall": "■ Wall — impassable",

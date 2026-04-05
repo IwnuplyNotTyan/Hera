@@ -56,11 +56,13 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 ## 🛠️ Libraries Used
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) — TUI framework, core architecture
-- [Bubbles](https://github.com/charmbracelet/bubbles) — Modular widgets/components
+    - [Bubblezone](https://github.com/lrstanley/bubblezone) — Mouse support
+    - [Bubbles](https://github.com/charmbracelet/bubbles) — Modular widgets/components
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Terminal styling
 - [Log](https://github.com/charmbracelet/log) —  Pretty logs
 - [Testify](https://github.com/stretchr/testify) —  Enchaned testing
-- [Fang](https://github.com/charmbracelet/fang) —  Powerfull flags
+- [Cobra](https://github.com/spf13/cobra) — Powerfull flags
+    - [Fang](https://github.com/charmbracelet/fang) —  Make it pretty
 
 ---
 

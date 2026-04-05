@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	bz "github.com/lrstanley/bubblezone"
 )
 
 func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
@@ -82,6 +83,7 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
 		keys:          newKeyMap(loc),
 		help:          help.New(),
 		Localizer:     loc,
+		Z:             bz.New(),
 	}
 }
 
@@ -165,6 +167,21 @@ func (m Model) doEnemyTurn(idx int) Model {
 			}
 			m.Enemys[idx].X = mv.X
 			m.Enemys[idx].Y = mv.Y
+
+			p := Point{mv.X, mv.Y}
+			if m.FireTiles[p] > 0 && !hasEffect(m.Enemys[idx].Effects, EffectWet) {
+				m.Enemys[idx].Effects = resolveEffects(
+					m.Enemys[idx].Effects,
+					Effect{Type: EffectFire, Duration: 2},
+				)
+			}
+			if m.Water[p] {
+				m.Enemys[idx].Effects = resolveEffects(
+					m.Enemys[idx].Effects,
+					Effect{Type: EffectWet, Duration: 2},
+				)
+			}
+
 			moved = true
 			break
 		}
@@ -172,6 +189,12 @@ func (m Model) doEnemyTurn(idx int) Model {
 			break
 		}
 	}
+
+	if hasEffect(m.Enemys[idx].Effects, EffectFire) && m.Enemys[idx].HP > 1 {
+		m.Enemys[idx].HP--
+	}
+
+	m.Enemys[idx].Effects = tickEffects(m.Enemys[idx].Effects)
 	return m
 }
 
@@ -254,16 +277,6 @@ func (m Model) Reachable(sx, sy, r int) map[Point]bool {
 		}
 	}
 	return result
-}
-
-func (m Model) inRange(x, y int) bool {
-	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
-		return false
-	}
-	current := m.Players[m.CurrentPlayer]
-	dx := utils.Abs(x - current.X)
-	dy := utils.Abs(y - current.Y)
-	return dx+dy <= m.currentRange()
 }
 
 func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
@@ -430,19 +443,8 @@ func (m Model) nextTurn() Model {
 	m.UltMode = false
 	m.UltAxis = ""
 
-	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) {
+	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
 		m.Players[m.CurrentPlayer].HP--
-		if m.Players[m.CurrentPlayer].HP <= 0 {
-			m.Players = append(m.Players[:m.CurrentPlayer], m.Players[m.CurrentPlayer+1:]...)
-			if len(m.Players) == 0 {
-				return m
-			}
-			m.CurrentPlayer = m.CurrentPlayer % len(m.Players)
-			next := m.Players[m.CurrentPlayer]
-			m.CursorX = next.X
-			m.CursorY = next.Y
-			return m
-		}
 	}
 
 	m.Players[m.CurrentPlayer].Effects = tickEffects(
@@ -459,6 +461,9 @@ func (m Model) nextTurn() Model {
 
 	if m.CurrentPlayer == len(m.Players)-1 {
 		m = m.tickFireTiles()
+		for i := range m.Players {
+			m.Players[i].Effects = tickEffects(m.Players[i].Effects)
+		}
 	}
 
 	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)

@@ -25,7 +25,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			p := tea.NewProgram(generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc), tea.WithAltScreen())
+			p := tea.NewProgram(generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc), tea.WithAltScreen(), tea.WithMouseCellMotion())
 			if _, err := p.Run(); err != nil {
 				return err
 			}
