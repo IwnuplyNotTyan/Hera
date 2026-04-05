@@ -1,0 +1,66 @@
+{
+  "game": {
+    "gameOver": " Game Over "
+  },
+  "status": {
+    "player": "Player {n} {hp}",
+    "move": "♧ M",
+    "shoot": "♡ S",
+    "ult": "⽕ U",
+    "ultCharges": "⽕×{n}",
+    "ultChargesZero": "⽕×0"
+  },
+  "cursor": {
+    "coordinates": "({x}, {y}) ",
+    "player": {
+      "you": "● You {n}",
+      "other": "■ Player {n} {hp}",
+      "wallBlocked": "■ Player {n} — wall in the way"
+    },
+    "enemy": {
+      "default": "▲ Enemy {n} {hp}",
+      "wallBlocked": "▲ Enemy {n} — wall in the way"
+    },
+    "tile": {
+      "wall": "■ Wall — impassable",
+      "wallInWay": "⊘ Wall in the way",
+      "water": "≈ Water — passable",
+      "smoke": "~ Smoke — {n} turns left",
+      "fire": "⽕ Fire — {n} turns left"
+    },
+    "range": {
+      "ult": "⽕ Ult target",
+      "outOfUltAxis": "· Out of ult axis",
+      "inShootRange": "· In shoot range",
+      "inMoveRange": "· In move range",
+      "empty": "· Empty — out of range"
+    }
+  },
+  "effects": {
+    "fire": "⽕ {n}",
+    "wet": "≈ {n}",
+    "smoke": "~ {n}"
+  },
+  "help": {
+    "moveUp": "Move Up",
+    "moveDown": "Move Down",
+    "moveLeft": "Move Left",
+    "moveRight": "Move Right",
+    "movePlayer": "Move Player",
+    "changeMode": "Change Mode",
+    "secondAttack": "Second Attack",
+    "toggleHelp": "Toggle Help",
+    "quit": "Quit"
+  },
+  "keys": {
+    "up": "↑/K",
+    "down": "↓/J",
+    "left": "←/H",
+    "right": "→/L",
+    "confirm": "X",
+    "shoot": "Z",
+    "ult": "C",
+    "help": "?",
+    "quit": "q"
+  }
+}

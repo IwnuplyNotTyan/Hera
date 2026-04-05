@@ -3,6 +3,7 @@ package generate
 import (
 	"time"
 
+	"hera/i18n"
 	"hera/utils"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -10,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func NewModel(playerCount, enemysCount int) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
 	if playerCount < 2 {
 		playerCount = 2
 	}
@@ -78,8 +79,9 @@ func NewModel(playerCount, enemysCount int) Model {
 		Water:         water,
 		FireTiles:     make(map[Point]int),
 		SmokeTiles:    make(map[Point]int),
-		keys:          keys,
+		keys:          newKeyMap(loc),
 		help:          help.New(),
+		Localizer:     loc,
 	}
 }
 

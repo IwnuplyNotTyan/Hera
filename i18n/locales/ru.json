@@ -1,0 +1,66 @@
+{
+  "game": {
+    "gameOver": " Конец игры "
+  },
+  "status": {
+    "player": "Игрок {n} {hp}",
+    "move": "♧ M",
+    "shoot": "♡ S",
+    "ult": "⽕ U",
+    "ultCharges": "⽕×{n}",
+    "ultChargesZero": "⽕×0"
+  },
+  "cursor": {
+    "coordinates": "({x}, {y}) ",
+    "player": {
+      "you": "● Ты {n}",
+      "other": "■ Игрок {n} {hp}",
+      "wallBlocked": "■ Игрок {n} — стена на пути"
+    },
+    "enemy": {
+      "default": "▲ Враг {n} {hp}",
+      "wallBlocked": "▲ Враг {n} — стена на пути"
+    },
+    "tile": {
+      "wall": "■ Стена — непроходимо",
+      "wallInWay": "⊘ Стена на пути",
+      "water": "≈ Вода — проходимо",
+      "smoke": "~ Дым — {n} ходов",
+      "fire": "⽕ Огонь — {n} ходов"
+    },
+    "range": {
+      "ult": "⽕ Цель ульты",
+      "outOfUltAxis": "· Вне оси ульты",
+      "inShootRange": "· В зоне выстрела",
+      "inMoveRange": "· В зоне движения",
+      "empty": "· Пусто — вне досягаемости"
+    }
+  },
+  "effects": {
+    "fire": "⽕ {n}",
+    "wet": "≈ {n}",
+    "smoke": "~ {n}"
+  },
+  "help": {
+    "moveUp": "Вверх",
+    "moveDown": "Вниз",
+    "moveLeft": "Влево",
+    "moveRight": "Вправо",
+    "movePlayer": "Двинуть игрока",
+    "changeMode": "Сменить режим",
+    "secondAttack": "Вторая атака",
+    "toggleHelp": "Помощь",
+    "quit": "Выход"
+  },
+  "keys": {
+    "up": "↑/K",
+    "down": "↓/J",
+    "left": "←/H",
+    "right": "→/L",
+    "confirm": "X",
+    "shoot": "Z",
+    "ult": "C",
+    "help": "?",
+    "quit": "q"
+  }
+}

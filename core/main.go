@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"fmt"
 	"strings"
 
 	"hera/utils"
@@ -233,7 +232,7 @@ func (m Model) View() string {
 			lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF4444")).
 				Bold(true).
-				Render("  ☠  Game Over  ☠  "),
+				Render(m.Localizer.T("game.gameOver")),
 		)
 	}
 
@@ -243,7 +242,7 @@ func (m Model) View() string {
 	if current.HP == 1 {
 		hpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true).Blink(true)
 	}
-	hpStr := hpStyle.Render(fmt.Sprintf("Player %d  %s", m.CurrentPlayer+1, hp))
+	hpStr := hpStyle.Render(m.Localizer.T("status.player", m.CurrentPlayer+1, hp))
 
 	var modeStr string
 	switch {
@@ -251,16 +250,16 @@ func (m Model) View() string {
 		modeStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4400")).
 			Bold(true).
-			Render("⽕ U ")
+			Render(m.Localizer.T("status.ult"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4444")).
 			Bold(true).
-			Render("♡ S ")
+			Render(m.Localizer.T("status.shoot"))
 	default:
 		modeStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#AAAAAA")).
-			Render("♧ M ")
+			Render(m.Localizer.T("status.move"))
 	}
 
 	ultCharges := m.Players[m.CurrentPlayer].UltCharges
@@ -268,11 +267,11 @@ func (m Model) View() string {
 	if ultCharges > 0 {
 		ultStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FF4400")).
-			Render(fmt.Sprintf(" ⽕×%d", ultCharges))
+			Render(m.Localizer.T("status.ultCharges", ultCharges))
 	} else {
 		ultStr = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#444444")).
-			Render(" ⽕×0")
+			Render(m.Localizer.T("status.ultChargesZero"))
 	}
 
 	var reachableZone map[Point]bool
@@ -408,6 +407,7 @@ func (m Model) View() string {
 	}
 
 	info := m.cursorInfo()
+	info = utils.PadString(info, 40)
 	line0 := m.turnOrder()
 
 	line1 := lipgloss.JoinHorizontal(lipgloss.Top,
@@ -419,12 +419,12 @@ func (m Model) View() string {
 
 	line2 := lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
-			fmt.Sprintf("(%d, %d)  ", m.CursorX, m.CursorY),
+			m.Localizer.T("cursor.coordinates", map[string]interface{}{"x": m.CursorX, "y": m.CursorY}),
 		),
 		info,
 	)
 
-	status := boxStyle.Render(fmt.Sprintf("%s\n%s\n%s", line1, line2, line0))
+	status := boxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
 	grid := strings.Join(rows, "\n")
 	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := helpStyle.Render(m.help.View(m.keys))

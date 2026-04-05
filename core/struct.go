@@ -3,6 +3,8 @@ package generate
 import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
+
+	"hera/i18n"
 )
 
 type EffectType string
@@ -70,4 +72,5 @@ type Model struct {
 	help             help.Model
 	EnemyTurn        bool
 	EnemyIdx         int
+	Localizer        i18n.Localizer
 }

@@ -4,19 +4,48 @@ import (
 	"testing"
 
 	generate "hera/core"
+	"hera/i18n"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/stretchr/testify/assert"
 )
 
+func createTestModel() generate.Model {
+	loc, _ := i18n.NewTranslator("../locales", "en")
+	walls := map[generate.Point]bool{
+		{X: 3, Y: 5}: true,
+	}
+	water := map[generate.Point]bool{
+		{X: 5, Y: 3}: true,
+	}
+	players := []generate.Player{
+		{X: 4, Y: 5, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
+		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
+	}
+	return generate.Model{
+		Players:       players,
+		CurrentPlayer: 0,
+		CursorX:       4,
+		CursorY:       5,
+		Walls:         walls,
+		Water:         water,
+		FireTiles:     map[generate.Point]int{},
+		SmokeTiles:    map[generate.Point]int{},
+		Enemys:        []generate.Enemy{},
+		Localizer:     loc,
+	}
+}
+
 func TestHP_InitialValue(t *testing.T) {
-	m := generate.NewModel(2, 2)
+	loc, _ := i18n.NewTranslator("../locales", "en")
+	m := generate.NewModel(2, 2, loc)
 	for _, p := range m.Players {
 		assert.Equal(t, generate.MaxHP, p.HP)
 	}
 }
 
 func TestShoot_ReducesHP(t *testing.T) {
-	m := testModel()
+	m := createTestModel()
 	m.Players[1].X, m.Players[1].Y = 5, 5
 	m.ShootMode = true
 	m.CursorX, m.CursorY = 5, 5
@@ -34,7 +63,7 @@ func TestShoot_ReducesHP(t *testing.T) {
 }
 
 func TestShoot_PlayerDiesAt0HP(t *testing.T) {
-	m := testModel()
+	m := createTestModel()
 	m.Players[1].X, m.Players[1].Y = 5, 5
 	m.Players[1].HP = 1
 
