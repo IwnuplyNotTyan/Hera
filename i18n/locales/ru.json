@@ -15,11 +15,11 @@
     "player": {
       "you": "● Ты {n}",
       "other": "■ Игрок {n} {hp}",
-      "wallBlocked": "■ Игрок {n} — стена на пути"
+      "wallBlocked": "■ Игрок {n} {hp}— стена на пути"
     },
     "enemy": {
       "default": "▲ Враг {n} {hp}",
-      "wallBlocked": "▲ Враг {n} — стена на пути"
+      "wallBlocked": "▲ Враг {n} {hp}— стена на пути"
     },
     "tile": {
       "wall": "■ Стена — непроходимо",

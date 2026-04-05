@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "v"
 					m.CursorY = newY
 				}
-			} else if m.inRange(m.CursorX, newY) {
+			} else {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
@@ -95,7 +95,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "v"
 					m.CursorY = newY
 				}
-			} else if m.inRange(m.CursorX, newY) {
+			} else {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
@@ -109,7 +109,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "h"
 					m.CursorX = newX
 				}
-			} else if m.inRange(newX, m.CursorY) {
+			} else {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
@@ -123,7 +123,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.UltAxis = "h"
 					m.CursorX = newX
 				}
-			} else if m.inRange(newX, m.CursorY) {
+			} else {
 				m.CursorX = newX
 			}
 
@@ -196,7 +196,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.CursorY = cur.Y
 				}
 			} else if !m.ShootMode && !m.UltMode && !m.Moved {
-				if !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+				if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 					m.Players[m.CurrentPlayer].X = m.CursorX
 					m.Players[m.CurrentPlayer].Y = m.CursorY
 
@@ -401,6 +401,8 @@ func (m Model) View() string {
 					cellContent = steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
 				case isUltAxis:
 					cellContent = waterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
+				case m.IsInRange(col, row):
+					cellContent = waterRangeStyle.Render(" ≈ ")
 				default:
 					cellContent = waterStyle.Render(" ≈ ")
 				}
