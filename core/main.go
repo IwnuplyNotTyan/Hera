@@ -9,11 +9,9 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	bz "github.com/lrstanley/bubblezone"
 )
 
 func (m Model) Init() tea.Cmd {
-	m.Z = bz.New()
 	return nil
 }
 

@@ -27,7 +27,7 @@ func StringWidth(s string) int {
 		if w > maxW {
 			maxW = w
 		}
- 	}
+	}
 
 	return maxW
 }

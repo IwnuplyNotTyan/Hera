@@ -75,6 +75,4 @@ type Model struct {
 	EnemyIdx         int
 	Localizer        i18n.Localizer
 	Z                *bz.Manager
-	lastClickX       int
-	lastClickY       int
 }
