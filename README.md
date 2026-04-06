@@ -42,9 +42,9 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 | Short | Long     | Desc            |
 |-------|----------|-----------------|
-|       | help     | Help            |
+| -h    | help     | Help            |
 | -l    | --lang   | Change language |
-| -t    | --themes | Change themes   |
+| -t    | --theme  | Change themes   |
 | -v    | --version| Version         |
 
 

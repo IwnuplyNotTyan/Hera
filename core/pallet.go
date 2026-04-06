@@ -5,56 +5,74 @@ import (
 	tint "github.com/lrstanley/bubbletint"
 )
 
-func initStyles(th *tint.Registry) {
-	boxStyle = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(th.Purple()).
-		Padding(1, 2).
-		Width(46)
-	helpStyle = lipgloss.NewStyle().
-		Padding(1, 2)
-	cellStyle = lipgloss.NewStyle().
-		Foreground(th.Fg())
-	wallStyle = lipgloss.NewStyle().
-		Foreground(th.Purple())
-	waterStyle = lipgloss.NewStyle().
-		Foreground(th.Blue())
-	waterRangeStyle = lipgloss.NewStyle().
-		Foreground(th.Cyan()).
-		Background(th.Bg())
-	cursorStyle = lipgloss.NewStyle().
-		Foreground(th.BrightWhite()).
-		Background(th.Cursor())
-	rangeStyle = lipgloss.NewStyle().
-		Background(th.Bg())
-	fireStyle = lipgloss.NewStyle().
-		Foreground(th.Red()).
-		Bold(true)
-	steamStyle = lipgloss.NewStyle().
-		Foreground(th.BrightCyan()).
-		Bold(true)
-	ultZoneStyle = lipgloss.NewStyle().
-		Foreground(th.Red()).
-		Background(lipgloss.Color("#1a0800"))
-	ultAxisStyle = lipgloss.NewStyle().
-		Foreground(th.Yellow()).
-		Background(lipgloss.Color("#0d0500"))
-	shootRangeStyle = lipgloss.NewStyle().
-		Foreground(th.BrightRed()).
-		Background(lipgloss.Color("#1a0505"))
+type Styles struct {
+	BoxStyle        lipgloss.Style
+	HelpStyle       lipgloss.Style
+	CellStyle       lipgloss.Style
+	WallStyle       lipgloss.Style
+	WaterStyle      lipgloss.Style
+	WaterRangeStyle lipgloss.Style
+	CursorStyle     lipgloss.Style
+	RangeStyle      lipgloss.Style
+	FireStyle       lipgloss.Style
+	SteamStyle      lipgloss.Style
+	UltZoneStyle    lipgloss.Style
+	UltAxisStyle    lipgloss.Style
+	ShootRangeStyle lipgloss.Style
+	PlayerStyles    []lipgloss.Style
+	EnemysStyles    []lipgloss.Style
+}
 
-	playerStyles = []lipgloss.Style{
-		lipgloss.NewStyle().Foreground(th.BrightPurple()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.BrightGreen()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.Yellow()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.BrightBlue()).Bold(true),
-	}
-
-	enemysStyles = []lipgloss.Style{
-		lipgloss.NewStyle().Foreground(th.Purple()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.Green()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.Yellow()).Bold(true),
-		lipgloss.NewStyle().Foreground(th.Blue()).Bold(true),
+func NewStyles(th *tint.Registry) Styles {
+	return Styles{
+		BoxStyle: lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(th.Purple()).
+			Padding(1, 2).
+			Width(46),
+		HelpStyle: lipgloss.NewStyle().
+			Padding(1, 2),
+		CellStyle: lipgloss.NewStyle().
+			Foreground(th.Fg()),
+		WallStyle: lipgloss.NewStyle().
+			Foreground(th.Purple()),
+		WaterStyle: lipgloss.NewStyle().
+			Foreground(th.Blue()),
+		WaterRangeStyle: lipgloss.NewStyle().
+			Foreground(th.Cyan()).
+			Background(th.Bg()),
+		CursorStyle: lipgloss.NewStyle().
+			Foreground(th.BrightWhite()).
+			Background(th.Cursor()),
+		RangeStyle: lipgloss.NewStyle().
+			Background(th.Bg()),
+		FireStyle: lipgloss.NewStyle().
+			Foreground(th.Red()).
+			Bold(true),
+		SteamStyle: lipgloss.NewStyle().
+			Foreground(th.BrightCyan()).
+			Bold(true),
+		UltZoneStyle: lipgloss.NewStyle().
+			Foreground(th.Red()).
+			Background(lipgloss.Color("#1a0800")),
+		UltAxisStyle: lipgloss.NewStyle().
+			Foreground(th.Yellow()).
+			Background(lipgloss.Color("#0d0500")),
+		ShootRangeStyle: lipgloss.NewStyle().
+			Foreground(th.BrightRed()).
+			Background(lipgloss.Color("#1a0505")),
+		PlayerStyles: []lipgloss.Style{
+			lipgloss.NewStyle().Foreground(th.BrightPurple()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.BrightGreen()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.Yellow()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.BrightBlue()).Bold(true),
+		},
+		EnemysStyles: []lipgloss.Style{
+			lipgloss.NewStyle().Foreground(th.Purple()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.Green()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.Yellow()).Bold(true),
+			lipgloss.NewStyle().Foreground(th.Blue()).Bold(true),
+		},
 	}
 }
 
@@ -87,24 +105,3 @@ func (t *DefaultTheme) Purple() lipgloss.TerminalColor       { return lipgloss.C
 func (t *DefaultTheme) Red() lipgloss.TerminalColor          { return lipgloss.Color("#FF4400") }
 func (t *DefaultTheme) White() lipgloss.TerminalColor        { return lipgloss.Color("#FFFFFF") }
 func (t *DefaultTheme) Yellow() lipgloss.TerminalColor       { return lipgloss.Color("#ffdb1e") }
-
-var (
-	boxStyle        lipgloss.Style
-	helpStyle       lipgloss.Style
-	cellStyle       lipgloss.Style
-	wallStyle       lipgloss.Style
-	waterStyle      lipgloss.Style
-	waterRangeStyle lipgloss.Style
-	cursorStyle     lipgloss.Style
-	rangeStyle      lipgloss.Style
-	fireStyle       lipgloss.Style
-	steamStyle      lipgloss.Style
-	ultZoneStyle    lipgloss.Style
-	ultAxisStyle    lipgloss.Style
-	shootRangeStyle lipgloss.Style
-)
-
-var (
-	playerStyles []lipgloss.Style
-	enemysStyles []lipgloss.Style
-)

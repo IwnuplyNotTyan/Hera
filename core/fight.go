@@ -14,7 +14,7 @@ import (
 )
 
 func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry) Model {
-	initStyles(theme)
+	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
 	}
@@ -41,7 +41,7 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
-			Style:      playerStyles[i],
+			Style:      styles.PlayerStyles[i],
 		}
 	}
 
@@ -67,12 +67,13 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 			X:     enemyPositions[i].X,
 			Y:     enemyPositions[i].Y,
 			HP:    MaxHP,
-			Style: enemysStyles[i],
+			Style: styles.EnemysStyles[i],
 		}
 	}
 
 	return Model{
 		Theme:         theme,
+		Styles:        styles,
 		Players:       players,
 		Enemys:        enemys,
 		CurrentPlayer: 0,

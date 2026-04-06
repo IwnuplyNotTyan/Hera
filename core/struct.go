@@ -57,6 +57,7 @@ type enemyTurnMsg struct {
 
 type Model struct {
 	Theme            *bubbletint.Registry
+	Styles           Styles
 	EnableBackground bool
 	Players          []Player
 	Enemys           []Enemy
