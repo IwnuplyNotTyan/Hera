@@ -3,6 +3,7 @@ package generate
 import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
+	bubbletint "github.com/lrstanley/bubbletint"
 	bz "github.com/lrstanley/bubblezone"
 
 	"hera/i18n"
@@ -55,6 +56,8 @@ type enemyTurnMsg struct {
 }
 
 type Model struct {
+	Theme            *bubbletint.Registry
+	EnableBackground bool
 	Players          []Player
 	Enemys           []Enemy
 	CurrentPlayer    int

@@ -246,12 +246,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if len(m.Players) == 0 {
-		return boxStyle.Render(
+		gameOver := boxStyle.Render(
 			lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF4444")).
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
+		return gameOver
 	}
 
 	current := m.Players[m.CurrentPlayer]
@@ -450,5 +451,7 @@ func (m Model) View() string {
 	grid := strings.Join(rows, "\n")
 	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := helpStyle.Render(m.help.View(m.keys))
-	return m.Z.Scan(lipgloss.JoinVertical(lipgloss.Left, box, status, helpView))
+	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	content = m.Z.Scan(content)
+	return content
 }
