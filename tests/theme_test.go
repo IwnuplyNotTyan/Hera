@@ -36,7 +36,7 @@ func TestDefaultTheme_BasicColors(t *testing.T) {
 	assert.Equal(t, lipgloss.Color("#AAAAAA"), theme.Fg())
 	assert.Equal(t, lipgloss.Color("#171717"), theme.Bg())
 	assert.Equal(t, lipgloss.Color("#444444"), theme.SelectionBg())
-	assert.Equal(t, lipgloss.Color("#222222"), theme.Cursor())
+	assert.Equal(t, lipgloss.Color("#333333"), theme.Cursor())
 }
 
 func TestDefaultTheme_BrightColors(t *testing.T) {
