@@ -9,16 +9,21 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	bubbletint "github.com/lrstanley/bubbletint"
 	bz "github.com/lrstanley/bubblezone"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry) Model {
+	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
 	}
 	if playerCount > 4 {
 		playerCount = 4
 	}
+ 	if enemysCount < 0 {
+ 		enemysCount = 0
+ 	}
 
 	blocked := make(map[Point]bool)
 
@@ -39,7 +44,7 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
-			Style:      playerStyles[i],
+			Style:      styles.PlayerStyles[i%len(styles.EnemysStyles)],
 		}
 	}
 
@@ -65,11 +70,13 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer) Model {
 			X:     enemyPositions[i].X,
 			Y:     enemyPositions[i].Y,
 			HP:    MaxHP,
-			Style: enemysStyles[i],
+			Style: styles.EnemysStyles[i],
 		}
 	}
 
 	return Model{
+		Theme:         theme,
+		Styles:        styles,
 		Players:       players,
 		Enemys:        enemys,
 		CurrentPlayer: 0,

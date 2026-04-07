@@ -6,12 +6,14 @@ import (
 	generate "hera/core"
 	"hera/i18n"
 
+	bubbletint "github.com/lrstanley/bubbletint"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNextTurn_CursorOnNextPlayer(t *testing.T) {
 	loc, _ := i18n.NewTranslator("../locales", "en")
-	m := generate.NewModel(2, 0, loc)
+	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
+	m := generate.NewModel(2, 0, loc, theme)
 	m.Moved = true
 	m.Shot = true
 

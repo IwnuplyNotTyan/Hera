@@ -7,11 +7,13 @@ import (
 	"hera/i18n"
 
 	"github.com/charmbracelet/lipgloss"
+	bubbletint "github.com/lrstanley/bubbletint"
 	"github.com/stretchr/testify/assert"
 )
 
 func createTestModel() generate.Model {
 	loc, _ := i18n.NewTranslator("../locales", "en")
+	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
 	walls := map[generate.Point]bool{
 		{X: 3, Y: 5}: true,
 	}
@@ -23,6 +25,7 @@ func createTestModel() generate.Model {
 		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
 	}
 	return generate.Model{
+		Theme:         theme,
 		Players:       players,
 		CurrentPlayer: 0,
 		CursorX:       4,
@@ -38,7 +41,8 @@ func createTestModel() generate.Model {
 
 func TestHP_InitialValue(t *testing.T) {
 	loc, _ := i18n.NewTranslator("../locales", "en")
-	m := generate.NewModel(2, 2, loc)
+	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
+	m := generate.NewModel(2, 2, loc, theme)
 	for _, p := range m.Players {
 		assert.Equal(t, generate.MaxHP, p.HP)
 	}

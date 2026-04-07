@@ -246,12 +246,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if len(m.Players) == 0 {
-		return boxStyle.Render(
+		gameOver := m.Styles.BoxStyle.Render(
 			lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF4444")).
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
+		return gameOver
 	}
 
 	current := m.Players[m.CurrentPlayer]
@@ -351,11 +352,11 @@ func (m Model) View() string {
 			switch {
 			case isCursor:
 				if playerIdx >= 0 {
-					cellContent = cursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
+					cellContent = m.Styles.CursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
 				} else if enemyIdx >= 0 {
-					cellContent = cursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
+					cellContent = m.Styles.CursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
 				} else {
-					cellContent = cursorStyle.Render(" · ")
+					cellContent = m.Styles.CursorStyle.Render(" · ")
 				}
 			case playerIdx >= 0:
 				symbol := " ■ "
@@ -392,36 +393,36 @@ func (m Model) View() string {
 				}
 				cellContent = st.Render(symbol)
 			case m.Walls[p]:
-				cellContent = wallStyle.Render(" ■ ")
+				cellContent = m.Styles.WallStyle.Render(" ■ ")
 			case m.SmokeTiles[p] > 0:
-				cellContent = steamStyle.Render(" ~ ")
+				cellContent = m.Styles.SteamStyle.Render(" ~ ")
 			case m.Water[p]:
 				switch {
 				case isUltCross:
-					cellContent = steamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
+					cellContent = m.Styles.SteamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
 				case isUltAxis:
-					cellContent = waterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
+					cellContent = m.Styles.WaterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
 				case m.IsInRange(col, row):
-					cellContent = waterRangeStyle.Render(" ≈ ")
+					cellContent = m.Styles.WaterRangeStyle.Render(" ≈ ")
 				default:
-					cellContent = waterStyle.Render(" ≈ ")
+					cellContent = m.Styles.WaterStyle.Render(" ≈ ")
 				}
 			case m.FireTiles[p] > 0:
-				cellContent = fireStyle.Render(" ⁺ ")
+				cellContent = m.Styles.FireStyle.Render(" ⁺ ")
 			case isUltCross:
-				cellContent = ultZoneStyle.Render(" + ")
+				cellContent = m.Styles.UltZoneStyle.Render(" + ")
 			case isUltAxis:
-				cellContent = ultAxisStyle.Render(" · ")
+				cellContent = m.Styles.UltAxisStyle.Render(" · ")
 			case m.IsInRange(col, row):
 				if m.ShootMode {
-					cellContent = shootRangeStyle.Render(" · ")
+					cellContent = m.Styles.ShootRangeStyle.Render(" · ")
 				} else if m.UltMode {
-					cellContent = cellStyle.Render(" · ")
+					cellContent = m.Styles.CellStyle.Render(" · ")
 				} else {
-					cellContent = rangeStyle.Render(" · ")
+					cellContent = m.Styles.RangeStyle.Render(" · ")
 				}
 			default:
-				cellContent = cellStyle.Render(" · ")
+				cellContent = m.Styles.CellStyle.Render(" · ")
 			}
 			cells = append(cells, m.Z.Mark(fmt.Sprintf("cell-%d-%d", col, row), cellContent))
 		}
@@ -446,9 +447,11 @@ func (m Model) View() string {
 		info,
 	)
 
-	status := boxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
+	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
 	grid := strings.Join(rows, "\n")
-	box := boxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
-	helpView := helpStyle.Render(m.help.View(m.keys))
-	return m.Z.Scan(lipgloss.JoinVertical(lipgloss.Left, box, status, helpView))
+	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
+	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	content = m.Z.Scan(content)
+	return content
 }
