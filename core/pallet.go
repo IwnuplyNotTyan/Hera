@@ -46,7 +46,7 @@ func NewStyles(th *tint.Registry) Styles {
 			Background(th.Bg()),
 		CursorStyle: lipgloss.NewStyle().
 			Foreground(th.BrightWhite()).
-			Background(th.Cursor()),
+			Background(th.BrightBlack()),
 		RangeStyle: lipgloss.NewStyle().
 			Background(th.Bg()),
 		FireStyle: lipgloss.NewStyle().
@@ -57,13 +57,13 @@ func NewStyles(th *tint.Registry) Styles {
 			Bold(true),
 		UltZoneStyle: lipgloss.NewStyle().
 			Foreground(th.Red()).
-			Background(lipgloss.Color("#1a0800")),
+			Background(th.Bg()),
 		UltAxisStyle: lipgloss.NewStyle().
 			Foreground(th.Yellow()).
-			Background(lipgloss.Color("#0d0500")),
+			Background(th.Bg()),
 		ShootRangeStyle: lipgloss.NewStyle().
 			Foreground(th.BrightRed()).
-			Background(lipgloss.Color("#1a0505")),
+			Background(th.Bg()),
 		UltRangeStyle: lipgloss.NewStyle().
 			Foreground(th.Red()),
 		MoveRangeStyle: lipgloss.NewStyle().
@@ -97,7 +97,7 @@ func (t *DefaultTheme) About() string                        { return "Original 
 func (t *DefaultTheme) Fg() lipgloss.TerminalColor           { return lipgloss.Color("#AAAAAA") }
 func (t *DefaultTheme) Bg() lipgloss.TerminalColor           { return lipgloss.Color("#171717") }
 func (t *DefaultTheme) SelectionBg() lipgloss.TerminalColor  { return lipgloss.Color("#444444") }
-func (t *DefaultTheme) Cursor() lipgloss.TerminalColor       { return lipgloss.Color("#222222") }
+func (t *DefaultTheme) Cursor() lipgloss.TerminalColor       { return lipgloss.Color("#333333") }
 func (t *DefaultTheme) BrightBlack() lipgloss.TerminalColor  { return lipgloss.Color("#555555") }
 func (t *DefaultTheme) BrightBlue() lipgloss.TerminalColor   { return lipgloss.Color("#75B7FF") }
 func (t *DefaultTheme) BrightCyan() lipgloss.TerminalColor   { return lipgloss.Color("#88AACC") }
