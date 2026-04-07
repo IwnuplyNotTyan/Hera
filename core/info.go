@@ -99,8 +99,7 @@ func (m Model) cursorInfo() string {
 	case m.Walls[p]:
 		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wall"))
 	case wallBlocked:
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
-			Render(loc.T("cursor.tile.wallInWay"))
+		return m.Styles.BlockedWallStyle.Render(loc.T("cursor.tile.wallInWay"))
 	case m.SmokeTiles[p] > 0:
 		return m.Styles.SteamStyle.Render(loc.T("cursor.tile.smoke", m.SmokeTiles[p]))
 	case m.Water[p]:
@@ -109,14 +108,14 @@ func (m Model) cursorInfo() string {
 		return m.Styles.FireStyle.Render(loc.T("cursor.tile.fire", m.FireTiles[p]))
 	case m.UltMode:
 		if m.ultInAxisRange(m.CursorX, m.CursorY) {
-			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Render(loc.T("cursor.range.ult"))
+			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ult"))
 		}
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
 	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
-			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).Render(loc.T("cursor.range.inShootRange"))
+			return m.Styles.ShootRangeStyle.Render(loc.T("cursor.range.inShootRange"))
 		}
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("#AAAAAA")).Render(loc.T("cursor.range.inMoveRange"))
+		return m.Styles.MoveRangeStyle.Render(loc.T("cursor.range.inMoveRange"))
 	default:
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.empty"))
 	}

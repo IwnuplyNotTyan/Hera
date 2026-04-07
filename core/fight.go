@@ -21,6 +21,9 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 	if playerCount > 4 {
 		playerCount = 4
 	}
+ 	if enemysCount < 0 {
+ 		enemysCount = 0
+ 	}
 
 	blocked := make(map[Point]bool)
 
@@ -41,7 +44,7 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
-			Style:      styles.PlayerStyles[i],
+			Style:      styles.PlayerStyles[i%len(styles.EnemysStyles)],
 		}
 	}
 

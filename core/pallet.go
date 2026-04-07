@@ -6,21 +6,24 @@ import (
 )
 
 type Styles struct {
-	BoxStyle        lipgloss.Style
-	HelpStyle       lipgloss.Style
-	CellStyle       lipgloss.Style
-	WallStyle       lipgloss.Style
-	WaterStyle      lipgloss.Style
-	WaterRangeStyle lipgloss.Style
-	CursorStyle     lipgloss.Style
-	RangeStyle      lipgloss.Style
-	FireStyle       lipgloss.Style
-	SteamStyle      lipgloss.Style
-	UltZoneStyle    lipgloss.Style
-	UltAxisStyle    lipgloss.Style
-	ShootRangeStyle lipgloss.Style
-	PlayerStyles    []lipgloss.Style
-	EnemysStyles    []lipgloss.Style
+	BoxStyle         lipgloss.Style
+	HelpStyle        lipgloss.Style
+	CellStyle        lipgloss.Style
+	WallStyle        lipgloss.Style
+	WaterStyle       lipgloss.Style
+	WaterRangeStyle  lipgloss.Style
+	CursorStyle      lipgloss.Style
+	RangeStyle       lipgloss.Style
+	FireStyle        lipgloss.Style
+	SteamStyle       lipgloss.Style
+	UltZoneStyle     lipgloss.Style
+	UltAxisStyle     lipgloss.Style
+	UltRangeStyle    lipgloss.Style
+	ShootRangeStyle  lipgloss.Style
+	MoveRangeStyle   lipgloss.Style
+	BlockedWallStyle lipgloss.Style
+	PlayerStyles     []lipgloss.Style
+	EnemysStyles     []lipgloss.Style
 }
 
 func NewStyles(th *tint.Registry) Styles {
@@ -61,6 +64,12 @@ func NewStyles(th *tint.Registry) Styles {
 		ShootRangeStyle: lipgloss.NewStyle().
 			Foreground(th.BrightRed()).
 			Background(lipgloss.Color("#1a0505")),
+		UltRangeStyle: lipgloss.NewStyle().
+			Foreground(th.Red()),
+		MoveRangeStyle: lipgloss.NewStyle().
+			Foreground(th.Fg()),
+		BlockedWallStyle: lipgloss.NewStyle().
+			Foreground(th.BrightRed()),
 		PlayerStyles: []lipgloss.Style{
 			lipgloss.NewStyle().Foreground(th.BrightPurple()).Bold(true),
 			lipgloss.NewStyle().Foreground(th.BrightGreen()).Bold(true),
