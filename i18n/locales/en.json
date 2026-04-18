@@ -10,7 +10,7 @@
     "dont panic",
     "its a feature",
     "404 idea not found",
-    "brb quantuum physicist"
+    "I   Unicode"
   ],
   "menu": {
     "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
@@ -21,6 +21,7 @@
   "settings": {
     "title": "SETTINGS",
     "selectTheme": "SELECT THEME",
+    "noResults": "no results",
     "language": "Language",
     "theme": "Theme",
     "center": "Center",

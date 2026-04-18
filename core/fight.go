@@ -98,6 +98,12 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 	}
 }
 
+func (m *Model) SetAvailableThemes() {
+	if m.Theme != nil {
+		m.AvailableThemes = m.Theme.TintIDs()
+	}
+}
+
 func (m Model) closestPlayer(ex, ey int) (int, int) {
 	if len(m.Players) == 0 {
 		return ex, ey

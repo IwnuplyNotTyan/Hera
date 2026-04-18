@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	bz "github.com/lrstanley/bubblezone"
 )
 
 func (m Model) Init() tea.Cmd {
@@ -597,29 +596,62 @@ func (m Model) viewSettings() string {
 
 func (m Model) viewThemeSelect() string {
 	title := m.Localizer.T("settings.selectTheme")
+
+	themes := m.AvailableThemes
+	searchQuery := m.ThemeQuery
+	if m.ThemeSearch && m.ThemeQuery != "" {
+		var filtered []string
+		query := strings.ToLower(m.ThemeQuery)
+		for _, t := range m.AvailableThemes {
+			if strings.Contains(strings.ToLower(t), query) {
+				filtered = append(filtered, t)
+			}
+		}
+		themes = filtered
+	} else if m.LastSearchQuery != "" {
+		var filtered []string
+		query := strings.ToLower(m.LastSearchQuery)
+		for _, t := range m.AvailableThemes {
+			if strings.Contains(strings.ToLower(t), query) {
+				filtered = append(filtered, t)
+			}
+		}
+		themes = filtered
+		searchQuery = m.LastSearchQuery
+	}
+
+	var lines []string
+
+	if len(themes) == 0 && (m.ThemeSearch || m.LastSearchQuery != "") && searchQuery != "" {
+		noResultsStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		lines = append(lines, noResultsStyle.Render("  "+m.Localizer.T("settings.noResults")))
+	}
+
 	currentIdx := 0
-	for i, t := range availableThemes {
-		if t == m.ThemeName {
-			currentIdx = i
-			break
+	if len(themes) > 0 {
+		for i, t := range themes {
+			if t == m.ThemeName {
+				currentIdx = i
+				break
+			}
 		}
 	}
+
 	pageSize := 5
 	startIdx := currentIdx - 2
 	if startIdx < 0 {
 		startIdx = 0
 	}
 	endIdx := startIdx + pageSize
-	if endIdx > len(availableThemes) {
-		endIdx = len(availableThemes)
+	if endIdx > len(themes) {
+		endIdx = len(themes)
 	}
 
-	var lines []string
 	lines = append(lines, title)
 	lines = append(lines, "")
 
 	for i := startIdx; i < endIdx; i++ {
-		theme := availableThemes[i]
+		theme := themes[i]
 		if theme == m.ThemeName {
 			style := m.Styles.CursorStyle.Copy().
 				Bold(true)
@@ -629,10 +661,38 @@ func (m Model) viewThemeSelect() string {
 		}
 	}
 
-	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
-	content = m.Styles.BoxStyle.Copy().
-		Border(lipgloss.RoundedBorder()).
-		Render(content)
+	themeContent := lipgloss.JoinVertical(lipgloss.Left, lines...)
+
+	var searchContent string
+	if m.ThemeSearch {
+		searchLine := "/ " + m.ThemeQuery + "_"
+		searchStyle := m.Styles.CursorStyle.Copy().Bold(true)
+		searchContent = searchStyle.Render(searchLine)
+		hintStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		searchContent += "\n" + hintStyle.Render("  esc to close")
+		searchContent = m.Styles.BoxStyle.Copy().
+			Border(lipgloss.RoundedBorder()).
+			Render(searchContent)
+	} else if m.LastSearchQuery != "" {
+		searchLine := "/ " + m.LastSearchQuery + ""
+		hintStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+		searchContent = hintStyle.Render(searchLine)
+		searchContent = m.Styles.BoxStyle.Copy().
+			Border(lipgloss.RoundedBorder()).
+			Render(searchContent)
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left,
+		m.Styles.BoxStyle.Copy().
+			Border(lipgloss.RoundedBorder()).
+			Render(themeContent),
+	)
+	if searchContent != "" {
+		content = lipgloss.JoinVertical(lipgloss.Left,
+			content,
+			searchContent,
+		)
+	}
 
 	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
 		contentWidth := lipgloss.Width(content)
@@ -661,8 +721,38 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		keyStr := msg.String()
+
+		if m.Screen == ScreenThemeSelect && m.ThemeSearch {
+			switch keyStr {
+			case "esc":
+				m.ThemeSearch = false
+				m.ThemeQuery = ""
+			case "backspace":
+				if len(m.ThemeQuery) > 0 {
+					m.ThemeQuery = m.ThemeQuery[:len(m.ThemeQuery)-1]
+				} else {
+					m.ThemeSearch = false
+				}
+			case "enter":
+				m.ThemeSearch = false
+				m.ThemeQuery = ""
+			case "/":
+				m.ThemeSearch = false
+				m.ThemeQuery = ""
+			default:
+				if len(keyStr) == 1 && keyStr >= "a" && keyStr <= "z" {
+					m.ThemeQuery += keyStr
+				} else if len(keyStr) == 1 && keyStr >= "A" && keyStr <= "Z" {
+					m.ThemeQuery += keyStr
+				} else if len(keyStr) == 1 && keyStr >= "0" && keyStr <= "9" {
+					m.ThemeQuery += keyStr
+				}
+			}
+			return m, nil
+		}
+
 		switch keyStr {
-		case "up", "k":
+		case "up", "k", "K":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
 			} else {
@@ -673,7 +763,7 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 					m.MenuSelected = 3
 				}
 			}
-		case "down", "j":
+		case "down", "j", "J":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(1)
 			} else {
@@ -684,85 +774,43 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 					m.MenuSelected = 0
 				}
 			}
-		case "enter":
-			if m.Screen == ScreenMenu {
-				switch m.MenuSelected {
-				case 0:
-					m.Screen = ScreenGame
-					m.startGame()
-				case 1:
-					m.Screen = ScreenSettings
-					m.MenuSelected = 0
-				case 2:
-					return m, tea.Quit
-				}
-			} else if m.Screen == ScreenSettings {
-				switch m.MenuSelected {
-				case 0:
-					languages := m.Localizer.AvailableLanguages()
-					currentIdx := 0
-					for i, l := range languages {
-						if l == m.Localizer.GetLanguage() {
-							currentIdx = i
-							break
-						}
-					}
-					nextIdx := (currentIdx + 1) % len(languages)
-					m.Localizer.SetLanguage(languages[nextIdx])
-				case 1:
-					m.Screen = ScreenThemeSelect
-					m.MenuSelected = 0
-				case 2:
-					m.CenterWindow = !m.CenterWindow
-				case 3:
-					m.Screen = ScreenMenu
-					m.MenuSelected = 0
-				}
-			} else if m.Screen == ScreenThemeSelect {
-				m.Screen = ScreenSettings
-				m.MenuSelected = 0
-			}
-		case "left", "h":
+		case "left", "h", "H":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
-			} else if m.Screen == ScreenSettings {
-				if m.MenuSelected == 0 {
-					languages := m.Localizer.AvailableLanguages()
-					currentIdx := len(languages) - 1
-					for i, l := range languages {
-						if l == m.Localizer.GetLanguage() {
-							currentIdx = i
-							break
-						}
+			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 {
+				languages := m.Localizer.AvailableLanguages()
+				currentIdx := len(languages) - 1
+				for i, l := range languages {
+					if l == m.Localizer.GetLanguage() {
+						currentIdx = i
+						break
 					}
-					currentIdx--
-					if currentIdx < 0 {
-						currentIdx = len(languages) - 1
-					}
-					m.Localizer.SetLanguage(languages[currentIdx])
 				}
+				currentIdx--
+				if currentIdx < 0 {
+					currentIdx = len(languages) - 1
+				}
+				m.Localizer.SetLanguage(languages[currentIdx])
 			}
-		case "right", "l":
-			if m.Screen == ScreenThemeSelect {
+		case "right", "l", "L":
+			if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
 				m.navigateTheme(1)
-			} else if m.Screen == ScreenSettings {
-				if m.MenuSelected == 0 {
-					languages := m.Localizer.AvailableLanguages()
-					currentIdx := 0
-					for i, l := range languages {
-						if l == m.Localizer.GetLanguage() {
-							currentIdx = i
-							break
-						}
+			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 {
+				languages := m.Localizer.AvailableLanguages()
+				currentIdx := 0
+				for i, l := range languages {
+					if l == m.Localizer.GetLanguage() {
+						currentIdx = i
+						break
 					}
-					currentIdx++
-					if currentIdx >= len(languages) {
-						currentIdx = 0
-					}
-					m.Localizer.SetLanguage(languages[currentIdx])
 				}
+				currentIdx++
+				if currentIdx >= len(languages) {
+					currentIdx = 0
+				}
+				m.Localizer.SetLanguage(languages[currentIdx])
 			}
-		case "x":
+		case "enter", "x", "X":
 			if m.Screen == ScreenMenu {
 				switch m.MenuSelected {
 				case 0:
@@ -805,110 +853,38 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 				m.Screen = ScreenMenu
 				m.MenuSelected = 0
 			} else if m.Screen == ScreenThemeSelect {
-				m.Screen = ScreenSettings
-				m.MenuSelected = 0
+				if m.ThemeSearch {
+					m.LastSearchQuery = m.ThemeQuery
+					m.ThemeSearch = false
+				} else {
+					m.Screen = ScreenSettings
+					m.MenuSelected = 0
+				}
 			} else if m.Screen == ScreenMenu {
 				return m, tea.Quit
+			}
+		case "/":
+			if m.Screen == ScreenThemeSelect {
+				m.ThemeSearch = true
+				m.ThemeQuery = ""
+			}
+		case "backspace":
+			if m.Screen == ScreenThemeSelect && m.ThemeSearch {
+				if len(m.ThemeQuery) > 0 {
+					m.ThemeQuery = m.ThemeQuery[:len(m.ThemeQuery)-1]
+				} else {
+					m.ThemeSearch = false
+				}
+			}
+		default:
+			if m.Screen == ScreenThemeSelect && m.ThemeSearch {
+				if len(keyStr) == 1 && keyStr >= "a" && keyStr <= "z" ||
+					len(keyStr) == 1 && keyStr >= "A" && keyStr <= "Z" ||
+					len(keyStr) == 1 && keyStr >= "0" && keyStr <= "9" {
+					m.ThemeQuery += keyStr
+				}
 			}
 		}
 	}
 	return m, nil
-}
-
-func (m *Model) startGame() {
-	players := []Player{}
-	starts := []Point{
-		{X: 1, Y: 1},
-		{X: GridW - 2, Y: GridH - 2},
-		{X: GridW - 2, Y: 1},
-		{X: 1, Y: GridH - 2},
-	}
-
-	playerCount := 2
-	if playerCount > 4 {
-		playerCount = 4
-	}
-
-	for i := 0; i < playerCount; i++ {
-		players = append(players, Player{
-			X:          starts[i].X,
-			Y:          starts[i].Y,
-			HP:         MaxHP,
-			UltCharges: maxUltCharges,
-			Style:      m.Styles.PlayerStyles[i%len(m.Styles.EnemysStyles)],
-		})
-	}
-
-	blocked := make(map[Point]bool)
-	for _, p := range players {
-		blocked[Point{p.X, p.Y}] = true
-	}
-	for p := range m.Walls {
-		blocked[p] = true
-	}
-	for p := range m.Water {
-		blocked[p] = true
-	}
-
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
-
-	m.Players = players
-	m.Enemys = []Enemy{}
-	m.Walls = walls
-	m.Water = water
-	m.FireTiles = make(map[Point]int)
-	m.SmokeTiles = make(map[Point]int)
-	m.CurrentPlayer = 0
-	m.CurrentEnemy = 0
-	m.CursorX = players[0].X
-	m.CursorY = players[0].Y
-	m.Moved = false
-	m.Shot = false
-	m.ShootMode = false
-	m.UltMode = false
-	m.UltAxis = ""
-	m.EnemyTurn = false
-	m.EnemyIdx = 0
-	m.MenuSelected = 0
-	m.Z = bz.New()
-}
-
-var availableThemes = []string{"default", "dracula", "tokyonight", "gruvbox", "nord", "monokai", "one dark", "solarized", "solarized-dark"}
-
-func (m *Model) nextTheme() {
-	currentIdx := 0
-	for i, t := range availableThemes {
-		if t == m.ThemeName {
-			currentIdx = i
-			break
-		}
-	}
-	nextIdx := (currentIdx + 1) % len(availableThemes)
-	m.ThemeName = availableThemes[nextIdx]
-	if m.Theme != nil {
-		m.Theme.SetTintID(m.ThemeName)
-	}
-	m.Styles = NewStyles(m.Theme)
-}
-
-func (m *Model) navigateTheme(direction int) {
-	currentIdx := 0
-	for i, t := range availableThemes {
-		if t == m.ThemeName {
-			currentIdx = i
-			break
-		}
-	}
-	nextIdx := currentIdx + direction
-	if nextIdx < 0 {
-		nextIdx = len(availableThemes) - 1
-	} else if nextIdx >= len(availableThemes) {
-		nextIdx = 0
-	}
-	m.ThemeName = availableThemes[nextIdx]
-	if m.Theme != nil {
-		m.Theme.SetTintID(m.ThemeName)
-	}
-	m.Styles = NewStyles(m.Theme)
 }

@@ -75,6 +75,10 @@ type Model struct {
 	Screen           Screen
 	MenuSelected     int
 	EasterEgg        string
+	ThemeSearch      bool
+	ThemeQuery       string
+	LastSearchQuery  string
+	AvailableThemes  []string
 	Players          []Player
 	Enemys           []Enemy
 	CurrentPlayer    int
