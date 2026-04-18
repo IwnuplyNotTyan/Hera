@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	bz "github.com/lrstanley/bubblezone"
 )
 
 func (m Model) Init() tea.Cmd {
@@ -16,6 +17,10 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+		return m.updateMenu(msg)
+	}
+
 	if !m.Moved && !m.Shot {
 	} else if m.Moved {
 		m.ShootMode = true
@@ -249,6 +254,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.Screen == ScreenMenu {
+		return m.viewMenu()
+	}
+	if m.Screen == ScreenSettings {
+		return m.viewSettings()
+	}
+	if m.Screen == ScreenThemeSelect {
+		return m.viewThemeSelect()
+	}
+
 	if len(m.Players) == 0 {
 		gameOver := m.Styles.BoxStyle.Render(
 			lipgloss.NewStyle().
@@ -474,4 +489,426 @@ func (m Model) View() string {
 
 	content = m.Z.Scan(content)
 	return content
+}
+
+func (m Model) viewMenu() string {
+	title := m.Localizer.T("menu.title")
+	menuItems := []string{
+		m.Localizer.T("menu.start"),
+		m.Localizer.T("menu.settings"),
+		m.Localizer.T("menu.exit"),
+	}
+	figures := []string{" ● ", " ■ ", " ◆ "}
+
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	for i, item := range menuItems {
+		figure := figures[i]
+		if i == m.MenuSelected {
+			style := m.Styles.CursorStyle.Copy().
+				Bold(true)
+			lines = append(lines, "  "+figure+" "+style.Render(item))
+		} else {
+			lines = append(lines, "   "+figure+"  "+item)
+		}
+	}
+
+	easterEgg := m.EasterEgg
+	easterBox := m.Styles.BoxStyle.Render(easterEgg)
+	lines = append(lines, "")
+
+	menu := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	menu = m.Styles.BoxStyle.Render(menu)
+
+	content := lipgloss.JoinVertical(lipgloss.Left, menu, easterBox)
+
+	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
+		contentWidth := lipgloss.Width(content)
+		contentHeight := lipgloss.Height(content)
+		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+			content = m.Localizer.T("error.terminalTooSmall")
+		} else {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			centerStyle := lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY)
+			content = centerStyle.Render(content)
+		}
+	}
+
+	return content
+}
+
+func (m Model) viewSettings() string {
+	title := m.Localizer.T("settings.title")
+	lang := m.Localizer.GetLanguage()
+	themeName := m.ThemeName
+	centerStr := "on"
+	if !m.CenterWindow {
+		centerStr = "off"
+	}
+
+	menuItems := []string{
+		m.Localizer.T("settings.language") + ": " + lang,
+		m.Localizer.T("settings.theme") + ": " + themeName,
+		m.Localizer.T("settings.center") + ": " + centerStr,
+		m.Localizer.T("settings.back"),
+	}
+	figures := []string{" ● ", " ■ ", " ◆ ", " ● "}
+
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	for i, item := range menuItems {
+		figure := figures[i]
+		if i == m.MenuSelected {
+			style := m.Styles.CursorStyle.Copy().
+				Bold(true)
+			lines = append(lines, "  "+figure+" "+style.Render(item))
+		} else {
+			lines = append(lines, "   "+figure+"  "+item)
+		}
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.Styles.BoxStyle.Render(content)
+
+	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
+		contentWidth := lipgloss.Width(content)
+		contentHeight := lipgloss.Height(content)
+		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+			content = m.Localizer.T("error.terminalTooSmall")
+		} else {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			centerStyle := lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY)
+			content = centerStyle.Render(content)
+		}
+	}
+
+	return content
+}
+
+func (m Model) viewThemeSelect() string {
+	title := m.Localizer.T("settings.selectTheme")
+	currentIdx := 0
+	for i, t := range availableThemes {
+		if t == m.ThemeName {
+			currentIdx = i
+			break
+		}
+	}
+	pageSize := 5
+	startIdx := currentIdx - 2
+	if startIdx < 0 {
+		startIdx = 0
+	}
+	endIdx := startIdx + pageSize
+	if endIdx > len(availableThemes) {
+		endIdx = len(availableThemes)
+	}
+
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	for i := startIdx; i < endIdx; i++ {
+		theme := availableThemes[i]
+		if theme == m.ThemeName {
+			style := m.Styles.CursorStyle.Copy().
+				Bold(true)
+			lines = append(lines, "  ● "+style.Render(theme))
+		} else {
+			lines = append(lines, "   ●  "+theme)
+		}
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.Styles.BoxStyle.Copy().
+		Border(lipgloss.RoundedBorder()).
+		Render(content)
+
+	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
+		contentWidth := lipgloss.Width(content)
+		contentHeight := lipgloss.Height(content)
+		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+			content = m.Localizer.T("error.terminalTooSmall")
+		} else {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			centerStyle := lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY)
+			content = centerStyle.Render(content)
+		}
+	}
+
+	return content
+}
+
+func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.TerminalWidth = msg.Width
+		m.TerminalHeight = msg.Height
+		return m, nil
+
+	case tea.KeyMsg:
+		keyStr := msg.String()
+		switch keyStr {
+		case "up", "k":
+			if m.Screen == ScreenThemeSelect {
+				m.navigateTheme(-1)
+			} else {
+				m.MenuSelected--
+				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
+					m.MenuSelected = 2
+				} else if m.Screen == ScreenSettings && m.MenuSelected < 0 {
+					m.MenuSelected = 3
+				}
+			}
+		case "down", "j":
+			if m.Screen == ScreenThemeSelect {
+				m.navigateTheme(1)
+			} else {
+				m.MenuSelected++
+				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
+					m.MenuSelected = 0
+				} else if m.Screen == ScreenSettings && m.MenuSelected > 3 {
+					m.MenuSelected = 0
+				}
+			}
+		case "enter":
+			if m.Screen == ScreenMenu {
+				switch m.MenuSelected {
+				case 0:
+					m.Screen = ScreenGame
+					m.startGame()
+				case 1:
+					m.Screen = ScreenSettings
+					m.MenuSelected = 0
+				case 2:
+					return m, tea.Quit
+				}
+			} else if m.Screen == ScreenSettings {
+				switch m.MenuSelected {
+				case 0:
+					languages := m.Localizer.AvailableLanguages()
+					currentIdx := 0
+					for i, l := range languages {
+						if l == m.Localizer.GetLanguage() {
+							currentIdx = i
+							break
+						}
+					}
+					nextIdx := (currentIdx + 1) % len(languages)
+					m.Localizer.SetLanguage(languages[nextIdx])
+				case 1:
+					m.Screen = ScreenThemeSelect
+					m.MenuSelected = 0
+				case 2:
+					m.CenterWindow = !m.CenterWindow
+				case 3:
+					m.Screen = ScreenMenu
+					m.MenuSelected = 0
+				}
+			} else if m.Screen == ScreenThemeSelect {
+				m.Screen = ScreenSettings
+				m.MenuSelected = 0
+			}
+		case "left", "h":
+			if m.Screen == ScreenThemeSelect {
+				m.navigateTheme(-1)
+			} else if m.Screen == ScreenSettings {
+				if m.MenuSelected == 0 {
+					languages := m.Localizer.AvailableLanguages()
+					currentIdx := len(languages) - 1
+					for i, l := range languages {
+						if l == m.Localizer.GetLanguage() {
+							currentIdx = i
+							break
+						}
+					}
+					currentIdx--
+					if currentIdx < 0 {
+						currentIdx = len(languages) - 1
+					}
+					m.Localizer.SetLanguage(languages[currentIdx])
+				}
+			}
+		case "right", "l":
+			if m.Screen == ScreenThemeSelect {
+				m.navigateTheme(1)
+			} else if m.Screen == ScreenSettings {
+				if m.MenuSelected == 0 {
+					languages := m.Localizer.AvailableLanguages()
+					currentIdx := 0
+					for i, l := range languages {
+						if l == m.Localizer.GetLanguage() {
+							currentIdx = i
+							break
+						}
+					}
+					currentIdx++
+					if currentIdx >= len(languages) {
+						currentIdx = 0
+					}
+					m.Localizer.SetLanguage(languages[currentIdx])
+				}
+			}
+		case "x":
+			if m.Screen == ScreenMenu {
+				switch m.MenuSelected {
+				case 0:
+					m.Screen = ScreenGame
+					m.startGame()
+				case 1:
+					m.Screen = ScreenSettings
+					m.MenuSelected = 0
+				case 2:
+					return m, tea.Quit
+				}
+			} else if m.Screen == ScreenSettings {
+				switch m.MenuSelected {
+				case 0:
+					languages := m.Localizer.AvailableLanguages()
+					currentIdx := 0
+					for i, l := range languages {
+						if l == m.Localizer.GetLanguage() {
+							currentIdx = i
+							break
+						}
+					}
+					nextIdx := (currentIdx + 1) % len(languages)
+					m.Localizer.SetLanguage(languages[nextIdx])
+				case 1:
+					m.Screen = ScreenThemeSelect
+					m.MenuSelected = 0
+				case 2:
+					m.CenterWindow = !m.CenterWindow
+				case 3:
+					m.Screen = ScreenMenu
+					m.MenuSelected = 0
+				}
+			} else if m.Screen == ScreenThemeSelect {
+				m.Screen = ScreenSettings
+				m.MenuSelected = 0
+			}
+		case "esc", "q":
+			if m.Screen == ScreenSettings {
+				m.Screen = ScreenMenu
+				m.MenuSelected = 0
+			} else if m.Screen == ScreenThemeSelect {
+				m.Screen = ScreenSettings
+				m.MenuSelected = 0
+			} else if m.Screen == ScreenMenu {
+				return m, tea.Quit
+			}
+		}
+	}
+	return m, nil
+}
+
+func (m *Model) startGame() {
+	players := []Player{}
+	starts := []Point{
+		{X: 1, Y: 1},
+		{X: GridW - 2, Y: GridH - 2},
+		{X: GridW - 2, Y: 1},
+		{X: 1, Y: GridH - 2},
+	}
+
+	playerCount := 2
+	if playerCount > 4 {
+		playerCount = 4
+	}
+
+	for i := 0; i < playerCount; i++ {
+		players = append(players, Player{
+			X:          starts[i].X,
+			Y:          starts[i].Y,
+			HP:         MaxHP,
+			UltCharges: maxUltCharges,
+			Style:      m.Styles.PlayerStyles[i%len(m.Styles.EnemysStyles)],
+		})
+	}
+
+	blocked := make(map[Point]bool)
+	for _, p := range players {
+		blocked[Point{p.X, p.Y}] = true
+	}
+	for p := range m.Walls {
+		blocked[p] = true
+	}
+	for p := range m.Water {
+		blocked[p] = true
+	}
+
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
+
+	m.Players = players
+	m.Enemys = []Enemy{}
+	m.Walls = walls
+	m.Water = water
+	m.FireTiles = make(map[Point]int)
+	m.SmokeTiles = make(map[Point]int)
+	m.CurrentPlayer = 0
+	m.CurrentEnemy = 0
+	m.CursorX = players[0].X
+	m.CursorY = players[0].Y
+	m.Moved = false
+	m.Shot = false
+	m.ShootMode = false
+	m.UltMode = false
+	m.UltAxis = ""
+	m.EnemyTurn = false
+	m.EnemyIdx = 0
+	m.MenuSelected = 0
+	m.Z = bz.New()
+}
+
+var availableThemes = []string{"default", "dracula", "tokyonight", "gruvbox", "nord", "monokai", "one dark", "solarized", "solarized-dark"}
+
+func (m *Model) nextTheme() {
+	currentIdx := 0
+	for i, t := range availableThemes {
+		if t == m.ThemeName {
+			currentIdx = i
+			break
+		}
+	}
+	nextIdx := (currentIdx + 1) % len(availableThemes)
+	m.ThemeName = availableThemes[nextIdx]
+	if m.Theme != nil {
+		m.Theme.SetTintID(m.ThemeName)
+	}
+	m.Styles = NewStyles(m.Theme)
+}
+
+func (m *Model) navigateTheme(direction int) {
+	currentIdx := 0
+	for i, t := range availableThemes {
+		if t == m.ThemeName {
+			currentIdx = i
+			break
+		}
+	}
+	nextIdx := currentIdx + direction
+	if nextIdx < 0 {
+		nextIdx = len(availableThemes) - 1
+	} else if nextIdx >= len(availableThemes) {
+		nextIdx = 0
+	}
+	m.ThemeName = availableThemes[nextIdx]
+	if m.Theme != nil {
+		m.Theme.SetTintID(m.ThemeName)
+	}
+	m.Styles = NewStyles(m.Theme)
 }

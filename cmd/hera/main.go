@@ -40,8 +40,12 @@ func main() {
 				return err
 			}
 			centerWindow := !noCenter
+			themeName := theme
+			if themeName == "" {
+				themeName = "default"
+			}
 			p := tea.NewProgram(
-				generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow),
+				generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, themeName),
 				tea.WithAltScreen(),
 				tea.WithMouseCellMotion(),
 			)

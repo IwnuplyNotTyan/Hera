@@ -2,6 +2,30 @@
   "error": {
     "terminalTooSmall": "Terminal too small"
   },
+  "easterEggs": [
+    "the fish drowned",
+    "you asked for it",
+    "glitch in the matrix",
+    "this is fine",
+    "dont panic",
+    "its a feature",
+    "404 idea not found",
+    "brb quantuum physicist"
+  ],
+  "menu": {
+    "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
+    "start": "Start Game",
+    "settings": "Settings",
+    "exit": "Exit"
+  },
+  "settings": {
+    "title": "SETTINGS",
+    "selectTheme": "SELECT THEME",
+    "language": "Language",
+    "theme": "Theme",
+    "center": "Center",
+    "back": "Back"
+  },
   "game": {
     "gameOver": " Game Over "
   },

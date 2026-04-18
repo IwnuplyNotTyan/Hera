@@ -13,7 +13,7 @@ import (
 	bz "github.com/lrstanley/bubblezone"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry, centerWindow bool) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry, centerWindow bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -76,8 +76,11 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 
 	return Model{
 		Theme:         theme,
+		ThemeName:     themeName,
 		Styles:        styles,
 		CenterWindow:  centerWindow,
+		Screen:        ScreenMenu,
+		EasterEgg:     loc.RandomEasterEgg(),
 		Players:       players,
 		Enemys:        enemys,
 		CurrentPlayer: 0,
