@@ -59,6 +59,9 @@ type Model struct {
 	Theme            *bubbletint.Registry
 	Styles           Styles
 	EnableBackground bool
+	CenterWindow     bool
+	TerminalWidth    int
+	TerminalHeight   int
 	Players          []Player
 	Enemys           []Enemy
 	CurrentPlayer    int

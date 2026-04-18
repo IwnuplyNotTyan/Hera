@@ -24,6 +24,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.TerminalWidth = msg.Width
+		m.TerminalHeight = msg.Height
+
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
 			return m, tea.Quit
@@ -452,6 +456,24 @@ func (m Model) View() string {
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+
+	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
+		contentWidth := lipgloss.Width(content)
+		contentHeight := lipgloss.Height(content)
+		marginX := (m.TerminalWidth - contentWidth) / 2
+		marginY := (m.TerminalHeight - contentHeight) / 2
+		if marginX < 0 {
+			marginX = 0
+		}
+		if marginY < 0 {
+			marginY = 0
+		}
+		centerStyle := lipgloss.NewStyle().
+			MarginLeft(marginX).
+			MarginTop(marginY)
+		content = centerStyle.Render(content)
+	}
+
 	content = m.Z.Scan(content)
 	return content
 }
