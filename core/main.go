@@ -460,18 +460,16 @@ func (m Model) View() string {
 	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
 		contentWidth := lipgloss.Width(content)
 		contentHeight := lipgloss.Height(content)
-		marginX := (m.TerminalWidth - contentWidth) / 2
-		marginY := (m.TerminalHeight - contentHeight) / 2
-		if marginX < 0 {
-			marginX = 0
+		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+			content = m.Localizer.T("error.terminalTooSmall")
+		} else {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			centerStyle := lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY)
+			content = centerStyle.Render(content)
 		}
-		if marginY < 0 {
-			marginY = 0
-		}
-		centerStyle := lipgloss.NewStyle().
-			MarginLeft(marginX).
-			MarginTop(marginY)
-		content = centerStyle.Render(content)
 	}
 
 	content = m.Z.Scan(content)

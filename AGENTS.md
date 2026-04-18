@@ -86,9 +86,9 @@ This is a terminal game. Keep that in mind at every decision.
 | Layer | Responsibility |
 |---|---|
 | `cmd/hera/main.go` | Main file |
-| `i18n/` | Translate system and locales|
+| `i18n/` | Translation system and locales|
 | `tests` | Test files |
-| `core`  | Core files with tiles, grid, render and etc | 
+| `core`  | Core files with tiles, grid, rendering and etc | 
 
 - **Game logic must not import TUI packages.** The boundary is strict.
 - **TUI packages must not contain game rules.** They only read state and emit commands.
@@ -124,7 +124,7 @@ This is a terminal game. Keep that in mind at every decision.
 
 ## Typical Agent Workflow
 
-```
+```text
 1. Read CONTRIBUTING.md
 2. Read AGENTS.md (this file)
 3. Understand the task scope

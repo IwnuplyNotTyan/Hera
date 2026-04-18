@@ -1,4 +1,7 @@
 {
+  "error": {
+    "terminalTooSmall": "Terminal too small"
+  },
   "game": {
     "gameOver": " Game Over "
   },
@@ -49,7 +52,7 @@
     "movePlayer": "Move Player",
     "changeMode": "Change Mode",
     "secondAttack": "Second Attack",
-    "toggleHelp": "Toggle Help",
+    "toggleHelp": "Help",
     "quit": "Quit"
   },
   "keys": {

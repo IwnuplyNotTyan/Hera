@@ -1,4 +1,7 @@
 {
+  "error": {
+    "terminalTooSmall": "Терминал слишком мал"
+  },
   "game": {
     "gameOver": " Конец игры "
   },
