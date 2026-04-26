@@ -10,6 +10,7 @@
       systems = [
         "x86_64-linux"
         "x86_64-darwin"
+        "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
@@ -26,9 +27,6 @@
               gotools
               golangci-lint
             ];
-
-            shellHook = ''
-            '';
           };
         });
     };
