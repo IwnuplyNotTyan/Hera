@@ -506,8 +506,7 @@ func (m Model) viewMenu() string {
 	for i, item := range menuItems {
 		figure := figures[i]
 		if i == m.MenuSelected {
-			style := m.Styles.CursorStyle.Copy().
-				Bold(true)
+			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
@@ -565,8 +564,7 @@ func (m Model) viewSettings() string {
 	for i, item := range menuItems {
 		figure := figures[i]
 		if i == m.MenuSelected {
-			style := m.Styles.CursorStyle.Copy().
-				Bold(true)
+			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
@@ -653,8 +651,7 @@ func (m Model) viewThemeSelect() string {
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
 		if theme == m.ThemeName {
-			style := m.Styles.CursorStyle.Copy().
-				Bold(true)
+			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))
 		} else {
 			lines = append(lines, "   ●  "+theme)
@@ -664,28 +661,25 @@ func (m Model) viewThemeSelect() string {
 	themeContent := lipgloss.JoinVertical(lipgloss.Left, lines...)
 
 	var searchContent string
+	boxStyle := m.Styles.BoxStyle
+	boxStyle = boxStyle.Border(lipgloss.RoundedBorder())
 	if m.ThemeSearch {
 		searchLine := "/ " + m.ThemeQuery + "_"
-		searchStyle := m.Styles.CursorStyle.Copy().Bold(true)
+		searchStyle := m.Styles.CursorStyle
+		searchStyle = searchStyle.Bold(true)
 		searchContent = searchStyle.Render(searchLine)
 		hintStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
 		searchContent += "\n" + hintStyle.Render("  esc to close")
-		searchContent = m.Styles.BoxStyle.Copy().
-			Border(lipgloss.RoundedBorder()).
-			Render(searchContent)
+		searchContent = boxStyle.Render(searchContent)
 	} else if m.LastSearchQuery != "" {
 		searchLine := "/ " + m.LastSearchQuery + ""
 		hintStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
 		searchContent = hintStyle.Render(searchLine)
-		searchContent = m.Styles.BoxStyle.Copy().
-			Border(lipgloss.RoundedBorder()).
-			Render(searchContent)
+		searchContent = boxStyle.Render(searchContent)
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		m.Styles.BoxStyle.Copy().
-			Border(lipgloss.RoundedBorder()).
-			Render(themeContent),
+		boxStyle.Render(themeContent),
 	)
 	if searchContent != "" {
 		content = lipgloss.JoinVertical(lipgloss.Left,
@@ -790,7 +784,9 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 				if currentIdx < 0 {
 					currentIdx = len(languages) - 1
 				}
-				m.Localizer.SetLanguage(languages[currentIdx])
+				if err := m.Localizer.SetLanguage(languages[currentIdx]); err != nil {
+					return m, nil
+				}
 			}
 		case "right", "l", "L":
 			if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
@@ -808,7 +804,9 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 				if currentIdx >= len(languages) {
 					currentIdx = 0
 				}
-				m.Localizer.SetLanguage(languages[currentIdx])
+				if err := m.Localizer.SetLanguage(languages[currentIdx]); err != nil {
+					return m, nil
+				}
 			}
 		case "enter", "x", "X":
 			if m.Screen == ScreenMenu {
@@ -834,7 +832,9 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 						}
 					}
 					nextIdx := (currentIdx + 1) % len(languages)
-					m.Localizer.SetLanguage(languages[nextIdx])
+					if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
+						return m, nil
+					}
 				case 1:
 					m.Screen = ScreenThemeSelect
 					m.MenuSelected = 0

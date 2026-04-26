@@ -1,6 +1,8 @@
 package generate
 
 import (
+	"math/rand"
+
 	bz "github.com/lrstanley/bubblezone"
 )
 
@@ -13,10 +15,12 @@ func (m *Model) startGame() {
 		{X: 1, Y: GridH - 2},
 	}
 
-	playerCount := 2
+	playerCount := rand.Intn(3) + 2
 	if playerCount > 4 {
 		playerCount = 4
 	}
+
+	enemyCount := rand.Intn(3) + 2
 
 	for i := 0; i < playerCount; i++ {
 		players = append(players, Player{
@@ -24,7 +28,7 @@ func (m *Model) startGame() {
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
-			Style:      m.Styles.PlayerStyles[i%len(m.Styles.EnemysStyles)],
+			Style:      m.Styles.PlayerStyles[i%len(m.Styles.PlayerStyles)],
 		})
 	}
 
@@ -32,18 +36,32 @@ func (m *Model) startGame() {
 	for _, p := range players {
 		blocked[Point{p.X, p.Y}] = true
 	}
-	for p := range m.Walls {
-		blocked[p] = true
-	}
-	for p := range m.Water {
+
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked)
+	for p := range walls {
 		blocked[p] = true
 	}
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked)
+
+	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemyCount, blocked)
+	enemyPositions := make([]Point, 0, enemyCount)
+	for p := range enemyStarts {
+		enemyPositions = append(enemyPositions, p)
+	}
+
+	enemys := make([]Enemy, enemyCount)
+	for i := range enemys {
+		enemys[i] = Enemy{
+			X:     enemyPositions[i].X,
+			Y:     enemyPositions[i].Y,
+			HP:    MaxHP,
+			Style: m.Styles.EnemysStyles[i],
+		}
+	}
 
 	m.Players = players
-	m.Enemys = []Enemy{}
+	m.Enemys = enemys
 	m.Walls = walls
 	m.Water = water
 	m.FireTiles = make(map[Point]int)
@@ -61,26 +79,6 @@ func (m *Model) startGame() {
 	m.EnemyIdx = 0
 	m.MenuSelected = 0
 	m.Z = bz.New()
-}
-
-func (m *Model) nextTheme() {
-	themes := m.AvailableThemes
-	if len(themes) == 0 {
-		themes = []string{"default"}
-	}
-	currentIdx := 0
-	for i, t := range themes {
-		if t == m.ThemeName {
-			currentIdx = i
-			break
-		}
-	}
-	nextIdx := (currentIdx + 1) % len(themes)
-	m.ThemeName = themes[nextIdx]
-	if m.Theme != nil {
-		m.Theme.SetTintID(m.ThemeName)
-	}
-	m.Styles = NewStyles(m.Theme)
 }
 
 func (m *Model) navigateTheme(direction int) {
@@ -103,4 +101,3 @@ func (m *Model) navigateTheme(direction int) {
 	}
 	m.Styles = NewStyles(m.Theme)
 }
-
