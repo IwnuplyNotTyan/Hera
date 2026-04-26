@@ -16,6 +16,10 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+		return m.updateMenu(msg)
+	}
+
 	if !m.Moved && !m.Shot {
 	} else if m.Moved {
 		m.ShootMode = true
@@ -24,6 +28,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.TerminalWidth = msg.Width
+		m.TerminalHeight = msg.Height
+
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
 			return m, tea.Quit
@@ -245,6 +253,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.Screen == ScreenMenu {
+		return m.viewMenu()
+	}
+	if m.Screen == ScreenSettings {
+		return m.viewSettings()
+	}
+	if m.Screen == ScreenThemeSelect {
+		return m.viewThemeSelect()
+	}
+
 	if len(m.Players) == 0 {
 		gameOver := m.Styles.BoxStyle.Render(
 			lipgloss.NewStyle().
@@ -452,6 +470,22 @@ func (m Model) View() string {
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+
+	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
+		contentWidth := lipgloss.Width(content)
+		contentHeight := lipgloss.Height(content)
+		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+			content = m.Localizer.T("error.terminalTooSmall")
+		} else {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			centerStyle := lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY)
+			content = centerStyle.Render(content)
+		}
+	}
+
 	content = m.Z.Scan(content)
 	return content
 }

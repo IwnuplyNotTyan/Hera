@@ -50,8 +50,8 @@ func newKeyMap(loc i18n.Localizer) keyMap {
 			key.WithHelp(loc.T("keys.right"), loc.T("help.moveRight")),
 		),
 		Confirm: key.NewBinding(
-			key.WithKeys("x"),
-			key.WithHelp(loc.T("keys.confirm"), loc.T("help.movePlayer")),
+			key.WithKeys("x", "enter"),
+			key.WithHelp("x", "confirm"),
 		),
 		Shoot: key.NewBinding(
 			key.WithKeys("z"),

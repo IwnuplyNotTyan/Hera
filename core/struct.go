@@ -55,10 +55,30 @@ type enemyTurnMsg struct {
 	enemyIdx int
 }
 
+type Screen int
+
+const (
+	ScreenMenu Screen = iota
+	ScreenSettings
+	ScreenThemeSelect
+	ScreenGame
+)
+
 type Model struct {
 	Theme            *bubbletint.Registry
+	ThemeName        string
 	Styles           Styles
 	EnableBackground bool
+	CenterWindow     bool
+	TerminalWidth    int
+	TerminalHeight   int
+	Screen           Screen
+	MenuSelected     int
+	EasterEgg        string
+	ThemeSearch      bool
+	ThemeQuery       string
+	LastSearchQuery  string
+	AvailableThemes  []string
 	Players          []Player
 	Enemys           []Enemy
 	CurrentPlayer    int

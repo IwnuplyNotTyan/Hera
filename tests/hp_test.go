@@ -42,7 +42,7 @@ func createTestModel() generate.Model {
 func TestHP_InitialValue(t *testing.T) {
 	loc, _ := i18n.NewTranslator("../locales", "en")
 	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
-	m := generate.NewModel(2, 2, loc, theme)
+	m := generate.NewModel(2, 2, loc, theme, false, "default")
 	for _, p := range m.Players {
 		assert.Equal(t, generate.MaxHP, p.HP)
 	}

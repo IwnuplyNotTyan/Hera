@@ -6,22 +6,28 @@
   };
 
   outputs = { nixpkgs, ... }:
-	let
-		system = "x86_64-linux";
-		pkgs = nixpkgs.legacyPackages.${system};
-	in
-	{
-		devShells.${system}.default = pkgs.mkShell {
-			packages = with pkgs; [
-				go
-				gopls
-				gotools
-				golangci-lint			
-			];
-
-			shellHook = ''
-				alias build="go build -o ./bin/hera ."
-			'';
-		};
-  };
+    let
+      systems = [
+        "x86_64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              go
+              gopls
+              gotools
+              golangci-lint
+            ];
+          };
+        });
+    };
 }

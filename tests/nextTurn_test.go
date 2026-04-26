@@ -13,7 +13,7 @@ import (
 func TestNextTurn_CursorOnNextPlayer(t *testing.T) {
 	loc, _ := i18n.NewTranslator("../locales", "en")
 	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
-	m := generate.NewModel(2, 0, loc, theme)
+	m := generate.NewModel(2, 0, loc, theme, false, "default")
 	m.Moved = true
 	m.Shot = true
 

@@ -18,6 +18,7 @@ import (
 func main() {
 	var lang string
 	var theme string
+	var noCenter bool
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -38,7 +39,18 @@ func main() {
 			if err != nil {
 				return err
 			}
-			p := tea.NewProgram(generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry), tea.WithAltScreen(), tea.WithMouseCellMotion())
+			centerWindow := !noCenter
+			themeName := theme
+			if themeName == "" {
+				themeName = "default"
+			}
+			model := generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, themeName)
+			model.SetAvailableThemes()
+			p := tea.NewProgram(
+				model,
+				tea.WithAltScreen(),
+				tea.WithMouseCellMotion(),
+			)
 			if _, err := p.Run(); err != nil {
 				return err
 			}
@@ -48,6 +60,7 @@ func main() {
 
 	cmd.Flags().StringVarP(&lang, "lang", "l", "en", "Language code (en, ru)")
 	cmd.Flags().StringVarP(&theme, "theme", "t", "", "Theme name (e.g., dracula, tokyonight, gruvbox)")
+	cmd.Flags().BoolVarP(&noCenter, "no-center", "c", false, "Disable centered window")
 
 	if err := fang.Execute(context.Background(), cmd); err != nil {
 		log.Error(err)

@@ -13,7 +13,7 @@ import (
 	bz "github.com/lrstanley/bubblezone"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry, centerWindow bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -21,9 +21,9 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 	if playerCount > 4 {
 		playerCount = 4
 	}
- 	if enemysCount < 0 {
- 		enemysCount = 0
- 	}
+	if enemysCount < 0 {
+		enemysCount = 0
+	}
 
 	blocked := make(map[Point]bool)
 
@@ -76,7 +76,11 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 
 	return Model{
 		Theme:         theme,
+		ThemeName:     themeName,
 		Styles:        styles,
+		CenterWindow:  centerWindow,
+		Screen:        ScreenMenu,
+		EasterEgg:     loc.RandomEasterEgg(),
 		Players:       players,
 		Enemys:        enemys,
 		CurrentPlayer: 0,
@@ -91,6 +95,12 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 		help:          help.New(),
 		Localizer:     loc,
 		Z:             bz.New(),
+	}
+}
+
+func (m *Model) SetAvailableThemes() {
+	if m.Theme != nil {
+		m.AvailableThemes = m.Theme.TintIDs()
 	}
 }
 
