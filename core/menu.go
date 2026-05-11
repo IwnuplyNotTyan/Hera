@@ -119,7 +119,7 @@ func (m Model) viewMenu() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
-	menuStartRow := 2
+	menuStartRow := 6
 	for i, item := range menuItems {
 		figure := figures[i]
 		row := menuStartRow + i
@@ -127,18 +127,18 @@ func (m Model) viewMenu() string {
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
-			trackElement(Element{
-				Type:   ElementMenuItem,
-				X:      2,
-				Y:      row,
-				Width:  itemWidth,
-				Height: 1,
-				ID:     fmt.Sprintf("menu-%d", i),
-				Index:  i,
-			})
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
+		trackElement(Element{
+			Type:   ElementMenuItem,
+			X:      4,
+			Y:      row,
+			Width:  itemWidth,
+			Height: 1,
+			ID:     fmt.Sprintf("menu-%d", i),
+			Index:  i,
+		})
 	}
 
 	easterEgg := m.EasterEgg
@@ -162,6 +162,8 @@ func (m Model) viewMenu() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
+			gridOffsetX = marginX
+			gridOffsetY = marginY
 		}
 	}
 
@@ -189,7 +191,7 @@ func (m Model) viewSettings() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
-	settingsStartRow := 2
+	settingsStartRow := 6
 	for i, item := range menuItems {
 		figure := figures[i]
 		row := settingsStartRow + i
@@ -197,18 +199,18 @@ func (m Model) viewSettings() string {
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
-			trackElement(Element{
-				Type:   ElementSettingsItem,
-				X:      2,
-				Y:      row,
-				Width:  itemWidth,
-				Height: 1,
-				ID:     fmt.Sprintf("settings-%d", i),
-				Index:  i,
-			})
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
+		trackElement(Element{
+			Type:   ElementSettingsItem,
+			X:      4,
+			Y:      row,
+			Width:  itemWidth,
+			Height: 1,
+			ID:     fmt.Sprintf("settings-%d", i),
+			Index:  i,
+		})
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
@@ -226,6 +228,8 @@ func (m Model) viewSettings() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
+			gridOffsetX = marginX
+			gridOffsetY = marginY
 		}
 	}
 
@@ -290,22 +294,22 @@ func (m Model) viewThemeSelect() string {
 
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
-		row := 2 + (i - startIdx)
+		row := 6 + (i - startIdx)
 		if theme == m.ThemeName {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))
-			trackElement(Element{
-				Type:   ElementThemeItem,
-				X:      2,
-				Y:      row,
-				Width:  lipgloss.Width("  ● ") + lipgloss.Width(theme),
-				Height: 1,
-				ID:     fmt.Sprintf("theme-%d", i),
-				Index:  i,
-			})
 		} else {
 			lines = append(lines, "   ●  "+theme)
 		}
+		trackElement(Element{
+			Type:   ElementThemeItem,
+			X:      4,
+			Y:      row,
+			Width:  lipgloss.Width("   ●  ") + lipgloss.Width(theme),
+			Height: 1,
+			ID:     fmt.Sprintf("theme-%d", i),
+			Index:  i,
+		})
 	}
 
 	themeContent := lipgloss.JoinVertical(lipgloss.Left, lines...)
@@ -350,6 +354,8 @@ func (m Model) viewThemeSelect() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
+			gridOffsetX = marginX
+			gridOffsetY = marginY
 		}
 	}
 
@@ -370,9 +376,7 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 		elem := hitTest(msg.X, msg.Y)
 		if elem != nil {
 			switch elem.Type {
-			case ElementMenuItem:
-				m.MenuSelected = elem.Index
-			case ElementSettingsItem:
+			case ElementMenuItem, ElementSettingsItem:
 				m.MenuSelected = elem.Index
 			case ElementThemeItem:
 			}
