@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
 	bubbletint "github.com/lrstanley/bubbletint"
-	bz "github.com/lrstanley/bubblezone"
 
 	"hera/i18n"
 )
@@ -55,6 +54,23 @@ type enemyTurnMsg struct {
 	enemyIdx int
 }
 
+type ElementType int
+
+const (
+	ElementGridCell ElementType = iota
+	ElementMenuItem
+	ElementSettingsItem
+	ElementThemeItem
+)
+
+type Element struct {
+	Type          ElementType
+	X, Y          int
+	Width, Height int
+	ID            string
+	Index         int
+}
+
 type Screen int
 
 const (
@@ -98,5 +114,4 @@ type Model struct {
 	EnemyTurn        bool
 	EnemyIdx         int
 	Localizer        i18n.Localizer
-	Z                *bz.Manager
 }

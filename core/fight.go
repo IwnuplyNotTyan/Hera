@@ -10,7 +10,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	bubbletint "github.com/lrstanley/bubbletint"
-	bz "github.com/lrstanley/bubblezone"
 )
 
 func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry, centerWindow bool, themeName string) Model {
@@ -94,7 +93,6 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 		keys:          newKeyMap(loc),
 		help:          help.New(),
 		Localizer:     loc,
-		Z:             bz.New(),
 	}
 }
 

@@ -16,21 +16,33 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
-		return m.updateMenu(msg)
-	}
-
-	if !m.Moved && !m.Shot {
-	} else if m.Moved {
-		m.ShootMode = true
-	} else {
-		m.ShootMode = false
-	}
-
 	switch msg := msg.(type) {
+	case tea.MouseMsg:
+		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
+			return m, nil
+		}
+		elem := hitTest(msg.X, msg.Y)
+		if elem != nil {
+			switch elem.Type {
+			case ElementGridCell:
+				if m.Screen == ScreenGame && !m.EnemyTurn {
+					var col, row int
+					fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row)
+					m.CursorX = col
+					m.CursorY = row
+				}
+			case ElementMenuItem:
+				m.MenuSelected = elem.Index
+			case ElementSettingsItem:
+				m.MenuSelected = elem.Index
+			case ElementThemeItem:
+			}
+		}
+
 	case tea.WindowSizeMsg:
 		m.TerminalWidth = msg.Width
 		m.TerminalHeight = msg.Height
+		return m, nil
 
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
@@ -54,29 +66,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		return m, enemyTurnCmd(msg.enemyIdx + 1)
+	}
 
-	case tea.MouseMsg:
-		if m.EnemyTurn {
-			return m, nil
-		}
-		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
-			return m, nil
-		}
-		for col := 0; col < GridW; col++ {
-			for row := 0; row < GridH; row++ {
-				if m.Z.Get(fmt.Sprintf("cell-%d-%d", col, row)).InBounds(msg) {
-					m.CursorX = col
-					m.CursorY = row
-					break
-				}
-			}
-		}
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+		return m.updateMenu(msg)
+	}
 
+	if m.EnemyTurn {
+		return m, nil
+	}
+
+	if !m.Moved && !m.Shot {
+	} else if m.Moved {
+		m.ShootMode = true
+	} else {
+		m.ShootMode = false
+	}
+
+	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.EnemyTurn {
-			return m, nil
-		}
-
 		switch {
 		case key.Matches(msg, m.keys.Up):
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
@@ -253,6 +261,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	resetLayout()
+
 	if m.Screen == ScreenMenu {
 		return m.viewMenu()
 	}
@@ -442,7 +452,16 @@ func (m Model) View() string {
 			default:
 				cellContent = m.Styles.CellStyle.Render(" · ")
 			}
-			cells = append(cells, m.Z.Mark(fmt.Sprintf("cell-%d-%d", col, row), cellContent))
+			cells = append(cells, cellContent)
+			trackElement(Element{
+				Type:   ElementGridCell,
+				X:      col*cellWidth() + 2,
+				Y:      row + 2,
+				Width:  cellWidth(),
+				Height: cellHeight(),
+				ID:     fmt.Sprintf("cell-%d-%d", col, row),
+				Index:  -1,
+			})
 		}
 		rows = append(rows, strings.Join(cells, ""))
 	}
@@ -483,9 +502,10 @@ func (m Model) View() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
+			gridOffsetX = marginX
+			gridOffsetY = marginY
 		}
 	}
 
-	content = m.Z.Scan(content)
 	return content
 }

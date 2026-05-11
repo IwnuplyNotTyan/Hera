@@ -1,12 +1,12 @@
 package generate
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	bz "github.com/lrstanley/bubblezone"
 )
 
 func (m *Model) startGame() {
@@ -83,7 +83,6 @@ func (m *Model) startGame() {
 	m.EnemyTurn = false
 	m.EnemyIdx = 0
 	m.MenuSelected = 0
-	m.Z = bz.New()
 }
 
 func (m *Model) navigateTheme(direction int) {
@@ -120,11 +119,23 @@ func (m Model) viewMenu() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
+	menuStartRow := 2
 	for i, item := range menuItems {
 		figure := figures[i]
+		row := menuStartRow + i
+		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
+			trackElement(Element{
+				Type:   ElementMenuItem,
+				X:      2,
+				Y:      row,
+				Width:  itemWidth,
+				Height: 1,
+				ID:     fmt.Sprintf("menu-%d", i),
+				Index:  i,
+			})
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
@@ -178,11 +189,23 @@ func (m Model) viewSettings() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
+	settingsStartRow := 2
 	for i, item := range menuItems {
 		figure := figures[i]
+		row := settingsStartRow + i
+		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  "+figure+" "+style.Render(item))
+			trackElement(Element{
+				Type:   ElementSettingsItem,
+				X:      2,
+				Y:      row,
+				Width:  itemWidth,
+				Height: 1,
+				ID:     fmt.Sprintf("settings-%d", i),
+				Index:  i,
+			})
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
@@ -267,9 +290,19 @@ func (m Model) viewThemeSelect() string {
 
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
+		row := 2 + (i - startIdx)
 		if theme == m.ThemeName {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))
+			trackElement(Element{
+				Type:   ElementThemeItem,
+				X:      2,
+				Y:      row,
+				Width:  lipgloss.Width("  ● ") + lipgloss.Width(theme),
+				Height: 1,
+				ID:     fmt.Sprintf("theme-%d", i),
+				Index:  i,
+			})
 		} else {
 			lines = append(lines, "   ●  "+theme)
 		}
@@ -328,6 +361,22 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.TerminalWidth = msg.Width
 		m.TerminalHeight = msg.Height
+		return m, nil
+
+	case tea.MouseMsg:
+		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
+			return m, nil
+		}
+		elem := hitTest(msg.X, msg.Y)
+		if elem != nil {
+			switch elem.Type {
+			case ElementMenuItem:
+				m.MenuSelected = elem.Index
+			case ElementSettingsItem:
+				m.MenuSelected = elem.Index
+			case ElementThemeItem:
+			}
+		}
 		return m, nil
 
 	case tea.KeyMsg:
