@@ -355,6 +355,85 @@ func (m Model) ultInAxisRange(cx, cy int) bool {
 	return cx == current.X || cy == current.Y
 }
 
+func (m Model) doConfirm() Model {
+	p := Point{m.CursorX, m.CursorY}
+	current := m.Players[m.CurrentPlayer]
+	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+
+	if m.UltMode && !m.Shot {
+		m = m.doUlt()
+		cur := m.Players[m.CurrentPlayer]
+		m.CursorX = cur.X
+		m.CursorY = cur.Y
+	} else if m.ShootMode && !m.Shot {
+		if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
+			m.Shot = true
+			m.ShootMode = false
+			return m
+		}
+		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+			for i, pl := range m.Players {
+				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
+					m.Players[i].HP--
+					if m.Players[i].HP <= 0 {
+						m.Players = append(m.Players[:i], m.Players[i+1:]...)
+						if m.CurrentPlayer >= len(m.Players) {
+							m.CurrentPlayer = 0
+						}
+					}
+					break
+				}
+			}
+			for i, en := range m.Enemys {
+				if en.X == m.CursorX && en.Y == m.CursorY {
+					m.Enemys[i].HP--
+					if m.Enemys[i].HP <= 0 {
+						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+					}
+					break
+				}
+			}
+			m.Shot = true
+			m.ShootMode = false
+			cur := m.Players[m.CurrentPlayer]
+			m.CursorX = cur.X
+			m.CursorY = cur.Y
+		}
+	} else if !m.ShootMode && !m.UltMode && !m.Moved {
+		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+			m.Players[m.CurrentPlayer].X = m.CursorX
+			m.Players[m.CurrentPlayer].Y = m.CursorY
+
+			if m.Water[p] {
+				m.Players[m.CurrentPlayer].Effects = resolveEffects(
+					m.Players[m.CurrentPlayer].Effects,
+					Effect{Type: EffectWet, Duration: 2},
+				)
+			}
+			if m.FireTiles[p] > 0 {
+				if !hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+					m.Players[m.CurrentPlayer].Effects = resolveEffects(
+						m.Players[m.CurrentPlayer].Effects,
+						Effect{Type: EffectFire, Duration: 2},
+					)
+				}
+			}
+			if m.SmokeTiles[p] > 0 {
+				m.Players[m.CurrentPlayer].Effects = resolveEffects(
+					m.Players[m.CurrentPlayer].Effects,
+					Effect{Type: EffectSmoke, Duration: 2},
+				)
+			}
+
+			m.Moved = true
+			m.CursorX = m.Players[m.CurrentPlayer].X
+			m.CursorY = m.Players[m.CurrentPlayer].Y
+		}
+	}
+
+	return m
+}
+
 func (m Model) doUlt() Model {
 	current := m.Players[m.CurrentPlayer]
 	if current.UltCharges <= 0 {
