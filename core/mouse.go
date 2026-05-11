@@ -31,7 +31,3 @@ func cellWidth() int {
 func cellHeight() int {
 	return 1
 }
-
-func handleGridClick(col, row int) (int, int) {
-	return col, row
-}

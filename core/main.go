@@ -24,9 +24,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case ElementGridCell:
 				if m.Screen == ScreenGame && !m.EnemyTurn {
 					var col, row int
-					fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row)
-					m.CursorX = col
-					m.CursorY = row
+					if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
+						m.CursorX = col
+						m.CursorY = row
+					}
 				}
 			case ElementMenuItem:
 				m.MenuSelected = elem.Index
