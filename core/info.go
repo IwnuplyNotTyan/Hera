@@ -12,9 +12,6 @@ import (
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
 
 func renderEffects(effects []Effect, loc i18n.Localizer) string {
-	if len(effects) == 0 {
-		return ""
-	}
 	var parts []string
 	for _, e := range effects {
 		icon := effectIcon(e.Type)
@@ -33,6 +30,9 @@ func renderEffects(effects []Effect, loc i18n.Localizer) string {
 			s = icon + " " + fmt.Sprint(e.Duration)
 		}
 		parts = append(parts, s)
+	}
+	if len(parts) == 0 {
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	}
 	return strings.Join(parts, effectSep)
 }
@@ -53,23 +53,17 @@ func (m Model) cursorInfo() string {
 
 			if i == m.CurrentPlayer {
 				result := pl.Style.Render(loc.T("cursor.player.you", hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
+				result += "\n" + effectStr
 				return result
 			}
 			if wallBlocked {
 				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(loc.T("cursor.player.wallBlocked", i+1, hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
+				result += "\n" + effectStr
 				return result
 			}
 			result := pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
-			if effectStr != "" {
-				result += "\n" + effectStr
-			}
+			result += "\n" + effectStr
 			return result
 		}
 	}
@@ -82,41 +76,37 @@ func (m Model) cursorInfo() string {
 			if wallBlocked {
 				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(loc.T("cursor.enemy.wallBlocked", i+1, hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
+				result += "\n" + effectStr
 				return result
 			}
 			result := en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
-			if effectStr != "" {
-				result += "\n" + effectStr
-			}
+			result += "\n" + effectStr
 			return result
 		}
 	}
 
 	switch {
 	case m.Walls[p]:
-		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wall"))
+		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wall")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case wallBlocked:
-		return m.Styles.BlockedWallStyle.Render(loc.T("cursor.tile.wallInWay"))
+		return m.Styles.BlockedWallStyle.Render(loc.T("cursor.tile.wallInWay")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case m.SmokeTiles[p] > 0:
-		return m.Styles.SteamStyle.Render(loc.T("cursor.tile.smoke", m.SmokeTiles[p]))
+		return m.Styles.SteamStyle.Render(loc.T("cursor.tile.smoke", m.SmokeTiles[p])) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case m.Water[p]:
-		return m.Styles.WaterStyle.Render(loc.T("cursor.tile.water"))
+		return m.Styles.WaterStyle.Render(loc.T("cursor.tile.water")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case m.FireTiles[p] > 0:
-		return m.Styles.FireStyle.Render(loc.T("cursor.tile.fire", m.FireTiles[p]))
+		return m.Styles.FireStyle.Render(loc.T("cursor.tile.fire", m.FireTiles[p])) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case m.UltMode:
 		if m.ultInAxisRange(m.CursorX, m.CursorY) {
-			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ult"))
+			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ult")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 		}
-		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	case m.IsInRange(m.CursorX, m.CursorY):
 		if m.ShootMode {
-			return m.Styles.ShootRangeStyle.Render(loc.T("cursor.range.inShootRange"))
+			return m.Styles.ShootRangeStyle.Render(loc.T("cursor.range.inShootRange")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 		}
-		return m.Styles.MoveRangeStyle.Render(loc.T("cursor.range.inMoveRange"))
+		return m.Styles.MoveRangeStyle.Render(loc.T("cursor.range.inMoveRange")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	default:
-		return m.Styles.CellStyle.Render(loc.T("cursor.range.empty"))
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.empty")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	}
 }
