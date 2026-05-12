@@ -15,6 +15,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var version = "dev"
+var commit = ""
+
 func main() {
 	var lang string
 	var theme string
@@ -62,7 +65,11 @@ func main() {
 	cmd.Flags().StringVarP(&theme, "theme", "t", "", "Theme name (e.g., dracula, tokyonight, gruvbox)")
 	cmd.Flags().BoolVarP(&noCenter, "no-center", "c", false, "Disable centered window")
 
-	if err := fang.Execute(context.Background(), cmd); err != nil {
+	opts := []fang.Option{fang.WithVersion(version)}
+	if commit != "" {
+		opts = append(opts, fang.WithCommit(commit))
+	}
+	if err := fang.Execute(context.Background(), cmd, opts...); err != nil {
 		log.Error(err)
 	}
 }
