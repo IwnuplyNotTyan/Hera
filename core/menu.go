@@ -116,12 +116,15 @@ func (m *Model) viewMenu() string {
 	figures := []string{" ● ", " ■ ", " ◆ "}
 
 	var lines []string
+	renderedLines := 0
 	lines = append(lines, title)
+	renderedLines += strings.Count(title, "\n") + 1
 	lines = append(lines, "")
+	renderedLines++
 
 	for i, item := range menuItems {
 		figure := figures[i]
-		row := len(lines) + 2
+		row := renderedLines + 2
 		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
@@ -138,6 +141,7 @@ func (m *Model) viewMenu() string {
 			ID:     fmt.Sprintf("menu-%d", i),
 			Index:  i,
 		})
+		renderedLines++
 	}
 
 	easterEgg := m.EasterEgg
