@@ -121,7 +121,7 @@ func (m *Model) viewMenu() string {
 
 	for i, item := range menuItems {
 		figure := figures[i]
-		row := len(lines) + 1
+		row := len(lines) + 2
 		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
@@ -195,7 +195,7 @@ func (m *Model) viewSettings() string {
 
 	for i, item := range menuItems {
 		figure := figures[i]
-		row := len(lines)
+		row := len(lines) + 2
 		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
@@ -298,7 +298,7 @@ func (m *Model) viewThemeSelect() string {
 
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
-		row := len(lines)
+		row := len(lines) + 2
 		if theme == m.ThemeName {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))

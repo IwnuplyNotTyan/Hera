@@ -18,32 +18,34 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.MouseMsg:
-		elem := m.hitTest(msg.X, msg.Y)
-		if elem != nil {
-			switch elem.Type {
-			case ElementGridCell:
-				if m.Screen == ScreenGame && !m.EnemyTurn {
-					var col, row int
-					if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
-						m.CursorX = col
-						m.CursorY = row
+		if msg.Button == tea.MouseButtonLeft && msg.Action == tea.MouseActionPress {
+			elem := m.hitTest(msg.X, msg.Y)
+			if elem != nil {
+				switch elem.Type {
+				case ElementGridCell:
+					if m.Screen == ScreenGame && !m.EnemyTurn {
+						var col, row int
+						if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
+							m.CursorX = col
+							m.CursorY = row
+						}
 					}
-				}
-			case ElementMenuItem:
-				if m.Screen == ScreenMenu {
-					m.MenuSelected = elem.Index
-				}
-			case ElementSettingsItem:
-				if m.Screen == ScreenSettings {
-					m.MenuSelected = elem.Index
-				}
-			case ElementThemeItem:
-				if m.Screen == ScreenThemeSelect {
-					m.ThemeName = elem.ID
-					if m.Theme != nil {
-						m.Theme.SetTintID(elem.ID)
+				case ElementMenuItem:
+					if m.Screen == ScreenMenu {
+						m.MenuSelected = elem.Index
 					}
-					m.Styles = NewStyles(m.Theme)
+				case ElementSettingsItem:
+					if m.Screen == ScreenSettings {
+						m.MenuSelected = elem.Index
+					}
+				case ElementThemeItem:
+					if m.Screen == ScreenThemeSelect {
+						m.ThemeName = elem.ID
+						if m.Theme != nil {
+							m.Theme.SetTintID(elem.ID)
+						}
+						m.Styles = NewStyles(m.Theme)
+					}
 				}
 			}
 		}
