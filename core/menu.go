@@ -185,13 +185,19 @@ func (m *Model) viewSettings() string {
 		centerStr = "off"
 	}
 
-	menuItems := []string{
-		m.Localizer.T("settings.language") + ": " + lang,
-		m.Localizer.T("settings.theme") + ": " + themeName,
-		m.Localizer.T("settings.center") + ": " + centerStr,
-		m.Localizer.T("settings.back"),
+	hasLang := len(m.Localizer.AvailableLanguages()) > 1
+	menuItems := []string{}
+	figures := []string{}
+	if hasLang {
+		menuItems = append(menuItems, m.Localizer.T("settings.language")+": "+lang)
+		figures = append(figures, " ● ")
 	}
-	figures := []string{" ● ", " ■ ", " ◆ ", " ● "}
+	menuItems = append(menuItems,
+		m.Localizer.T("settings.theme")+": "+themeName,
+		m.Localizer.T("settings.center")+": "+centerStr,
+		m.Localizer.T("settings.back"),
+	)
+	figures = append(figures, " ■ ", " ◆ ", " ● ")
 
 	var lines []string
 	lines = append(lines, title)
@@ -420,7 +426,11 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
 					m.MenuSelected = 2
 				} else if m.Screen == ScreenSettings && m.MenuSelected < 0 {
-					m.MenuSelected = 3
+					if len(m.Localizer.AvailableLanguages()) > 1 {
+						m.MenuSelected = 3
+					} else {
+						m.MenuSelected = 2
+					}
 				}
 			}
 		case "down", "j", "J":
@@ -430,14 +440,20 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.MenuSelected++
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
 					m.MenuSelected = 0
-				} else if m.Screen == ScreenSettings && m.MenuSelected > 3 {
-					m.MenuSelected = 0
+				} else if m.Screen == ScreenSettings {
+					maxItem := 2
+					if len(m.Localizer.AvailableLanguages()) > 1 {
+						maxItem = 3
+					}
+					if m.MenuSelected > maxItem {
+						m.MenuSelected = 0
+					}
 				}
 			}
 		case "left", "h", "H":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
-			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 {
+			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 && len(m.Localizer.AvailableLanguages()) > 1 {
 				languages := m.Localizer.AvailableLanguages()
 				currentIdx := len(languages) - 1
 				for i, l := range languages {
@@ -457,7 +473,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "right", "l", "L":
 			if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
 				m.navigateTheme(1)
-			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 {
+			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 && len(m.Localizer.AvailableLanguages()) > 1 {
 				languages := m.Localizer.AvailableLanguages()
 				currentIdx := 0
 				for i, l := range languages {
