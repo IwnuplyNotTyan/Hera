@@ -629,9 +629,10 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		}
 	} else if m.Screen == ScreenSettings {
 		hasLang := len(m.Localizer.AvailableLanguages()) > 1
+		hasThemes := len(m.AvailableThemes) > 1
+		n := 0
 		if hasLang {
-			switch m.MenuSelected {
-			case 0:
+			if m.MenuSelected == n {
 				languages := m.Localizer.AvailableLanguages()
 				currentIdx := 0
 				for i, l := range languages {
@@ -644,27 +645,25 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 				if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
 					return m, nil
 				}
-			case 1:
-				m.Screen = ScreenThemeSelect
-				m.MenuSelected = 0
-			case 2:
-				m.CenterWindow = !m.CenterWindow
-			case 3:
-				m.Screen = ScreenMenu
-				m.MenuSelected = 0
+				return m, nil
 			}
-		} else {
-			switch m.MenuSelected {
-			case 0:
-				m.Screen = ScreenThemeSelect
-				m.MenuSelected = 0
-			case 1:
-				m.CenterWindow = !m.CenterWindow
-			case 2:
-				m.Screen = ScreenMenu
-				m.MenuSelected = 0
-			}
+			n++
 		}
+		if hasThemes {
+			if m.MenuSelected == n {
+				m.Screen = ScreenThemeSelect
+				m.MenuSelected = 0
+				return m, nil
+			}
+			n++
+		}
+		if m.MenuSelected == n {
+			m.CenterWindow = !m.CenterWindow
+			return m, nil
+		}
+		n++
+		m.Screen = ScreenMenu
+		m.MenuSelected = 0
 	} else if m.Screen == ScreenThemeSelect {
 		m.Screen = ScreenSettings
 		m.MenuSelected = 0

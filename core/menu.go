@@ -186,18 +186,22 @@ func (m *Model) viewSettings() string {
 	}
 
 	hasLang := len(m.Localizer.AvailableLanguages()) > 1
+	hasThemes := len(m.AvailableThemes) > 1
 	menuItems := []string{}
 	figures := []string{}
 	if hasLang {
 		menuItems = append(menuItems, m.Localizer.T("settings.language")+": "+lang)
 		figures = append(figures, " ● ")
 	}
+	if hasThemes {
+		menuItems = append(menuItems, m.Localizer.T("settings.theme")+": "+themeName)
+		figures = append(figures, " ■ ")
+	}
 	menuItems = append(menuItems,
-		m.Localizer.T("settings.theme")+": "+themeName,
 		m.Localizer.T("settings.center")+": "+centerStr,
 		m.Localizer.T("settings.back"),
 	)
-	figures = append(figures, " ■ ", " ◆ ", " ● ")
+	figures = append(figures, " ◆ ", " ● ")
 
 	var lines []string
 	lines = append(lines, title)
@@ -426,11 +430,14 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
 					m.MenuSelected = 2
 				} else if m.Screen == ScreenSettings && m.MenuSelected < 0 {
+					maxItem := 1
 					if len(m.Localizer.AvailableLanguages()) > 1 {
-						m.MenuSelected = 3
-					} else {
-						m.MenuSelected = 2
+						maxItem++
 					}
+					if len(m.AvailableThemes) > 1 {
+						maxItem++
+					}
+					m.MenuSelected = maxItem
 				}
 			}
 		case "down", "j", "J":
@@ -441,9 +448,12 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
 					m.MenuSelected = 0
 				} else if m.Screen == ScreenSettings {
-					maxItem := 2
+					maxItem := 1
 					if len(m.Localizer.AvailableLanguages()) > 1 {
-						maxItem = 3
+						maxItem++
+					}
+					if len(m.AvailableThemes) > 1 {
+						maxItem++
 					}
 					if m.MenuSelected > maxItem {
 						m.MenuSelected = 0
