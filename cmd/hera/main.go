@@ -47,7 +47,7 @@ func main() {
 			model := generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, themeName)
 			model.SetAvailableThemes()
 			p := tea.NewProgram(
-				model,
+				&model,
 				tea.WithAltScreen(),
 				tea.WithMouseCellMotion(),
 			)
