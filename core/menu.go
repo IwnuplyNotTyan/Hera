@@ -164,6 +164,9 @@ func (m *Model) viewMenu() string {
 			m.gridOffsetX = marginX
 			m.gridOffsetY = marginY
 		}
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 	}
 
 	return content
@@ -229,6 +232,9 @@ func (m *Model) viewSettings() string {
 			m.gridOffsetX = marginX
 			m.gridOffsetY = marginY
 		}
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 	}
 
 	return content
@@ -305,7 +311,7 @@ func (m *Model) viewThemeSelect() string {
 			Y:      row,
 			Width:  lipgloss.Width("   ●  ") + lipgloss.Width(theme),
 			Height: 1,
-			ID:     fmt.Sprintf("theme-%d", i),
+			ID:     theme,
 			Index:  i,
 		})
 	}
@@ -355,6 +361,9 @@ func (m *Model) viewThemeSelect() string {
 			m.gridOffsetX = marginX
 			m.gridOffsetY = marginY
 		}
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 	}
 
 	return content
@@ -365,20 +374,6 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.TerminalWidth = msg.Width
 		m.TerminalHeight = msg.Height
-		return m, nil
-
-	case tea.MouseMsg:
-		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
-			return m, nil
-		}
-		elem := m.hitTest(msg.X, msg.Y)
-		if elem != nil {
-			switch elem.Type {
-			case ElementMenuItem, ElementSettingsItem:
-				m.MenuSelected = elem.Index
-			case ElementThemeItem:
-			}
-		}
 		return m, nil
 
 	case tea.KeyMsg:

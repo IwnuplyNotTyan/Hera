@@ -30,10 +30,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			case ElementMenuItem:
-				m.MenuSelected = elem.Index
+				if m.Screen == ScreenMenu {
+					m.MenuSelected = elem.Index
+				}
 			case ElementSettingsItem:
-				m.MenuSelected = elem.Index
+				if m.Screen == ScreenSettings {
+					m.MenuSelected = elem.Index
+				}
 			case ElementThemeItem:
+				if m.Screen == ScreenThemeSelect {
+					m.ThemeName = elem.ID
+					if m.Theme != nil {
+						m.Theme.SetTintID(elem.ID)
+					}
+					m.Styles = NewStyles(m.Theme)
+				}
 			}
 		}
 		if msg.Button == tea.MouseButtonRight && msg.Action == tea.MouseActionPress {
@@ -445,6 +456,9 @@ func (m *Model) View() string {
 			m.gridOffsetX = marginX
 			m.gridOffsetY = marginY
 		}
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 	}
 
 	return content
