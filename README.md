@@ -31,14 +31,22 @@ go mod download
 go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
-**Supported tags:**
+**Tags:**
 
 | Tag | Desc                 |
 |-----|----------------------|
 | eng | Only English Locales |
+| notint| Disable themes     |
 
 
-**Supported flags:**
+**LDFlags:**
+| Flags | Example | Desc |
+|-------|---------|------|
+|main.version|-ldflags="-X main.version=1.0.0| --version number|
+|main.commit|-ldflags="-X main.commit=$(git rev-parse HEAD)"| --version commit|
+
+
+**Flags:**
 
 | Short | Long     | Desc            |
 |-------|----------|-----------------|
