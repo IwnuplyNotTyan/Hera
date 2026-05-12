@@ -9,10 +9,9 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	bubbletint "github.com/lrstanley/bubbletint"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry, centerWindow bool, themeName string) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2

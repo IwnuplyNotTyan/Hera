@@ -11,7 +11,6 @@ import (
 	"charm.land/fang/v2"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/log"
-	tint "github.com/lrstanley/bubbletint"
 	"github.com/spf13/cobra"
 )
 
@@ -28,9 +27,7 @@ func main() {
 		Short: "Hera - A tactical turn-based game",
 		Long:  "A tactical turn-based game. Made with ♡",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			tint.NewDefaultRegistry()
-			generate.RegisterDefaults()
-			registry := tint.DefaultRegistry
+			registry := generate.InitDefaultTheme()
 			if theme != "" {
 				if ok := registry.SetTintID(theme); !ok {
 					return fmt.Errorf("unknown theme: %s", theme)

@@ -3,7 +3,6 @@ package generate
 import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/lipgloss"
-	bubbletint "github.com/lrstanley/bubbletint"
 
 	"hera/i18n"
 )
@@ -81,7 +80,7 @@ const (
 )
 
 type Model struct {
-	Theme                    *bubbletint.Registry
+	Theme                    ThemeRegistry
 	ThemeName                string
 	Styles                   Styles
 	EnableBackground         bool
