@@ -615,3 +615,46 @@ func (m Model) turnOrder() string {
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
+
+func (m Model) doMenuConfirm() (Model, tea.Cmd) {
+	if m.Screen == ScreenMenu {
+		switch m.MenuSelected {
+		case 0:
+			m.Screen = ScreenGame
+			m.startGame()
+		case 1:
+			m.Screen = ScreenSettings
+			m.MenuSelected = 0
+		case 2:
+			return m, tea.Quit
+		}
+	} else if m.Screen == ScreenSettings {
+		switch m.MenuSelected {
+		case 0:
+			languages := m.Localizer.AvailableLanguages()
+			currentIdx := 0
+			for i, l := range languages {
+				if l == m.Localizer.GetLanguage() {
+					currentIdx = i
+					break
+				}
+			}
+			nextIdx := (currentIdx + 1) % len(languages)
+			if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
+				return m, nil
+			}
+		case 1:
+			m.Screen = ScreenThemeSelect
+			m.MenuSelected = 0
+		case 2:
+			m.CenterWindow = !m.CenterWindow
+		case 3:
+			m.Screen = ScreenMenu
+			m.MenuSelected = 0
+		}
+	} else if m.Screen == ScreenThemeSelect {
+		m.Screen = ScreenSettings
+		m.MenuSelected = 0
+	}
+	return m, nil
+}

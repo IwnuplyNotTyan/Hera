@@ -119,10 +119,9 @@ func (m Model) viewMenu() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
-	menuStartRow := 6
 	for i, item := range menuItems {
 		figure := figures[i]
-		row := menuStartRow + i
+		row := len(lines) + 1
 		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
@@ -191,10 +190,9 @@ func (m Model) viewSettings() string {
 	lines = append(lines, title)
 	lines = append(lines, "")
 
-	settingsStartRow := 6
 	for i, item := range menuItems {
 		figure := figures[i]
-		row := settingsStartRow + i
+		row := len(lines)
 		itemWidth := lipgloss.Width(figure) + 1 + lipgloss.Width(item)
 		if i == m.MenuSelected {
 			style := m.Styles.CursorStyle.Bold(true)
@@ -294,7 +292,7 @@ func (m Model) viewThemeSelect() string {
 
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
-		row := 6 + (i - startIdx)
+		row := len(lines)
 		if theme == m.ThemeName {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))
@@ -478,45 +476,7 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 				}
 			}
 		case "enter", "x", "X":
-			if m.Screen == ScreenMenu {
-				switch m.MenuSelected {
-				case 0:
-					m.Screen = ScreenGame
-					m.startGame()
-				case 1:
-					m.Screen = ScreenSettings
-					m.MenuSelected = 0
-				case 2:
-					return m, tea.Quit
-				}
-			} else if m.Screen == ScreenSettings {
-				switch m.MenuSelected {
-				case 0:
-					languages := m.Localizer.AvailableLanguages()
-					currentIdx := 0
-					for i, l := range languages {
-						if l == m.Localizer.GetLanguage() {
-							currentIdx = i
-							break
-						}
-					}
-					nextIdx := (currentIdx + 1) % len(languages)
-					if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
-						return m, nil
-					}
-				case 1:
-					m.Screen = ScreenThemeSelect
-					m.MenuSelected = 0
-				case 2:
-					m.CenterWindow = !m.CenterWindow
-				case 3:
-					m.Screen = ScreenMenu
-					m.MenuSelected = 0
-				}
-			} else if m.Screen == ScreenThemeSelect {
-				m.Screen = ScreenSettings
-				m.MenuSelected = 0
-			}
+			return m.doMenuConfirm()
 		case "esc", "q":
 			switch m.Screen {
 			case ScreenSettings:
