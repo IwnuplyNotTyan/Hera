@@ -102,7 +102,7 @@ func (m *Model) SetAvailableThemes() {
 	}
 }
 
-func (m Model) closestPlayer(ex, ey int) (int, int) {
+func (m *Model) closestPlayer(ex, ey int) (int, int) {
 	if len(m.Players) == 0 {
 		return ex, ey
 	}
@@ -118,7 +118,7 @@ func (m Model) closestPlayer(ex, ey int) (int, int) {
 	return bestX, bestY
 }
 
-func (m Model) enemyOccupied(x, y, skipIdx int) bool {
+func (m *Model) enemyOccupied(x, y, skipIdx int) bool {
 	for i, e := range m.Enemys {
 		if i != skipIdx && e.X == x && e.Y == y {
 			return true
@@ -132,7 +132,7 @@ func (m Model) enemyOccupied(x, y, skipIdx int) bool {
 	return false
 }
 
-func (m Model) doEnemyTurn(idx int) Model {
+func (m *Model) doEnemyTurn(idx int) *Model {
 	if len(m.Players) == 0 || idx >= len(m.Enemys) {
 		return m
 	}
@@ -213,11 +213,11 @@ func (m Model) doEnemyTurn(idx int) Model {
 	return m
 }
 
-func (m Model) Move(newX, newY int) Model {
+func (m *Model) Move(newX, newY int) *Model {
 	return m
 }
 
-func (m Model) currentRange() int {
+func (m *Model) currentRange() int {
 	r := moveRange
 	if m.ShootMode {
 		return shootRange
@@ -233,7 +233,7 @@ func (m Model) currentRange() int {
 	return r
 }
 
-func (m Model) IsInRange(col, row int) bool {
+func (m *Model) IsInRange(col, row int) bool {
 	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
 		return false
 	}
@@ -247,7 +247,7 @@ func (m Model) IsInRange(col, row int) bool {
 	return !m.HasWallBetweenPoints(current.X, current.Y, col, row)
 }
 
-func (m Model) Reachable(sx, sy, r int) map[Point]bool {
+func (m *Model) Reachable(sx, sy, r int) map[Point]bool {
 	type state struct {
 		x, y, steps int
 	}
@@ -294,7 +294,7 @@ func (m Model) Reachable(sx, sy, r int) map[Point]bool {
 	return result
 }
 
-func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
+func (m *Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	startX, startY := x0, y0
 	dx := utils.Abs(x1 - x0)
 	dy := utils.Abs(y1 - y0)
@@ -332,7 +332,7 @@ func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	return false
 }
 
-func (m Model) ultCross(cx, cy int) []Point {
+func (m *Model) ultCross(cx, cy int) []Point {
 	offsets := []Point{
 		{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
 	}
@@ -350,12 +350,12 @@ func (m Model) ultCross(cx, cy int) []Point {
 	return pts
 }
 
-func (m Model) ultInAxisRange(cx, cy int) bool {
+func (m *Model) ultInAxisRange(cx, cy int) bool {
 	current := m.Players[m.CurrentPlayer]
 	return cx == current.X || cy == current.Y
 }
 
-func (m Model) doConfirm() Model {
+func (m *Model) doConfirm() *Model {
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
 	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
@@ -434,7 +434,7 @@ func (m Model) doConfirm() Model {
 	return m
 }
 
-func (m Model) doUlt() Model {
+func (m *Model) doUlt() *Model {
 	current := m.Players[m.CurrentPlayer]
 	if current.UltCharges <= 0 {
 		return m
@@ -510,7 +510,7 @@ func (m Model) doUlt() Model {
 	return m
 }
 
-func (m Model) tickFireTiles() Model {
+func (m *Model) tickFireTiles() *Model {
 	for p, t := range m.FireTiles {
 		t--
 		if t <= 0 {
@@ -530,7 +530,7 @@ func (m Model) tickFireTiles() Model {
 	return m
 }
 
-func (m Model) nextTurn() Model {
+func (m *Model) nextTurn() *Model {
 	m.Moved = false
 	m.Shot = false
 	m.ShootMode = false
@@ -573,7 +573,7 @@ func enemyTurnCmd(idx int) tea.Cmd {
 	})
 }
 
-func (m Model) OccupiedByOther(x, y int) bool {
+func (m *Model) OccupiedByOther(x, y int) bool {
 	for i, p := range m.Players {
 		if i != m.CurrentPlayer && p.X == x && p.Y == y {
 			return true
@@ -587,7 +587,7 @@ func (m Model) OccupiedByOther(x, y int) bool {
 	return false
 }
 
-func (m Model) turnOrder() string {
+func (m *Model) turnOrder() string {
 	var parts []string
 
 	for i, pl := range m.Players {
@@ -616,7 +616,7 @@ func (m Model) turnOrder() string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
 
-func (m Model) doMenuConfirm() (Model, tea.Cmd) {
+func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	if m.Screen == ScreenMenu {
 		switch m.MenuSelected {
 		case 0:

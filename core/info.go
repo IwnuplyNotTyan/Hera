@@ -37,7 +37,7 @@ func renderEffects(effects []Effect, loc i18n.Localizer) string {
 	return strings.Join(parts, effectSep)
 }
 
-func (m Model) cursorInfo() string {
+func (m *Model) cursorInfo() string {
 	if len(m.Players) == 0 {
 		return ""
 	}

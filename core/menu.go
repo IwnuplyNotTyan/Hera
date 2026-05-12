@@ -106,7 +106,7 @@ func (m *Model) navigateTheme(direction int) {
 	m.Styles = NewStyles(m.Theme)
 }
 
-func (m Model) viewMenu() string {
+func (m *Model) viewMenu() string {
 	title := m.Localizer.T("menu.title")
 	menuItems := []string{
 		m.Localizer.T("menu.start"),
@@ -129,7 +129,7 @@ func (m Model) viewMenu() string {
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
-		trackElement(Element{
+		m.trackElement(Element{
 			Type:   ElementMenuItem,
 			X:      4,
 			Y:      row,
@@ -161,15 +161,15 @@ func (m Model) viewMenu() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
-			gridOffsetX = marginX
-			gridOffsetY = marginY
+			m.gridOffsetX = marginX
+			m.gridOffsetY = marginY
 		}
 	}
 
 	return content
 }
 
-func (m Model) viewSettings() string {
+func (m *Model) viewSettings() string {
 	title := m.Localizer.T("settings.title")
 	lang := m.Localizer.GetLanguage()
 	themeName := m.ThemeName
@@ -200,7 +200,7 @@ func (m Model) viewSettings() string {
 		} else {
 			lines = append(lines, "   "+figure+"  "+item)
 		}
-		trackElement(Element{
+		m.trackElement(Element{
 			Type:   ElementSettingsItem,
 			X:      4,
 			Y:      row,
@@ -226,15 +226,15 @@ func (m Model) viewSettings() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
-			gridOffsetX = marginX
-			gridOffsetY = marginY
+			m.gridOffsetX = marginX
+			m.gridOffsetY = marginY
 		}
 	}
 
 	return content
 }
 
-func (m Model) viewThemeSelect() string {
+func (m *Model) viewThemeSelect() string {
 	title := m.Localizer.T("settings.selectTheme")
 
 	themes := m.AvailableThemes
@@ -299,7 +299,7 @@ func (m Model) viewThemeSelect() string {
 		} else {
 			lines = append(lines, "   ●  "+theme)
 		}
-		trackElement(Element{
+		m.trackElement(Element{
 			Type:   ElementThemeItem,
 			X:      4,
 			Y:      row,
@@ -352,15 +352,15 @@ func (m Model) viewThemeSelect() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
-			gridOffsetX = marginX
-			gridOffsetY = marginY
+			m.gridOffsetX = marginX
+			m.gridOffsetY = marginY
 		}
 	}
 
 	return content
 }
 
-func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.TerminalWidth = msg.Width
@@ -371,7 +371,7 @@ func (m Model) updateMenu(msg tea.Msg) (Model, tea.Cmd) {
 		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
 			return m, nil
 		}
-		elem := hitTest(msg.X, msg.Y)
+		elem := m.hitTest(msg.X, msg.Y)
 		if elem != nil {
 			switch elem.Type {
 			case ElementMenuItem, ElementSettingsItem:

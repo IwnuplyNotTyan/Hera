@@ -11,14 +11,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.MouseMsg:
-		elem := hitTest(msg.X, msg.Y)
+		elem := m.hitTest(msg.X, msg.Y)
 		if elem != nil {
 			switch elem.Type {
 			case ElementGridCell:
@@ -200,8 +200,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
-	resetLayout()
+func (m *Model) View() string {
+	m.resetLayout()
 
 	if m.Screen == ScreenMenu {
 		return m.viewMenu()
@@ -393,7 +393,7 @@ func (m Model) View() string {
 				cellContent = m.Styles.CellStyle.Render(" · ")
 			}
 			cells = append(cells, cellContent)
-			trackElement(Element{
+			m.trackElement(Element{
 				Type:   ElementGridCell,
 				X:      col*cellWidth() + 2,
 				Y:      row + 2,
@@ -442,8 +442,8 @@ func (m Model) View() string {
 				MarginLeft(marginX).
 				MarginTop(marginY)
 			content = centerStyle.Render(content)
-			gridOffsetX = marginX
-			gridOffsetY = marginY
+			m.gridOffsetX = marginX
+			m.gridOffsetY = marginY
 		}
 	}
 
