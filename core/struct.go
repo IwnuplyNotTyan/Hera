@@ -81,37 +81,39 @@ const (
 )
 
 type Model struct {
-	Theme            *bubbletint.Registry
-	ThemeName        string
-	Styles           Styles
-	EnableBackground bool
-	CenterWindow     bool
-	TerminalWidth    int
-	TerminalHeight   int
-	Screen           Screen
-	MenuSelected     int
-	EasterEgg        string
-	ThemeSearch      bool
-	ThemeQuery       string
-	LastSearchQuery  string
-	AvailableThemes  []string
-	Players          []Player
-	Enemys           []Enemy
-	CurrentPlayer    int
-	CurrentEnemy     int
-	CursorX, CursorY int
-	Walls            map[Point]bool
-	Water            map[Point]bool
-	FireTiles        map[Point]int
-	SmokeTiles       map[Point]int
-	ShootMode        bool
-	UltMode          bool
-	UltAxis          string
-	Moved            bool
-	Shot             bool
-	keys             keyMap
-	help             help.Model
-	EnemyTurn        bool
-	EnemyIdx         int
-	Localizer        i18n.Localizer
+	Theme                    *bubbletint.Registry
+	ThemeName                string
+	Styles                   Styles
+	EnableBackground         bool
+	CenterWindow             bool
+	TerminalWidth            int
+	TerminalHeight           int
+	Screen                   Screen
+	MenuSelected             int
+	EasterEgg                string
+	ThemeSearch              bool
+	ThemeQuery               string
+	LastSearchQuery          string
+	AvailableThemes          []string
+	Players                  []Player
+	Enemys                   []Enemy
+	CurrentPlayer            int
+	CurrentEnemy             int
+	CursorX, CursorY         int
+	Walls                    map[Point]bool
+	Water                    map[Point]bool
+	FireTiles                map[Point]int
+	SmokeTiles               map[Point]int
+	ShootMode                bool
+	UltMode                  bool
+	UltAxis                  string
+	Moved                    bool
+	Shot                     bool
+	keys                     keyMap
+	help                     help.Model
+	EnemyTurn                bool
+	EnemyIdx                 int
+	Localizer                i18n.Localizer
+	layoutElements           []Element
+	gridOffsetX, gridOffsetY int
 }
