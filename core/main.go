@@ -251,14 +251,10 @@ func (m *Model) renderContent(s string) string {
 	}
 
 	if m.CenterWindow {
-		marginX := (m.TerminalWidth - contentWidth) / 2
-		marginY := (m.TerminalHeight - contentHeight) / 2
-		s = lipgloss.NewStyle().
-			MarginLeft(marginX).
-			MarginTop(marginY).
-			Render(s)
-		m.gridOffsetX = marginX
-		m.gridOffsetY = marginY
+		m.gridOffsetX = (m.TerminalWidth - contentWidth) / 2
+		m.gridOffsetY = (m.TerminalHeight - contentHeight) / 2
+		s = lipgloss.Place(m.TerminalWidth, m.TerminalHeight,
+			lipgloss.Center, lipgloss.Center, s)
 	} else {
 		m.gridOffsetX = 0
 		m.gridOffsetY = 0
