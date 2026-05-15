@@ -215,6 +215,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) renderContent(s string) string {
 	if m.TerminalWidth <= 0 || m.TerminalHeight <= 0 {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 		return s
 	}
 
@@ -224,30 +226,43 @@ func (m *Model) renderContent(s string) string {
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	if !m.EnableBackground && !m.CenterWindow {
-		m.gridOffsetX = 0
-		m.gridOffsetY = 0
-		return s
+	if m.EnableBackground {
+		if m.CenterWindow {
+			marginX := (m.TerminalWidth - contentWidth) / 2
+			marginY := (m.TerminalHeight - contentHeight) / 2
+			s = lipgloss.NewStyle().
+				MarginLeft(marginX).
+				MarginTop(marginY).
+				Render(s)
+			m.gridOffsetX = marginX
+			m.gridOffsetY = marginY
+		} else {
+			m.gridOffsetX = 0
+			m.gridOffsetY = 0
+		}
+
+		return lipgloss.NewStyle().
+			Background(m.Theme.Bg()).
+			Width(m.TerminalWidth).
+			Height(m.TerminalHeight).
+			Render(s)
 	}
 
-	hPos := lipgloss.Left
-	vPos := lipgloss.Top
 	if m.CenterWindow {
-		hPos = lipgloss.Center
-		vPos = lipgloss.Center
-		m.gridOffsetX = (m.TerminalWidth - contentWidth) / 2
-		m.gridOffsetY = (m.TerminalHeight - contentHeight) / 2
+		marginX := (m.TerminalWidth - contentWidth) / 2
+		marginY := (m.TerminalHeight - contentHeight) / 2
+		s = lipgloss.NewStyle().
+			MarginLeft(marginX).
+			MarginTop(marginY).
+			Render(s)
+		m.gridOffsetX = marginX
+		m.gridOffsetY = marginY
 	} else {
 		m.gridOffsetX = 0
 		m.gridOffsetY = 0
 	}
 
-	opts := []lipgloss.WhitespaceOption{}
-	if m.EnableBackground {
-		opts = append(opts, lipgloss.WithWhitespaceBackground(m.Theme.Bg()))
-	}
-
-	return lipgloss.Place(m.TerminalWidth, m.TerminalHeight, hPos, vPos, s, opts...)
+	return s
 }
 
 func (m *Model) View() string {
