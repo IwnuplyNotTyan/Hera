@@ -173,6 +173,7 @@ func (m *Model) viewMenu() string {
 		m.gridOffsetY = 0
 	}
 
+	content = m.applyBackground(content)
 	return content
 }
 
@@ -183,6 +184,10 @@ func (m *Model) viewSettings() string {
 	centerStr := "on"
 	if !m.CenterWindow {
 		centerStr = "off"
+	}
+	bgStr := "on"
+	if !m.EnableBackground {
+		bgStr = "off"
 	}
 
 	hasLang := len(m.Localizer.AvailableLanguages()) > 1
@@ -199,9 +204,10 @@ func (m *Model) viewSettings() string {
 	}
 	menuItems = append(menuItems,
 		m.Localizer.T("settings.center")+": "+centerStr,
+		m.Localizer.T("settings.background")+": "+bgStr,
 		m.Localizer.T("settings.back"),
 	)
-	figures = append(figures, " ◆ ", " ● ")
+	figures = append(figures, " ◆ ", " ◆ ", " ● ")
 
 	var lines []string
 	lines = append(lines, title)
@@ -251,6 +257,7 @@ func (m *Model) viewSettings() string {
 		m.gridOffsetY = 0
 	}
 
+	content = m.applyBackground(content)
 	return content
 }
 
@@ -380,6 +387,7 @@ func (m *Model) viewThemeSelect() string {
 		m.gridOffsetY = 0
 	}
 
+	content = m.applyBackground(content)
 	return content
 }
 
@@ -430,7 +438,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
 					m.MenuSelected = 2
 				} else if m.Screen == ScreenSettings && m.MenuSelected < 0 {
-					maxItem := 1
+					maxItem := 2
 					if len(m.Localizer.AvailableLanguages()) > 1 {
 						maxItem++
 					}
@@ -448,7 +456,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
 					m.MenuSelected = 0
 				} else if m.Screen == ScreenSettings {
-					maxItem := 1
+					maxItem := 2
 					if len(m.Localizer.AvailableLanguages()) > 1 {
 						maxItem++
 					}
