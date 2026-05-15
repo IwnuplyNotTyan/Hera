@@ -56,13 +56,11 @@ func (m *Model) effectsAtCursor() []Effect {
 func (m *Model) renderEffectDescriptions() string {
 	effects := m.effectsAtCursor()
 	if len(effects) == 0 {
-		return m.Styles.BoxStyle.Render(m.Localizer.T("effectInfo.none"))
+		return m.Localizer.T("effectInfo.none")
 	}
 
 	loc := m.Localizer
 	var lines []string
-	lines = append(lines, lipgloss.NewStyle().Bold(true).Render(loc.T("effectInfo.title")))
-	lines = append(lines, "")
 
 	for _, e := range effects {
 		icon := effectIcon(e.Type)
@@ -81,10 +79,10 @@ func (m *Model) renderEffectDescriptions() string {
 		}
 		lines = append(lines, nameStyle.Render(icon+" "+desc))
 		lines = append(lines, lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).
-			Render("  "+loc.T("effects."+string(e.Type), e.Duration)))
+			Render(loc.T("effects."+string(e.Type), e.Duration)))
 	}
 
-	return m.Styles.BoxStyle.Render(strings.Join(lines, "\n"))
+	return strings.Join(lines, "\n")
 }
 
 func (m *Model) cursorInfo() string {

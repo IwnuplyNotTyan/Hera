@@ -28,6 +28,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
 							m.CursorX = col
 							m.CursorY = row
+							if effects := m.effectsAtCursor(); len(effects) > 0 {
+								m.ShowEffectInfo = !m.ShowEffectInfo
+							} else {
+								m.ShowEffectInfo = false
+							}
 						}
 					}
 				case ElementMenuItem:
@@ -513,14 +518,35 @@ func (m *Model) View() string {
 
 	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
 	grid := strings.Join(rows, "\n")
+
+	if m.ShowEffectInfo {
+		popup := m.renderEffectDescriptions()
+		popupRows := strings.Split(popup, "\n")
+		gridRows := strings.Split(grid, "\n")
+		if len(popupRows) > 0 && len(gridRows) > 0 {
+			popupStart := (len(gridRows) - len(popupRows)) / 2
+			if popupStart < 0 {
+				popupStart = 0
+			}
+			for i, pr := range popupRows {
+				idx := popupStart + i
+				if idx >= len(gridRows) {
+					break
+				}
+				pw := lipgloss.Width(pr)
+				gw := lipgloss.Width(gridRows[idx])
+				if pw < gw {
+					pr += strings.Repeat(" ", gw-pw)
+				}
+				gridRows[idx] = pr
+			}
+			grid = strings.Join(gridRows, "\n")
+		}
+	}
+
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
-	contentParts := []string{box, status}
-	if m.ShowEffectInfo {
-		contentParts = append(contentParts, m.renderEffectDescriptions())
-	}
-	contentParts = append(contentParts, helpView)
-	content := lipgloss.JoinVertical(lipgloss.Left, contentParts...)
+	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
 
 	return m.renderContent(content)
 }
