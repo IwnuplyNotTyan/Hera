@@ -10,8 +10,8 @@ func newNoTintRegistry() ThemeRegistry {
 	return &noTintRegistry{}
 }
 
-func (r *noTintRegistry) SetTintID(id string) bool  { return true }
-func (r *noTintRegistry) TintIDs() []string           { return []string{"default"} }
+func (r *noTintRegistry) SetTintID(id string) bool             { return true }
+func (r *noTintRegistry) TintIDs() []string                    { return []string{"default"} }
 func (r *noTintRegistry) Fg() lipgloss.TerminalColor           { return lipgloss.Color("#AAAAAA") }
 func (r *noTintRegistry) Bg() lipgloss.TerminalColor           { return lipgloss.Color("#171717") }
 func (r *noTintRegistry) SelectionBg() lipgloss.TerminalColor  { return lipgloss.Color("#444444") }

@@ -213,26 +213,41 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) applyBackground(s string) string {
-	if !m.EnableBackground || m.TerminalWidth <= 0 || m.TerminalHeight <= 0 {
+func (m *Model) renderContent(s string) string {
+	if m.TerminalWidth <= 0 || m.TerminalHeight <= 0 {
 		return s
 	}
 
-	bg := m.Theme.Bg()
-	bgStyle := lipgloss.NewStyle().Background(bg)
-
-	lines := strings.Split(s, "\n")
-	for i, line := range lines {
-		w := lipgloss.Width(line)
-		if w < m.TerminalWidth {
-			lines[i] = line + bgStyle.Render(strings.Repeat(" ", m.TerminalWidth-w))
-		}
-	}
-	for len(lines) < m.TerminalHeight {
-		lines = append(lines, bgStyle.Render(strings.Repeat(" ", m.TerminalWidth)))
+	contentWidth := lipgloss.Width(s)
+	contentHeight := lipgloss.Height(s)
+	if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	return strings.Join(lines[:m.TerminalHeight], "\n")
+	if !m.EnableBackground && !m.CenterWindow {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
+		return s
+	}
+
+	hPos := lipgloss.Left
+	vPos := lipgloss.Top
+	if m.CenterWindow {
+		hPos = lipgloss.Center
+		vPos = lipgloss.Center
+		m.gridOffsetX = (m.TerminalWidth - contentWidth) / 2
+		m.gridOffsetY = (m.TerminalHeight - contentHeight) / 2
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
+	}
+
+	opts := []lipgloss.WhitespaceOption{}
+	if m.EnableBackground {
+		opts = append(opts, lipgloss.WithWhitespaceBackground(m.Theme.Bg()))
+	}
+
+	return lipgloss.Place(m.TerminalWidth, m.TerminalHeight, hPos, vPos, s, opts...)
 }
 
 func (m *Model) View() string {
@@ -255,8 +270,8 @@ func (m *Model) View() string {
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
-		return m.applyBackground(gameOver)
-}
+		return m.renderContent(gameOver)
+	}
 
 	current := m.Players[m.CurrentPlayer]
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
@@ -465,26 +480,5 @@ func (m *Model) View() string {
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
 
-	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
-		contentWidth := lipgloss.Width(content)
-		contentHeight := lipgloss.Height(content)
-		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
-			content = m.Localizer.T("error.terminalTooSmall")
-		} else {
-			marginX := (m.TerminalWidth - contentWidth) / 2
-			marginY := (m.TerminalHeight - contentHeight) / 2
-			centerStyle := lipgloss.NewStyle().
-				MarginLeft(marginX).
-				MarginTop(marginY)
-			content = centerStyle.Render(content)
-			m.gridOffsetX = marginX
-			m.gridOffsetY = marginY
-		}
-	} else {
-		m.gridOffsetX = 0
-		m.gridOffsetY = 0
-	}
-
-	content = m.applyBackground(content)
-	return content
+	return m.renderContent(content)
 }

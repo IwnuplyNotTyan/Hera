@@ -153,28 +153,7 @@ func (m *Model) viewMenu() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, menu, easterBox)
 
-	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
-		contentWidth := lipgloss.Width(content)
-		contentHeight := lipgloss.Height(content)
-		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
-			content = m.Localizer.T("error.terminalTooSmall")
-		} else {
-			marginX := (m.TerminalWidth - contentWidth) / 2
-			marginY := (m.TerminalHeight - contentHeight) / 2
-			centerStyle := lipgloss.NewStyle().
-				MarginLeft(marginX).
-				MarginTop(marginY)
-			content = centerStyle.Render(content)
-			m.gridOffsetX = marginX
-			m.gridOffsetY = marginY
-		}
-	} else {
-		m.gridOffsetX = 0
-		m.gridOffsetY = 0
-	}
-
-	content = m.applyBackground(content)
-	return content
+	return m.renderContent(content)
 }
 
 func (m *Model) viewSettings() string {
@@ -237,28 +216,7 @@ func (m *Model) viewSettings() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
 	content = m.Styles.BoxStyle.Render(content)
 
-	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
-		contentWidth := lipgloss.Width(content)
-		contentHeight := lipgloss.Height(content)
-		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
-			content = m.Localizer.T("error.terminalTooSmall")
-		} else {
-			marginX := (m.TerminalWidth - contentWidth) / 2
-			marginY := (m.TerminalHeight - contentHeight) / 2
-			centerStyle := lipgloss.NewStyle().
-				MarginLeft(marginX).
-				MarginTop(marginY)
-			content = centerStyle.Render(content)
-			m.gridOffsetX = marginX
-			m.gridOffsetY = marginY
-		}
-	} else {
-		m.gridOffsetX = 0
-		m.gridOffsetY = 0
-	}
-
-	content = m.applyBackground(content)
-	return content
+	return m.renderContent(content)
 }
 
 func (m *Model) viewThemeSelect() string {
@@ -367,28 +325,7 @@ func (m *Model) viewThemeSelect() string {
 		)
 	}
 
-	if m.CenterWindow && m.TerminalWidth > 0 && m.TerminalHeight > 0 {
-		contentWidth := lipgloss.Width(content)
-		contentHeight := lipgloss.Height(content)
-		if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
-			content = m.Localizer.T("error.terminalTooSmall")
-		} else {
-			marginX := (m.TerminalWidth - contentWidth) / 2
-			marginY := (m.TerminalHeight - contentHeight) / 2
-			centerStyle := lipgloss.NewStyle().
-				MarginLeft(marginX).
-				MarginTop(marginY)
-			content = centerStyle.Render(content)
-			m.gridOffsetX = marginX
-			m.gridOffsetY = marginY
-		}
-	} else {
-		m.gridOffsetX = 0
-		m.gridOffsetY = 0
-	}
-
-	content = m.applyBackground(content)
-	return content
+	return m.renderContent(content)
 }
 
 func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
