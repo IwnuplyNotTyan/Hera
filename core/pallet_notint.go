@@ -16,7 +16,7 @@ func (r *noTintRegistry) Fg() lipgloss.TerminalColor           { return lipgloss
 func (r *noTintRegistry) Bg() lipgloss.TerminalColor           { return lipgloss.Color("#171717") }
 func (r *noTintRegistry) SelectionBg() lipgloss.TerminalColor  { return lipgloss.Color("#444444") }
 func (r *noTintRegistry) Cursor() lipgloss.TerminalColor       { return lipgloss.Color("#333333") }
-func (r *noTintRegistry) BrightBlack() lipgloss.TerminalColor  { return lipgloss.Color("#555555") }
+func (r *noTintRegistry) BrightBlack() lipgloss.TerminalColor  { return lipgloss.Color("#282828") }
 func (r *noTintRegistry) BrightBlue() lipgloss.TerminalColor   { return lipgloss.Color("#75B7FF") }
 func (r *noTintRegistry) BrightCyan() lipgloss.TerminalColor   { return lipgloss.Color("#88AACC") }
 func (r *noTintRegistry) BrightGreen() lipgloss.TerminalColor  { return lipgloss.Color("#75FFBA") }

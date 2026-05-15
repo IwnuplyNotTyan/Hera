@@ -16,7 +16,7 @@ func (t *DefaultTheme) Fg() lipgloss.TerminalColor           { return lipgloss.C
 func (t *DefaultTheme) Bg() lipgloss.TerminalColor           { return lipgloss.Color("#171717") }
 func (t *DefaultTheme) SelectionBg() lipgloss.TerminalColor  { return lipgloss.Color("#444444") }
 func (t *DefaultTheme) Cursor() lipgloss.TerminalColor       { return lipgloss.Color("#333333") }
-func (t *DefaultTheme) BrightBlack() lipgloss.TerminalColor  { return lipgloss.Color("#555555") }
+func (t *DefaultTheme) BrightBlack() lipgloss.TerminalColor  { return lipgloss.Color("#282828") }
 func (t *DefaultTheme) BrightBlue() lipgloss.TerminalColor   { return lipgloss.Color("#75B7FF") }
 func (t *DefaultTheme) BrightCyan() lipgloss.TerminalColor   { return lipgloss.Color("#88AACC") }
 func (t *DefaultTheme) BrightGreen() lipgloss.TerminalColor  { return lipgloss.Color("#75FFBA") }
