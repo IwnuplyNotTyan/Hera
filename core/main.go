@@ -226,38 +226,51 @@ func (m *Model) renderContent(s string) string {
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	if m.EnableBackground {
-		if m.CenterWindow {
-			marginX := (m.TerminalWidth - contentWidth) / 2
-			marginY := (m.TerminalHeight - contentHeight) / 2
-			s = lipgloss.NewStyle().
-				MarginLeft(marginX).
-				MarginTop(marginY).
-				Render(s)
-			m.gridOffsetX = marginX
-			m.gridOffsetY = marginY
-		} else {
-			m.gridOffsetX = 0
-			m.gridOffsetY = 0
-		}
-
-		bgStyle := lipgloss.NewStyle().Background(m.Theme.Bg())
-		s = bgStyle.Width(m.TerminalWidth).Height(m.TerminalHeight).Render(s)
-
-		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
-		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
-
-		return s
-	}
-
 	if m.CenterWindow {
-		m.gridOffsetX = (m.TerminalWidth - contentWidth) / 2
-		m.gridOffsetY = (m.TerminalHeight - contentHeight) / 2
-		s = lipgloss.Place(m.TerminalWidth, m.TerminalHeight,
-			lipgloss.Center, lipgloss.Center, s)
+		marginX := (m.TerminalWidth - contentWidth) / 2
+		marginY := (m.TerminalHeight - contentHeight) / 2
+		s = lipgloss.NewStyle().
+			MarginLeft(marginX).
+			MarginTop(marginY).
+			Render(s)
+		m.gridOffsetX = marginX
+		m.gridOffsetY = marginY
 	} else {
 		m.gridOffsetX = 0
 		m.gridOffsetY = 0
+	}
+
+	if !m.EnableBackground {
+		if m.TerminalWidth > contentWidth {
+			lines := strings.Split(s, "\n")
+			for i, line := range lines {
+				if w := lipgloss.Width(line); w < m.TerminalWidth {
+					lines[i] = line + strings.Repeat(" ", m.TerminalWidth-w)
+				}
+			}
+			s = strings.Join(lines, "\n")
+		}
+		return s
+	}
+
+	lines := strings.Split(s, "\n")
+	bgStyle := lipgloss.NewStyle().Background(m.Theme.Bg())
+	for i, line := range lines {
+		w := lipgloss.Width(line)
+		if w < m.TerminalWidth {
+			lines[i] = bgStyle.Render(line + strings.Repeat(" ", m.TerminalWidth-w))
+		} else {
+			lines[i] = bgStyle.Render(line)
+		}
+	}
+	for len(lines) < m.TerminalHeight {
+		lines = append(lines, bgStyle.Render(strings.Repeat(" ", m.TerminalWidth)))
+	}
+
+	s = strings.Join(lines, "\n")
+	if m.EnableBackground {
+		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
+		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
 	}
 
 	return s
