@@ -395,16 +395,12 @@ func (m *Model) View() string {
 			cellContent := ""
 			switch {
 			case isCursor:
-				cs := m.Styles.CursorStyle
-				if m.EnableBackground {
-					cs = cs.Background(m.Theme.SelectionBg())
-				}
 				if playerIdx >= 0 {
-					cellContent = cs.Render(m.Players[playerIdx].Style.Render(" ■ "))
+					cellContent = m.Styles.CursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
 				} else if enemyIdx >= 0 {
-					cellContent = cs.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
+					cellContent = m.Styles.CursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
 				} else {
-					cellContent = cs.Render(" · ")
+					cellContent = m.Styles.CursorStyle.Render(" · ")
 				}
 			case playerIdx >= 0:
 				symbol := " ■ "

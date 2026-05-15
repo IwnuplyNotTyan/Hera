@@ -40,12 +40,12 @@ func NewStyles(th ThemeRegistry) Styles {
 			Foreground(th.Blue()),
 		WaterRangeStyle: lipgloss.NewStyle().
 			Foreground(th.Cyan()).
-			Background(th.Bg()),
+			Background(th.BrightBlack()),
 		CursorStyle: lipgloss.NewStyle().
 			Foreground(th.BrightWhite()).
 			Background(th.BrightBlack()),
 		RangeStyle: lipgloss.NewStyle().
-			Background(th.Bg()),
+			Background(th.SelectionBg()),
 		FireStyle: lipgloss.NewStyle().
 			Foreground(th.Red()).
 			Bold(true),
@@ -54,13 +54,13 @@ func NewStyles(th ThemeRegistry) Styles {
 			Bold(true),
 		UltZoneStyle: lipgloss.NewStyle().
 			Foreground(th.Red()).
-			Background(th.Bg()),
+			Background(th.SelectionBg()),
 		UltAxisStyle: lipgloss.NewStyle().
 			Foreground(th.Yellow()).
-			Background(th.Bg()),
+			Background(th.SelectionBg()),
 		ShootRangeStyle: lipgloss.NewStyle().
 			Foreground(th.BrightRed()).
-			Background(th.Bg()),
+			Background(th.SelectionBg()),
 		UltRangeStyle: lipgloss.NewStyle().
 			Foreground(th.Red()),
 		MoveRangeStyle: lipgloss.NewStyle().
