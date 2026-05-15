@@ -43,7 +43,7 @@ func NewStyles(th ThemeRegistry) Styles {
 			Background(th.BrightBlack()),
 		CursorStyle: lipgloss.NewStyle().
 			Foreground(th.BrightWhite()).
-			Background(th.Cursor()),
+			Background(lipgloss.Color("#333333")),
 		RangeStyle: lipgloss.NewStyle().
 			Background(th.BrightBlack()),
 		FireStyle: lipgloss.NewStyle().
