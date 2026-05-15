@@ -10,7 +10,6 @@ import (
 )
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
-var descSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("─")
 
 func renderEffects(effects []Effect, loc i18n.Localizer) string {
 	var parts []string
