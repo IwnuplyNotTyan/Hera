@@ -518,32 +518,6 @@ func (m *Model) View() string {
 
 	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
 	grid := strings.Join(rows, "\n")
-
-	if m.ShowEffectInfo {
-		popup := m.renderEffectDescriptions()
-		popupRows := strings.Split(popup, "\n")
-		gridRows := strings.Split(grid, "\n")
-		if len(popupRows) > 0 && len(gridRows) > 0 {
-			popupStart := (len(gridRows) - len(popupRows)) / 2
-			if popupStart < 0 {
-				popupStart = 0
-			}
-			for i, pr := range popupRows {
-				idx := popupStart + i
-				if idx >= len(gridRows) {
-					break
-				}
-				pw := lipgloss.Width(pr)
-				gw := lipgloss.Width(gridRows[idx])
-				if pw < gw {
-					pr += strings.Repeat(" ", gw-pw)
-				}
-				gridRows[idx] = pr
-			}
-			grid = strings.Join(gridRows, "\n")
-		}
-	}
-
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)

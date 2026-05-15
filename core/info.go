@@ -53,36 +53,24 @@ func (m *Model) effectsAtCursor() []Effect {
 	return nil
 }
 
-func (m *Model) renderEffectDescriptions() string {
-	effects := m.effectsAtCursor()
-	if len(effects) == 0 {
-		return m.Localizer.T("effectInfo.none")
+func (m *Model) effectDescLine(e Effect) string {
+	var icon string
+	var desc string
+	switch e.Type {
+	case EffectFire:
+		icon = "⽕"
+		desc = m.Localizer.T("effects.desc.fire")
+	case EffectWet:
+		icon = "≈"
+		desc = m.Localizer.T("effects.desc.wet")
+	case EffectSmoke:
+		icon = "~"
+		desc = m.Localizer.T("effects.desc.smoke")
 	}
-
-	loc := m.Localizer
-	var lines []string
-
-	for _, e := range effects {
-		icon := effectIcon(e.Type)
-		var nameStyle lipgloss.Style
-		var desc string
-		switch e.Type {
-		case EffectFire:
-			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Bold(true)
-			desc = loc.T("effects.desc.fire")
-		case EffectWet:
-			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true)
-			desc = loc.T("effects.desc.wet")
-		case EffectSmoke:
-			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true)
-			desc = loc.T("effects.desc.smoke")
-		}
-		lines = append(lines, nameStyle.Render(icon+" "+desc))
-		lines = append(lines, lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).
-			Render(loc.T("effects."+string(e.Type), e.Duration)))
-	}
-
-	return strings.Join(lines, "\n")
+	return lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		Padding(0, 1).
+		Render(icon + " " + desc)
 }
 
 func (m *Model) cursorInfo() string {
@@ -101,16 +89,31 @@ func (m *Model) cursorInfo() string {
 
 			if i == m.CurrentPlayer {
 				result := pl.Style.Render(loc.T("cursor.player.you", hp))
+				if m.ShowEffectInfo && len(pl.Effects) > 0 {
+					for _, e := range pl.Effects {
+						result += "\n" + m.effectDescLine(e)
+					}
+				}
 				result += "\n" + effectStr
 				return result
 			}
 			if wallBlocked {
 				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(loc.T("cursor.player.wallBlocked", i+1, hp))
+				if m.ShowEffectInfo && len(pl.Effects) > 0 {
+					for _, e := range pl.Effects {
+						result += "\n" + m.effectDescLine(e)
+					}
+				}
 				result += "\n" + effectStr
 				return result
 			}
 			result := pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
+			if m.ShowEffectInfo && len(pl.Effects) > 0 {
+				for _, e := range pl.Effects {
+					result += "\n" + m.effectDescLine(e)
+				}
+			}
 			result += "\n" + effectStr
 			return result
 		}
@@ -124,10 +127,20 @@ func (m *Model) cursorInfo() string {
 			if wallBlocked {
 				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
 					Render(loc.T("cursor.enemy.wallBlocked", i+1, hp))
+				if m.ShowEffectInfo && len(en.Effects) > 0 {
+					for _, e := range en.Effects {
+						result += "\n" + m.effectDescLine(e)
+					}
+				}
 				result += "\n" + effectStr
 				return result
 			}
 			result := en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
+			if m.ShowEffectInfo && len(en.Effects) > 0 {
+				for _, e := range en.Effects {
+					result += "\n" + m.effectDescLine(e)
+				}
+			}
 			result += "\n" + effectStr
 			return result
 		}
