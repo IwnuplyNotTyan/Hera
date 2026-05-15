@@ -114,6 +114,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Up):
+			m.ShowEffectInfo = false
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -128,6 +129,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
+			m.ShowEffectInfo = false
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -142,6 +144,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
+			m.ShowEffectInfo = false
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -156,6 +159,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
+			m.ShowEffectInfo = false
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -171,6 +175,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Ult):
+			m.ShowEffectInfo = false
 			cur := m.Players[m.CurrentPlayer]
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
@@ -186,6 +191,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Shoot):
+			m.ShowEffectInfo = false
 			if !m.Shot {
 				m.ShootMode = !m.ShootMode
 				m.UltMode = false
@@ -195,6 +201,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Confirm):
+			m.ShowEffectInfo = false
 			m = m.doConfirm()
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
@@ -204,6 +211,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
+		case key.Matches(msg, m.keys.EffectInfo):
+			if m.Screen == ScreenGame {
+				m.ShowEffectInfo = !m.ShowEffectInfo
+			}
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Quit):
@@ -504,7 +515,12 @@ func (m *Model) View() string {
 	grid := strings.Join(rows, "\n")
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
-	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	contentParts := []string{box, status}
+	if m.ShowEffectInfo {
+		contentParts = append(contentParts, m.renderEffectDescriptions())
+	}
+	contentParts = append(contentParts, helpView)
+	content := lipgloss.JoinVertical(lipgloss.Left, contentParts...)
 
 	return m.renderContent(content)
 }

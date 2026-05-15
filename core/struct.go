@@ -103,6 +103,7 @@ type Model struct {
 	Water                    map[Point]bool
 	FireTiles                map[Point]int
 	SmokeTiles               map[Point]int
+	ShowEffectInfo           bool
 	ShootMode                bool
 	UltMode                  bool
 	UltAxis                  string

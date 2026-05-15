@@ -68,7 +68,16 @@
   "effects": {
     "fire": "⽕ {n}",
     "wet": "≈ {n}",
-    "smoke": "~ {n}"
+    "smoke": "~ {n}",
+    "desc": {
+      "fire": "Deals 1 damage per turn. Removed by Water.",
+      "wet": "Reduces movement range by 2. Removes Fire.",
+      "smoke": "Prevents shooting for its duration."
+    }
+  },
+  "effectInfo": {
+    "title": "EFFECTS",
+    "none": "No effects"
   },
   "help": {
     "moveUp": "Move Up",
@@ -79,6 +88,7 @@
     "changeMode": "Change Mode",
     "secondAttack": "Second Attack",
     "toggleHelp": "Help",
+    "effectInfo": "Effect Info",
     "quit": "Quit"
   },
   "keys": {
@@ -90,6 +100,7 @@
     "shoot": "Z",
     "ult": "C",
     "help": "?",
-    "quit": "q"
+    "quit": "q",
+    "effectInfo": "V"
   }
 }

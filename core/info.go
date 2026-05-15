@@ -10,6 +10,7 @@ import (
 )
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
+var descSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("─")
 
 func renderEffects(effects []Effect, loc i18n.Localizer) string {
 	var parts []string
@@ -35,6 +36,55 @@ func renderEffects(effects []Effect, loc i18n.Localizer) string {
 		return lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	}
 	return strings.Join(parts, effectSep)
+}
+
+func (m *Model) effectsAtCursor() []Effect {
+	p := Point{m.CursorX, m.CursorY}
+	for _, pl := range m.Players {
+		if pl.X == p.X && pl.Y == p.Y && len(pl.Effects) > 0 {
+			return pl.Effects
+		}
+	}
+	for _, en := range m.Enemys {
+		if en.X == p.X && en.Y == p.Y && len(en.Effects) > 0 {
+			return en.Effects
+		}
+	}
+	return nil
+}
+
+func (m *Model) renderEffectDescriptions() string {
+	effects := m.effectsAtCursor()
+	if len(effects) == 0 {
+		return m.Styles.BoxStyle.Render(m.Localizer.T("effectInfo.none"))
+	}
+
+	loc := m.Localizer
+	var lines []string
+	lines = append(lines, lipgloss.NewStyle().Bold(true).Render(loc.T("effectInfo.title")))
+	lines = append(lines, "")
+
+	for _, e := range effects {
+		icon := effectIcon(e.Type)
+		var nameStyle lipgloss.Style
+		var desc string
+		switch e.Type {
+		case EffectFire:
+			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Bold(true)
+			desc = loc.T("effects.desc.fire")
+		case EffectWet:
+			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true)
+			desc = loc.T("effects.desc.wet")
+		case EffectSmoke:
+			nameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true)
+			desc = loc.T("effects.desc.smoke")
+		}
+		lines = append(lines, nameStyle.Render(icon+" "+desc))
+		lines = append(lines, lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).
+			Render("  "+loc.T("effects."+string(e.Type), e.Duration)))
+	}
+
+	return m.Styles.BoxStyle.Render(strings.Join(lines, "\n"))
 }
 
 func (m *Model) cursorInfo() string {
