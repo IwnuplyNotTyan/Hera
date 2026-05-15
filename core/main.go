@@ -241,11 +241,13 @@ func (m *Model) renderContent(s string) string {
 			m.gridOffsetY = 0
 		}
 
-		return lipgloss.NewStyle().
-			Background(m.Theme.Bg()).
-			Width(m.TerminalWidth).
-			Height(m.TerminalHeight).
-			Render(s)
+		bgStyle := lipgloss.NewStyle().Background(m.Theme.Bg())
+		s = bgStyle.Width(m.TerminalWidth).Height(m.TerminalHeight).Render(s)
+
+		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
+		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
+
+		return s
 	}
 
 	if m.CenterWindow {
