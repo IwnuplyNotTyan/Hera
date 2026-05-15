@@ -46,9 +46,8 @@ func main() {
 			if themeName == "" {
 				themeName = "default"
 			}
-			model := generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, themeName)
+			model := generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, enableBackground, themeName)
 			model.SetAvailableThemes()
-			model.EnableBackground = enableBackground
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),

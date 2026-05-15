@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, themeName string) Model {
+func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, enableBackground bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -73,25 +73,26 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegis
 	}
 
 	return Model{
-		Theme:         theme,
-		ThemeName:     themeName,
-		Styles:        styles,
-		CenterWindow:  centerWindow,
-		Screen:        ScreenMenu,
-		EasterEgg:     loc.RandomEasterEgg(),
-		Players:       players,
-		Enemys:        enemys,
-		CurrentPlayer: 0,
-		CurrentEnemy:  0,
-		CursorX:       players[0].X,
-		CursorY:       players[0].Y,
-		Walls:         walls,
-		Water:         water,
-		FireTiles:     make(map[Point]int),
-		SmokeTiles:    make(map[Point]int),
-		keys:          newKeyMap(loc),
-		help:          help.New(),
-		Localizer:     loc,
+		Theme:            theme,
+		ThemeName:        themeName,
+		Styles:           styles,
+		CenterWindow:     centerWindow,
+		EnableBackground: enableBackground,
+		Screen:           ScreenMenu,
+		EasterEgg:        loc.RandomEasterEgg(),
+		Players:          players,
+		Enemys:           enemys,
+		CurrentPlayer:    0,
+		CurrentEnemy:     0,
+		CursorX:          players[0].X,
+		CursorY:          players[0].Y,
+		Walls:            walls,
+		Water:            water,
+		FireTiles:        make(map[Point]int),
+		SmokeTiles:       make(map[Point]int),
+		keys:             newKeyMap(loc),
+		help:             help.New(),
+		Localizer:        loc,
 	}
 }
 
@@ -659,6 +660,11 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		}
 		if m.MenuSelected == n {
 			m.CenterWindow = !m.CenterWindow
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
+			m.EnableBackground = !m.EnableBackground
 			return m, nil
 		}
 		m.Screen = ScreenMenu
