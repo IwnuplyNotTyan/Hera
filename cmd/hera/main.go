@@ -21,6 +21,7 @@ func main() {
 	var lang string
 	var theme string
 	var noCenter bool
+	var noBackground bool
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -40,12 +41,14 @@ func main() {
 				return err
 			}
 			centerWindow := !noCenter
+			enableBackground := !noBackground
 			themeName := theme
 			if themeName == "" {
 				themeName = "default"
 			}
 			model := generate.NewModel(rand.Intn(3)+2, rand.Intn(3)+2, loc, registry, centerWindow, themeName)
 			model.SetAvailableThemes()
+			model.EnableBackground = enableBackground
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),
@@ -61,6 +64,7 @@ func main() {
 	cmd.Flags().StringVarP(&lang, "lang", "l", "en", "Language code (en, ru)")
 	cmd.Flags().StringVarP(&theme, "theme", "t", "", "Theme name (e.g., dracula, tokyonight, gruvbox)")
 	cmd.Flags().BoolVarP(&noCenter, "no-center", "c", false, "Disable centered window")
+	cmd.Flags().BoolVarP(&noBackground, "no-background", "b", false, "Disable background fill")
 
 	opts := []fang.Option{fang.WithVersion(version)}
 	if commit != "" {
