@@ -67,10 +67,7 @@ func (m *Model) effectDescLine(e Effect) string {
 		icon = "~"
 		desc = m.Localizer.T("effects.desc.smoke")
 	}
-	return lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		Padding(0, 1).
-		Render(icon + " " + desc)
+	return m.Styles.BoxStyle.Padding(0, 1).Width(30).Render(icon + " " + desc)
 }
 
 func (m *Model) cursorInfo() string {

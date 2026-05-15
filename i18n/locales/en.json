@@ -71,7 +71,7 @@
     "smoke": "~ {n}",
     "desc": {
       "fire": "Deals 1 dmg/turn. Removed by Water.",
-      "wet": "Range -2, clears Fire on contact.",
+      "wet": "Range -2 & clears Fire",
       "smoke": "Prevents shooting for duration."
     }
   },
