@@ -213,6 +213,28 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func (m *Model) applyBackground(s string) string {
+	if !m.EnableBackground || m.TerminalWidth <= 0 || m.TerminalHeight <= 0 {
+		return s
+	}
+
+	bg := m.Theme.Bg()
+	bgStyle := lipgloss.NewStyle().Background(bg)
+
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		w := lipgloss.Width(line)
+		if w < m.TerminalWidth {
+			lines[i] = line + bgStyle.Render(strings.Repeat(" ", m.TerminalWidth-w))
+		}
+	}
+	for len(lines) < m.TerminalHeight {
+		lines = append(lines, bgStyle.Render(strings.Repeat(" ", m.TerminalWidth)))
+	}
+
+	return strings.Join(lines[:m.TerminalHeight], "\n")
+}
+
 func (m *Model) View() string {
 	m.resetLayout()
 
@@ -233,8 +255,8 @@ func (m *Model) View() string {
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
-		return gameOver
-	}
+		return m.applyBackground(gameOver)
+}
 
 	current := m.Players[m.CurrentPlayer]
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
@@ -463,5 +485,6 @@ func (m *Model) View() string {
 		m.gridOffsetY = 0
 	}
 
+	content = m.applyBackground(content)
 	return content
 }
