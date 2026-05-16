@@ -31,7 +31,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							effects := m.effectsAtCursor()
 							if len(effects) > 0 {
 								m.ShowEffectIdx++
-								if m.ShowEffectIdx > len(effects) {
+								if m.ShowEffectIdx > len(effects)+1 {
 									m.ShowEffectIdx = 0
 								}
 							} else {
@@ -210,7 +210,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Confirm):
-			m.ShowEffectIdx = 0
+			if m.ShowEffectIdx > 0 {
+				m.ShowEffectIdx = 0
+				m.Moved = true
+				m.Shot = true
+				m = m.nextTurn()
+				cur := m.Players[m.CurrentPlayer]
+				m.CursorX = cur.X
+				m.CursorY = cur.Y
+				if m.CurrentPlayer == 0 {
+					m.EnemyTurn = true
+					return m, enemyTurnCmd(0)
+				}
+				return m, nil
+			}
 			m = m.doConfirm()
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
@@ -225,9 +238,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				effects := m.effectsAtCursor()
 				if len(effects) > 0 {
 					m.ShowEffectIdx++
-					if m.ShowEffectIdx > len(effects) {
+					if m.ShowEffectIdx > len(effects)+1 {
 						m.ShowEffectIdx = 0
 					}
+				} else {
+					m.ShowEffectIdx = (m.ShowEffectIdx + 1) % 2
 				}
 			}
 		case key.Matches(msg, m.keys.Help):
@@ -529,7 +544,7 @@ func (m *Model) View() string {
 	line3 := m.effectsLine()
 
 	var status string
-	if m.ShowEffectIdx > 0 && line3 != "" {
+	if m.ShowEffectIdx > 0 {
 		status = m.Styles.BoxStyle.Render(line3)
 	} else {
 		status = m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)
