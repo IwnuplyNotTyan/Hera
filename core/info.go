@@ -138,27 +138,37 @@ func (m *Model) cursorInfo() string {
 func (m *Model) effectsLine() string {
 	effects := m.effectsAtCursor()
 	skipIdx := len(effects) + 1
+
 	if len(effects) == 0 {
 		if m.ShowEffectIdx == 1 {
-			return m.Styles.BoxStyle.Padding(0, 1).Width(40).
-				Render(lipgloss.NewStyle().Foreground(lipgloss.Color("#888888")).Render("⏭ ") +
-					m.Localizer.T("help.skipTurn"))
+			icon := lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+			return icon + "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
+				Render(m.Localizer.T("help.skipTurn"))
 		}
 		return ""
 	}
+
 	loc := m.Localizer
 	highlightIdx := -1
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
 		highlightIdx = m.ShowEffectIdx - 1
 	}
 	result := renderEffects(effects, loc, highlightIdx)
+
+	if m.ShowEffectIdx > 0 {
+		if m.ShowEffectIdx == skipIdx {
+			result += lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+		} else {
+			result += lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" ⏭ ")
+		}
+	}
+
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
 		e := effects[m.ShowEffectIdx-1]
 		result += "\n" + m.effectDescLine(e)
 	} else if m.ShowEffectIdx == skipIdx {
-		skipStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#888888"))
 		result += "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
-			Render(skipStyle.Render("⏭ ")+skipStyle.Render(m.Localizer.T("help.skipTurn")))
+			Render(m.Localizer.T("help.skipTurn"))
 	}
 	return result
 }

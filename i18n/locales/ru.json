@@ -90,7 +90,7 @@
     "secondAttack": "Вторая атака",
     "toggleHelp": "Помощь",
     "effectInfo": "Инфо эффектов",
-    "skipTurn": "Пропустить ход",
+    "skipTurn": "⏭ Пропустить ход",
     "quit": "Выход"
   },
   "keys": {
