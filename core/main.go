@@ -516,7 +516,9 @@ func (m *Model) View() string {
 		info,
 	)
 
-	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
+	line3 := m.effectsLine()
+
+	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)
 	grid := strings.Join(rows, "\n")
 	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
