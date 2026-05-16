@@ -28,10 +28,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
 							m.CursorX = col
 							m.CursorY = row
-							if effects := m.effectsAtCursor(); len(effects) > 0 {
-								m.ShowEffectInfo = !m.ShowEffectInfo
+							effects := m.effectsAtCursor()
+							if len(effects) > 0 {
+								m.ShowEffectIdx++
+								if m.ShowEffectIdx > len(effects) {
+									m.ShowEffectIdx = 0
+								}
 							} else {
-								m.ShowEffectInfo = false
+								m.ShowEffectIdx = 0
 							}
 						}
 					}
@@ -119,7 +123,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Up):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -134,7 +138,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -149,7 +153,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -164,7 +168,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -180,7 +184,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Ult):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			cur := m.Players[m.CurrentPlayer]
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
@@ -196,7 +200,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Shoot):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			if !m.Shot {
 				m.ShootMode = !m.ShootMode
 				m.UltMode = false
@@ -206,7 +210,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Confirm):
-			m.ShowEffectInfo = false
+			m.ShowEffectIdx = 0
 			m = m.doConfirm()
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
@@ -218,7 +222,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.EffectInfo):
 			if m.Screen == ScreenGame {
-				m.ShowEffectInfo = !m.ShowEffectInfo
+				effects := m.effectsAtCursor()
+				if len(effects) > 0 {
+					m.ShowEffectIdx++
+					if m.ShowEffectIdx > len(effects) {
+						m.ShowEffectIdx = 0
+					}
+				}
 			}
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
@@ -519,7 +529,7 @@ func (m *Model) View() string {
 	line3 := m.effectsLine()
 
 	var status string
-	if m.ShowEffectInfo && line3 != "" {
+	if m.ShowEffectIdx > 0 && line3 != "" {
 		status = m.Styles.BoxStyle.Render(line3)
 	} else {
 		status = m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)

@@ -138,10 +138,9 @@ func (m *Model) effectsLine() string {
 	}
 	loc := m.Localizer
 	result := renderEffects(effects, loc)
-	if m.ShowEffectInfo {
-		for _, e := range effects {
-			result += "\n" + m.effectDescLine(e)
-		}
+	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
+		e := effects[m.ShowEffectIdx-1]
+		result += "\n" + m.effectDescLine(e)
 	}
 	return result
 }
