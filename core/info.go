@@ -133,9 +133,12 @@ func (m *Model) cursorInfo() string {
 
 func (m *Model) effectsLine() string {
 	effects := m.effectsAtCursor()
+	if len(effects) == 0 {
+		return ""
+	}
 	loc := m.Localizer
 	result := renderEffects(effects, loc)
-	if m.ShowEffectInfo && len(effects) > 0 {
+	if m.ShowEffectInfo {
 		for _, e := range effects {
 			result += "\n" + m.effectDescLine(e)
 		}
