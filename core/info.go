@@ -11,23 +11,27 @@ import (
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
 
-func renderEffects(effects []Effect, loc i18n.Localizer) string {
+func renderEffects(effects []Effect, loc i18n.Localizer, highlightIdx int) string {
 	var parts []string
-	for _, e := range effects {
+	for i, e := range effects {
 		icon := effectIcon(e.Type)
 		var s string
+		st := lipgloss.NewStyle().Bold(true)
 		switch e.Type {
 		case EffectFire:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Bold(true).
-				Render(loc.T("effects.fire", e.Duration))
+			st = st.Foreground(lipgloss.Color("#FF4400"))
+			s = st.Render(loc.T("effects.fire", e.Duration))
 		case EffectWet:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true).
-				Render(loc.T("effects.wet", e.Duration))
+			st = st.Foreground(lipgloss.Color("#146fba"))
+			s = st.Render(loc.T("effects.wet", e.Duration))
 		case EffectSmoke:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true).
-				Render(loc.T("effects.smoke", e.Duration))
+			st = st.Foreground(lipgloss.Color("#88AACC"))
+			s = st.Render(loc.T("effects.smoke", e.Duration))
 		default:
 			s = icon + " " + fmt.Sprint(e.Duration)
+		}
+		if i == highlightIdx {
+			s = lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(s)
 		}
 		parts = append(parts, s)
 	}
@@ -137,7 +141,11 @@ func (m *Model) effectsLine() string {
 		return ""
 	}
 	loc := m.Localizer
-	result := renderEffects(effects, loc)
+	highlightIdx := -1
+	if m.ShowEffectIdx > 0 {
+		highlightIdx = m.ShowEffectIdx - 1
+	}
+	result := renderEffects(effects, loc, highlightIdx)
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
 		e := effects[m.ShowEffectIdx-1]
 		result += "\n" + m.effectDescLine(e)
