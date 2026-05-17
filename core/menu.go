@@ -18,18 +18,27 @@ func (m *Model) startGame() {
 		{X: 1, Y: GridH - 2},
 	}
 
-	playerCount := rand.Intn(3) + 2
-	enemyCount := rand.Intn(3) + 2
+	playerCount := m.startPlayers
+	if playerCount <= 0 {
+		playerCount = rand.Intn(3) + 2
+	}
+	enemyCount := m.startEnemies
+	if enemyCount <= 0 {
+		enemyCount = rand.Intn(3) + 2
+	}
 	if enemyCount > len(m.Styles.EnemysStyles) {
 		enemyCount = len(m.Styles.EnemysStyles)
 	}
 
 	for i := 0; i < playerCount; i++ {
+		effs := make([]Effect, len(m.startPlayerEffects))
+		copy(effs, m.startPlayerEffects)
 		players = append(players, Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
+			Effects:    effs,
 			Style:      m.Styles.PlayerStyles[i%len(m.Styles.PlayerStyles)],
 		})
 	}
@@ -57,11 +66,14 @@ func (m *Model) startGame() {
 
 	enemys := make([]Enemy, enemyCount)
 	for i := range enemys {
+		effs := make([]Effect, len(m.startEnemyEffects))
+		copy(effs, m.startEnemyEffects)
 		enemys[i] = Enemy{
-			X:     enemyPositions[i].X,
-			Y:     enemyPositions[i].Y,
-			HP:    MaxHP,
-			Style: m.Styles.EnemysStyles[i],
+			X:       enemyPositions[i].X,
+			Y:       enemyPositions[i].Y,
+			HP:      MaxHP,
+			Effects: effs,
+			Style:   m.Styles.EnemysStyles[i],
 		}
 	}
 

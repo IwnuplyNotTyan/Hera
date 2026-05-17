@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, enableBackground bool, themeName string) Model {
+func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, enableBackground bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -37,11 +37,14 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegis
 
 	players := make([]Player, playerCount)
 	for i := range players {
+		effs := make([]Effect, len(playerEffects))
+		copy(effs, playerEffects)
 		players[i] = Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
+			Effects:    effs,
 			Style:      styles.PlayerStyles[i%len(styles.EnemysStyles)],
 		}
 	}
@@ -64,35 +67,42 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme ThemeRegis
 
 	enemys := make([]Enemy, enemysCount)
 	for i := range enemys {
+		effs := make([]Effect, len(enemyEffects))
+		copy(effs, enemyEffects)
 		enemys[i] = Enemy{
-			X:     enemyPositions[i].X,
-			Y:     enemyPositions[i].Y,
-			HP:    MaxHP,
-			Style: styles.EnemysStyles[i],
+			X:       enemyPositions[i].X,
+			Y:       enemyPositions[i].Y,
+			HP:      MaxHP,
+			Effects: effs,
+			Style:   styles.EnemysStyles[i],
 		}
 	}
 
 	return Model{
-		Theme:            theme,
-		ThemeName:        themeName,
-		Styles:           styles,
-		CenterWindow:     centerWindow,
-		EnableBackground: enableBackground,
-		Screen:           ScreenMenu,
-		EasterEgg:        loc.RandomEasterEgg(),
-		Players:          players,
-		Enemys:           enemys,
-		CurrentPlayer:    0,
-		CurrentEnemy:     0,
-		CursorX:          players[0].X,
-		CursorY:          players[0].Y,
-		Walls:            walls,
-		Water:            water,
-		FireTiles:        make(map[Point]int),
-		SmokeTiles:       make(map[Point]int),
-		keys:             newKeyMap(loc),
-		help:             help.New(),
-		Localizer:        loc,
+		Theme:              theme,
+		ThemeName:          themeName,
+		Styles:             styles,
+		CenterWindow:       centerWindow,
+		EnableBackground:   enableBackground,
+		Screen:             ScreenMenu,
+		EasterEgg:          loc.RandomEasterEgg(),
+		Players:            players,
+		Enemys:             enemys,
+		CurrentPlayer:      0,
+		CurrentEnemy:       0,
+		CursorX:            players[0].X,
+		CursorY:            players[0].Y,
+		Walls:              walls,
+		Water:              water,
+		FireTiles:          make(map[Point]int),
+		SmokeTiles:         make(map[Point]int),
+		keys:               newKeyMap(loc),
+		help:               help.New(),
+		Localizer:          loc,
+		startPlayers:       playerCount,
+		startEnemies:       enemysCount,
+		startPlayerEffects: playerEffects,
+		startEnemyEffects:  enemyEffects,
 	}
 }
 

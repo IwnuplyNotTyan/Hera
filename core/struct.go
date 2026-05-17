@@ -121,6 +121,11 @@ type Model struct {
 
 	BoxTrigger   string
 	TriggerTimer int
+
+	startPlayers       int
+	startEnemies       int
+	startPlayerEffects []Effect
+	startEnemyEffects  []Effect
 }
 
 const (
