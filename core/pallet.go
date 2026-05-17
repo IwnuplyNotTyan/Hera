@@ -2,6 +2,15 @@ package generate
 
 import "github.com/charmbracelet/lipgloss"
 
+func (m *Model) boxStyle() lipgloss.Style {
+	if m.BoxTrigger == TriggerDamage {
+		return m.Styles.BoxStyle.
+			BorderForeground(m.Theme.Red()).
+			Blink(true)
+	}
+	return m.Styles.BoxStyle
+}
+
 type Styles struct {
 	BoxStyle         lipgloss.Style
 	HelpStyle        lipgloss.Style

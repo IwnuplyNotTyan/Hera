@@ -53,6 +53,8 @@ type enemyTurnMsg struct {
 	enemyIdx int
 }
 
+type triggerTickMsg struct{}
+
 type ElementType int
 
 const (
@@ -116,4 +118,12 @@ type Model struct {
 	Localizer                i18n.Localizer
 	layoutElements           []Element
 	gridOffsetX, gridOffsetY int
+
+	BoxTrigger   string
+	TriggerTimer int
 }
+
+const (
+	TriggerNone   = ""
+	TriggerDamage = "damage"
+)

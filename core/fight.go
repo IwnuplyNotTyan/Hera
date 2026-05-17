@@ -146,6 +146,8 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 			for j, pl := range m.Players {
 				if pl.X == tx && pl.Y == ty {
 					m.Players[j].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
 					if m.Players[j].HP <= 0 {
 						m.Players = append(m.Players[:j], m.Players[j+1:]...)
 						if m.CurrentPlayer >= len(m.Players) {
@@ -375,6 +377,8 @@ func (m *Model) doConfirm() *Model {
 			for i, pl := range m.Players {
 				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
 					m.Players[i].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
 					if m.Players[i].HP <= 0 {
 						m.Players = append(m.Players[:i], m.Players[i+1:]...)
 						if m.CurrentPlayer >= len(m.Players) {
@@ -387,6 +391,8 @@ func (m *Model) doConfirm() *Model {
 			for i, en := range m.Enemys {
 				if en.X == m.CursorX && en.Y == m.CursorY {
 					m.Enemys[i].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
 					if m.Enemys[i].HP <= 0 {
 						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
 					}
@@ -539,6 +545,8 @@ func (m *Model) nextTurn() *Model {
 
 	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
 		m.Players[m.CurrentPlayer].HP--
+		m.BoxTrigger = TriggerDamage
+		m.TriggerTimer = 6
 	}
 
 	m.Players[m.CurrentPlayer].Effects = tickEffects(

@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"hera/utils"
 
@@ -28,6 +29,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
 							m.CursorX = col
 							m.CursorY = row
+							m.BoxTrigger = TriggerNone
 							effects := m.effectsAtCursor()
 							if len(effects) > 0 {
 								m.ShowEffectIdx++
@@ -65,10 +67,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m = m.nextTurn()
 					if m.CurrentPlayer == 0 {
 						m.EnemyTurn = true
-						return m, enemyTurnCmd(0)
+						return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
 					}
 				}
-				return m, nil
+				return m, m.triggerTickCmd()
 			}
 			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
 				return m.doMenuConfirm()
@@ -94,14 +96,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.UltMode = false
 				m.UltAxis = ""
 			}
-			return m, nil
+			return m, m.triggerTickCmd()
 		}
 		m.EnemyIdx = msg.enemyIdx
 		m = m.doEnemyTurn(msg.enemyIdx)
 		if len(m.Players) == 0 {
 			return m, tea.Quit
 		}
-		return m, enemyTurnCmd(msg.enemyIdx + 1)
+		return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(msg.enemyIdx+1))
+
+	case triggerTickMsg:
+		m.TriggerTimer--
+		if m.TriggerTimer <= 0 {
+			m.BoxTrigger = TriggerNone
+		} else {
+			return m, m.triggerTickCmd()
+		}
 	}
 
 	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
@@ -124,6 +134,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Up):
 			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -139,6 +150,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keys.Down):
 			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -154,6 +166,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keys.Left):
 			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -169,6 +182,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, m.keys.Right):
 			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -220,16 +234,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = cur.Y
 				if m.CurrentPlayer == 0 {
 					m.EnemyTurn = true
-					return m, enemyTurnCmd(0)
+					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
 				}
-				return m, nil
+				return m, m.triggerTickCmd()
 			}
 			m = m.doConfirm()
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
 				if m.CurrentPlayer == 0 {
 					m.EnemyTurn = true
-					return m, enemyTurnCmd(0)
+					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
 				}
 			}
 
@@ -251,7 +265,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 	}
-	return m, nil
+	return m, m.triggerTickCmd()
 }
 
 func (m *Model) renderContent(s string) string {
@@ -331,7 +345,7 @@ func (m *Model) View() string {
 	}
 
 	if len(m.Players) == 0 {
-		gameOver := m.Styles.BoxStyle.Render(
+		gameOver := m.boxStyle().Render(
 			lipgloss.NewStyle().
 				Foreground(lipgloss.Color("#FF4444")).
 				Bold(true).
@@ -545,14 +559,23 @@ func (m *Model) View() string {
 
 	var status string
 	if m.ShowEffectIdx > 0 {
-		status = m.Styles.BoxStyle.Render(line3)
+		status = m.boxStyle().Render(line3)
 	} else {
-		status = m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)
+		status = m.boxStyle().Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)
 	}
 	grid := strings.Join(rows, "\n")
-	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
 
 	return m.renderContent(content)
+}
+
+func (m *Model) triggerTickCmd() tea.Cmd {
+	if m.TriggerTimer > 0 {
+		return tea.Tick(300*time.Millisecond, func(t time.Time) tea.Msg {
+			return triggerTickMsg{}
+		})
+	}
+	return nil
 }
