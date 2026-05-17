@@ -48,12 +48,16 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 **Flags:**
 
-| Short | Long     | Desc            |
-|-------|----------|-----------------|
-| -h    | help     | Help            |
-| -l    | --lang   | Change language |
-| -t    | --theme  | Change themes   |
-| -v    | --version| Version         |
+| Short | Long     | Desc             |
+|-------|----------|------------------|
+| -h    | help     | Help             |
+| -l    | --lang   | Change language  |
+| -t    | --theme  | Change themes    |
+| -v    | --version| Version          |
+| -e    | --enemies| Number of enemies|
+| -p    | --players| Number of players|
+| -E    | --enemy-effects| Effects for enemies|
+| -P    | --player-effects| Effects for players|
 
 
 ---
