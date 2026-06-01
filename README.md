@@ -18,7 +18,7 @@
 
 ---
 
-## 🪭 Tree 
+# 🪭 Tree 
 -  [Build](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#-build)
 -  [Author](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#%E2%80%8D-author)
 -  [Libs](https://github.com/IwnuplyNotTyan/Hera?tab=readme-ov-file#%EF%B8%8F-libraries-used)
@@ -26,13 +26,23 @@
 
 ---
 
-## 🪻 Build 
+# 🪻 Install
+
+## ❄️ Nix
+``` bash
+nix run github:iwnuplynottyan/koi
+```
+
+
+## ⛏️ Build from source
 ```sh
 git clone https://github.com/IwnuplyNotTyan/Hera && cd Hera
 go mod download
 go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
+<details>
+<summary><b>Flags and tags</b></summary>
 **Tags:**
 
 | Tag | Desc                 |
@@ -48,19 +58,9 @@ go build -o ./bin/hera ./cmd/hera/main.go
 |main.commit|-ldflags="-X main.commit=$(git rev-parse HEAD)"| --version commit|
 
 
-**Flags:**
+**Flags** can be find in help command
 
-| Short | Long     | Desc             |
-|-------|----------|------------------|
-| -h    | help     | Help             |
-| -l    | --lang   | Change language  |
-| -t    | --theme  | Change themes    |
-| -v    | --version| Version          |
-| -e    | --enemies| Number of enemies|
-| -p    | --players| Number of players|
-| -E    | --enemy-effects| Effects for enemies|
-| -P    | --player-effects| Effects for players|
-
+</details>
 
 ---
 
