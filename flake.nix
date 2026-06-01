@@ -31,6 +31,8 @@
             ldflags = [
               "-X main.version=${version}"
               "-X main.commit=${commit}"
+	      "-s"
+	      "-w"
             ];
 
             vendorHash = "sha256-YTEHyzFRtYsLRQZ3oAPqIZSklLk97QvCf5Gbx5oJpSE=";
