@@ -12,7 +12,9 @@
   <img src="https://img.shields.io/github/last-commit/IwnuplyNotTyan/Hera" alt="Last Commit"/>
 </p>
 
-![Screenshot](https://github.com/IwnuplyNotTyan/Hera/blob/main/.github/assets/screenshot.png?raw=true)
+<p align="center">
+  <img src="https://github.com/IwnuplyNotTyan/Hera/blob/main/.github/assets/screenshot.png?raw=true" alt="Screenshot">
+</p>
 
 ---
 
