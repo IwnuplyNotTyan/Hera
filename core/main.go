@@ -3,6 +3,7 @@ package generate
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"hera/utils"
 
@@ -11,19 +12,76 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if !m.Moved && !m.Shot {
-	} else if m.Moved {
-		m.ShootMode = true
-	} else {
-		m.ShootMode = false
-	}
-
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.MouseMsg:
+		if msg.Button == tea.MouseButtonLeft && msg.Action == tea.MouseActionPress {
+			elem := m.hitTest(msg.X, msg.Y)
+			if elem != nil {
+				switch elem.Type {
+				case ElementGridCell:
+					if m.Screen == ScreenGame && !m.EnemyTurn {
+						var col, row int
+						if _, err := fmt.Sscanf(elem.ID, "cell-%d-%d", &col, &row); err == nil {
+							m.CursorX = col
+							m.CursorY = row
+							m.BoxTrigger = TriggerNone
+							effects := m.effectsAtCursor()
+							if len(effects) > 0 {
+								m.ShowEffectIdx++
+								if m.ShowEffectIdx > len(effects)+1 {
+									m.ShowEffectIdx = 0
+								}
+							} else {
+								m.ShowEffectIdx = 0
+							}
+						}
+					}
+				case ElementMenuItem:
+					if m.Screen == ScreenMenu {
+						m.MenuSelected = elem.Index
+					}
+				case ElementSettingsItem:
+					if m.Screen == ScreenSettings {
+						m.MenuSelected = elem.Index
+					}
+				case ElementThemeItem:
+					if m.Screen == ScreenThemeSelect {
+						m.ThemeName = elem.ID
+						if m.Theme != nil {
+							m.Theme.SetTintID(elem.ID)
+						}
+						m.Styles = NewStyles(m.Theme)
+					}
+				}
+			}
+		}
+		if msg.Button == tea.MouseButtonRight && msg.Action == tea.MouseActionPress {
+			if m.Screen == ScreenGame && !m.EnemyTurn {
+				m = m.doConfirm()
+				if m.Moved && m.Shot {
+					m = m.nextTurn()
+					if m.CurrentPlayer == 0 {
+						m.EnemyTurn = true
+						return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
+					}
+				}
+				return m, m.triggerTickCmd()
+			}
+			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+				return m.doMenuConfirm()
+			}
+		}
+
+	case tea.WindowSizeMsg:
+		m.TerminalWidth = msg.Width
+		m.TerminalHeight = msg.Height
+		return m, nil
+
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
 			return m, tea.Quit
@@ -38,39 +96,45 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.UltMode = false
 				m.UltAxis = ""
 			}
-			return m, nil
+			return m, m.triggerTickCmd()
 		}
 		m.EnemyIdx = msg.enemyIdx
 		m = m.doEnemyTurn(msg.enemyIdx)
 		if len(m.Players) == 0 {
 			return m, tea.Quit
 		}
-		return m, enemyTurnCmd(msg.enemyIdx + 1)
+		return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(msg.enemyIdx+1))
 
-	case tea.MouseMsg:
-		if m.EnemyTurn {
-			return m, nil
+	case triggerTickMsg:
+		m.TriggerTimer--
+		if m.TriggerTimer <= 0 {
+			m.BoxTrigger = TriggerNone
+		} else {
+			return m, m.triggerTickCmd()
 		}
-		if msg.Button != tea.MouseButtonLeft || msg.Action != tea.MouseActionPress {
-			return m, nil
-		}
-		for col := 0; col < GridW; col++ {
-			for row := 0; row < GridH; row++ {
-				if m.Z.Get(fmt.Sprintf("cell-%d-%d", col, row)).InBounds(msg) {
-					m.CursorX = col
-					m.CursorY = row
-					break
-				}
-			}
-		}
+	}
 
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+		return m.updateMenu(msg)
+	}
+
+	if m.EnemyTurn {
+		return m, nil
+	}
+
+	if !m.Moved && !m.Shot {
+	} else if m.Moved {
+		m.ShootMode = true
+	} else {
+		m.ShootMode = false
+	}
+
+	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.EnemyTurn {
-			return m, nil
-		}
-
 		switch {
 		case key.Matches(msg, m.keys.Up):
+			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -85,6 +149,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Down):
+			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -99,6 +165,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = newY
 			}
 		case key.Matches(msg, m.keys.Left):
+			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -113,6 +181,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorX = newX
 			}
 		case key.Matches(msg, m.keys.Right):
+			m.ShowEffectIdx = 0
+			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
 			if m.UltMode {
 				cur := m.Players[m.CurrentPlayer]
@@ -128,6 +198,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Ult):
+			m.ShowEffectIdx = 0
 			cur := m.Players[m.CurrentPlayer]
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
@@ -143,6 +214,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Shoot):
+			m.ShowEffectIdx = 0
 			if !m.Shot {
 				m.ShootMode = !m.ShootMode
 				m.UltMode = false
@@ -152,114 +224,141 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keys.Confirm):
-			p := Point{m.CursorX, m.CursorY}
-			current := m.Players[m.CurrentPlayer]
-			wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
-
-			if m.UltMode && !m.Shot {
-				m = m.doUlt()
+			if m.ShowEffectIdx > 0 {
+				m.ShowEffectIdx = 0
+				m.Moved = true
+				m.Shot = true
+				m = m.nextTurn()
 				cur := m.Players[m.CurrentPlayer]
 				m.CursorX = cur.X
 				m.CursorY = cur.Y
-			} else if m.ShootMode && !m.Shot {
-				if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
-					m.Shot = true
-					m.ShootMode = false
-					break
+				if m.CurrentPlayer == 0 {
+					m.EnemyTurn = true
+					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
 				}
-				if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
-					for i, pl := range m.Players {
-						if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
-							m.Players[i].HP--
-							if m.Players[i].HP <= 0 {
-								m.Players = append(m.Players[:i], m.Players[i+1:]...)
-								if m.CurrentPlayer >= len(m.Players) {
-									m.CurrentPlayer = 0
-								}
-							}
-							break
-						}
-					}
-					for i, en := range m.Enemys {
-						if en.X == m.CursorX && en.Y == m.CursorY {
-							m.Enemys[i].HP--
-							if m.Enemys[i].HP <= 0 {
-								m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
-							}
-							break
-						}
-					}
-					m.Shot = true
-					m.ShootMode = false
-					cur := m.Players[m.CurrentPlayer]
-					m.CursorX = cur.X
-					m.CursorY = cur.Y
-				}
-			} else if !m.ShootMode && !m.UltMode && !m.Moved {
-				if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
-					m.Players[m.CurrentPlayer].X = m.CursorX
-					m.Players[m.CurrentPlayer].Y = m.CursorY
-
-					if m.Water[p] {
-						m.Players[m.CurrentPlayer].Effects = resolveEffects(
-							m.Players[m.CurrentPlayer].Effects,
-							Effect{Type: EffectWet, Duration: 2},
-						)
-					}
-					if m.FireTiles[p] > 0 {
-						if !hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
-							m.Players[m.CurrentPlayer].Effects = resolveEffects(
-								m.Players[m.CurrentPlayer].Effects,
-								Effect{Type: EffectFire, Duration: 2},
-							)
-						}
-					}
-					if m.SmokeTiles[p] > 0 {
-						m.Players[m.CurrentPlayer].Effects = resolveEffects(
-							m.Players[m.CurrentPlayer].Effects,
-							Effect{Type: EffectSmoke, Duration: 2},
-						)
-					}
-
-					m.Moved = true
-					m.CursorX = m.Players[m.CurrentPlayer].X
-					m.CursorY = m.Players[m.CurrentPlayer].Y
-				}
+				return m, m.triggerTickCmd()
 			}
-
+			m = m.doConfirm()
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
 				if m.CurrentPlayer == 0 {
 					m.EnemyTurn = true
-					return m, enemyTurnCmd(0)
+					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
 				}
 			}
 
+		case key.Matches(msg, m.keys.EffectInfo):
+			if m.Screen == ScreenGame {
+				effects := m.effectsAtCursor()
+				if len(effects) > 0 {
+					m.ShowEffectIdx++
+					if m.ShowEffectIdx > len(effects)+1 {
+						m.ShowEffectIdx = 0
+					}
+				} else {
+					m.ShowEffectIdx = (m.ShowEffectIdx + 1) % 2
+				}
+			}
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
 		}
 	}
-	return m, nil
+	return m, m.triggerTickCmd()
 }
 
-func (m Model) View() string {
+func (m *Model) renderContent(s string) string {
+	if m.TerminalWidth <= 0 || m.TerminalHeight <= 0 {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
+		return s
+	}
+
+	contentWidth := lipgloss.Width(s)
+	contentHeight := lipgloss.Height(s)
+	if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+		return m.Localizer.T("error.terminalTooSmall")
+	}
+
+	if m.CenterWindow {
+		marginX := (m.TerminalWidth - contentWidth) / 2
+		marginY := (m.TerminalHeight - contentHeight) / 2
+		s = lipgloss.NewStyle().
+			MarginLeft(marginX).
+			MarginTop(marginY).
+			Render(s)
+		m.gridOffsetX = marginX
+		m.gridOffsetY = marginY
+	} else {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
+	}
+
+	if !m.EnableBackground {
+		if m.TerminalWidth > contentWidth {
+			lines := strings.Split(s, "\n")
+			for i, line := range lines {
+				if w := lipgloss.Width(line); w < m.TerminalWidth {
+					lines[i] = line + strings.Repeat(" ", m.TerminalWidth-w)
+				}
+			}
+			s = strings.Join(lines, "\n")
+		}
+		return s
+	}
+
+	lines := strings.Split(s, "\n")
+	bgStyle := lipgloss.NewStyle().Background(m.Theme.Bg())
+	for i, line := range lines {
+		w := lipgloss.Width(line)
+		if w < m.TerminalWidth {
+			lines[i] = bgStyle.Render(line + strings.Repeat(" ", m.TerminalWidth-w))
+		} else {
+			lines[i] = bgStyle.Render(line)
+		}
+	}
+	for len(lines) < m.TerminalHeight {
+		lines = append(lines, bgStyle.Render(strings.Repeat(" ", m.TerminalWidth)))
+	}
+
+	s = strings.Join(lines, "\n")
+	if m.EnableBackground {
+		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
+		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
+	}
+
+	return s
+}
+
+func (m *Model) View() string {
+	m.resetLayout()
+
+	if m.Screen == ScreenMenu {
+		return m.viewMenu()
+	}
+	if m.Screen == ScreenSettings {
+		return m.viewSettings()
+	}
+	if m.Screen == ScreenThemeSelect {
+		return m.viewThemeSelect()
+	}
+
 	if len(m.Players) == 0 {
-		gameOver := m.Styles.BoxStyle.Render(
+		gameOver := m.boxStyle().Render(
 			lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF4444")).
+				Foreground(m.Theme.BrightRed()).
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
-		return gameOver
+		return m.renderContent(gameOver)
 	}
 
 	current := m.Players[m.CurrentPlayer]
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
 	hpStyle := current.Style
 	if current.HP == 1 {
-		hpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true).Blink(true)
+		hpStyle = lipgloss.NewStyle().Foreground(m.Theme.Red()).Bold(true).Blink(true)
 	}
 	hpStr := hpStyle.Render(m.Localizer.T("status.player", m.CurrentPlayer+1, hp))
 
@@ -267,17 +366,17 @@ func (m Model) View() string {
 	switch {
 	case m.UltMode:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4400")).
+			Foreground(m.Theme.Red()).
 			Bold(true).
 			Render(m.Localizer.T("status.ult"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4444")).
+			Foreground(m.Theme.BrightRed()).
 			Bold(true).
 			Render(m.Localizer.T("status.shoot"))
 	default:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#AAAAAA")).
+			Foreground(m.Theme.Fg()).
 			Render(m.Localizer.T("status.move"))
 	}
 
@@ -285,11 +384,11 @@ func (m Model) View() string {
 	var ultStr string
 	if ultCharges > 0 {
 		ultStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4400")).
+			Foreground(m.Theme.Red()).
 			Render(m.Localizer.T("status.ultCharges", ultCharges))
 	} else {
 		ultStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#444444")).
+			Foreground(m.Theme.SelectionBg()).
 			Render(m.Localizer.T("status.ultChargesZero"))
 	}
 
@@ -372,7 +471,7 @@ func (m Model) View() string {
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
-					st = st.Background(lipgloss.Color("#171717"))
+					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
 			case enemyIdx >= 0:
@@ -389,7 +488,7 @@ func (m Model) View() string {
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
-					st = st.Background(lipgloss.Color("#171717"))
+					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
 			case m.Walls[p]:
@@ -408,9 +507,9 @@ func (m Model) View() string {
 					cellContent = m.Styles.WaterStyle.Render(" ≈ ")
 				}
 			case m.FireTiles[p] > 0:
-				cellContent = m.Styles.FireStyle.Render(" ⁺ ")
+				cellContent = m.Styles.FireStyle.Render(" ⚹ ")
 			case isUltCross:
-				cellContent = m.Styles.UltZoneStyle.Render(" + ")
+				cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
 			case isUltAxis:
 				cellContent = m.Styles.UltAxisStyle.Render(" · ")
 			case m.IsInRange(col, row):
@@ -424,7 +523,16 @@ func (m Model) View() string {
 			default:
 				cellContent = m.Styles.CellStyle.Render(" · ")
 			}
-			cells = append(cells, m.Z.Mark(fmt.Sprintf("cell-%d-%d", col, row), cellContent))
+			cells = append(cells, cellContent)
+			m.trackElement(Element{
+				Type:   ElementGridCell,
+				X:      col*cellWidth() + 2,
+				Y:      row + 2,
+				Width:  cellWidth(),
+				Height: cellHeight(),
+				ID:     fmt.Sprintf("cell-%d-%d", col, row),
+				Index:  -1,
+			})
 		}
 		rows = append(rows, strings.Join(cells, ""))
 	}
@@ -441,17 +549,33 @@ func (m Model) View() string {
 	)
 
 	line2 := lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
+		lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render(
 			m.Localizer.T("cursor.coordinates", map[string]interface{}{"x": m.CursorX, "y": m.CursorY}),
 		),
 		info,
 	)
 
-	status := m.Styles.BoxStyle.Render(line1 + "\n" + line2 + "\n" + line0)
+	line3 := m.effectsLine()
+
+	var status string
+	if m.ShowEffectIdx > 0 {
+		status = m.boxStyle().Render(line3)
+	} else {
+		status = m.boxStyle().Render(line1 + "\n" + line2 + "\n" + line3 + "\n" + line0)
+	}
 	grid := strings.Join(rows, "\n")
-	box := m.Styles.BoxStyle.Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
-	content = m.Z.Scan(content)
-	return content
+
+	return m.renderContent(content)
+}
+
+func (m *Model) triggerTickCmd() tea.Cmd {
+	if m.TriggerTimer > 0 {
+		return tea.Tick(300*time.Millisecond, func(t time.Time) tea.Msg {
+			return triggerTickMsg{}
+		})
+	}
+	return nil
 }

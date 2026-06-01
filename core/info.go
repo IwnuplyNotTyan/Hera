@@ -11,33 +11,72 @@ import (
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
 
-func renderEffects(effects []Effect, loc i18n.Localizer) string {
-	if len(effects) == 0 {
+func renderEffects(effects []Effect, loc i18n.Localizer, highlightIdx int, th ThemeRegistry) string {
+	if th == nil {
 		return ""
 	}
 	var parts []string
-	for _, e := range effects {
-		icon := effectIcon(e.Type)
+	for i, e := range effects {
+		icon := EffectIcon(e.Type)
 		var s string
+		st := lipgloss.NewStyle().Bold(true)
 		switch e.Type {
 		case EffectFire:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4400")).Bold(true).
-				Render(loc.T("effects.fire", e.Duration))
+			st = st.Foreground(th.Red())
+			s = st.Render(loc.T("effects.fire", e.Duration))
 		case EffectWet:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#146fba")).Bold(true).
-				Render(loc.T("effects.wet", e.Duration))
+			st = st.Foreground(th.Blue())
+			s = st.Render(loc.T("effects.wet", e.Duration))
 		case EffectSmoke:
-			s = lipgloss.NewStyle().Foreground(lipgloss.Color("#88AACC")).Bold(true).
-				Render(loc.T("effects.smoke", e.Duration))
+			st = st.Foreground(th.BrightCyan())
+			s = st.Render(loc.T("effects.smoke", e.Duration))
 		default:
 			s = icon + " " + fmt.Sprint(e.Duration)
 		}
+		if i == highlightIdx {
+			s = lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(s)
+		}
 		parts = append(parts, s)
+	}
+	if len(parts) == 0 {
+		return lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("-")
 	}
 	return strings.Join(parts, effectSep)
 }
 
-func (m Model) cursorInfo() string {
+func (m *Model) effectsAtCursor() []Effect {
+	p := Point{m.CursorX, m.CursorY}
+	for _, pl := range m.Players {
+		if pl.X == p.X && pl.Y == p.Y && len(pl.Effects) > 0 {
+			return pl.Effects
+		}
+	}
+	for _, en := range m.Enemys {
+		if en.X == p.X && en.Y == p.Y && len(en.Effects) > 0 {
+			return en.Effects
+		}
+	}
+	return nil
+}
+
+func (m *Model) effectDescLine(e Effect) string {
+	var icon string
+	var desc string
+	switch e.Type {
+	case EffectFire:
+		icon = "⚹"
+		desc = m.Localizer.T("effects.desc.fire")
+	case EffectWet:
+		icon = "≈"
+		desc = m.Localizer.T("effects.desc.wet")
+	case EffectSmoke:
+		icon = "~"
+		desc = m.Localizer.T("effects.desc.smoke")
+	}
+	return m.Styles.BoxStyle.Padding(0, 1).Width(40).Render(icon + " " + desc)
+}
+
+func (m *Model) cursorInfo() string {
 	if len(m.Players) == 0 {
 		return ""
 	}
@@ -49,49 +88,27 @@ func (m Model) cursorInfo() string {
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", pl.HP) + strings.Repeat("♡ ", MaxHP-pl.HP)
-			effectStr := renderEffects(pl.Effects, loc)
 
 			if i == m.CurrentPlayer {
-				result := pl.Style.Render(loc.T("cursor.player.you", hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
-				return result
+				return pl.Style.Render(loc.T("cursor.player.you", hp))
 			}
 			if wallBlocked {
-				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+				return lipgloss.NewStyle().Foreground(m.Theme.BrightRed()).
 					Render(loc.T("cursor.player.wallBlocked", i+1, hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
-				return result
 			}
-			result := pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
-			if effectStr != "" {
-				result += "\n" + effectStr
-			}
-			return result
+			return pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
 		}
 	}
 
 	for i, en := range m.Enemys {
 		if en.X == m.CursorX && en.Y == m.CursorY {
 			hp := strings.Repeat("♥ ", en.HP) + strings.Repeat("♡ ", MaxHP-en.HP)
-			effectStr := renderEffects(en.Effects, loc)
 
 			if wallBlocked {
-				result := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+				return lipgloss.NewStyle().Foreground(m.Theme.BrightRed()).
 					Render(loc.T("cursor.enemy.wallBlocked", i+1, hp))
-				if effectStr != "" {
-					result += "\n" + effectStr
-				}
-				return result
 			}
-			result := en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
-			if effectStr != "" {
-				result += "\n" + effectStr
-			}
-			return result
+			return en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
 		}
 	}
 
@@ -119,4 +136,42 @@ func (m Model) cursorInfo() string {
 	default:
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.empty"))
 	}
+}
+
+func (m *Model) effectsLine() string {
+	effects := m.effectsAtCursor()
+	skipIdx := len(effects) + 1
+
+	if len(effects) == 0 {
+		if m.ShowEffectIdx == 1 {
+			icon := lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+			return icon + "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
+				Render(m.Localizer.T("help.skipTurn"))
+		}
+		return ""
+	}
+
+	loc := m.Localizer
+	highlightIdx := -1
+	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
+		highlightIdx = m.ShowEffectIdx - 1
+	}
+	result := renderEffects(effects, loc, highlightIdx, m.Theme)
+
+	if m.ShowEffectIdx > 0 {
+		if m.ShowEffectIdx == skipIdx {
+			result += effectSep + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+		} else {
+			result += lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(effectSep + " ⏭ ")
+		}
+	}
+
+	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
+		e := effects[m.ShowEffectIdx-1]
+		result += "\n" + m.effectDescLine(e)
+	} else if m.ShowEffectIdx == skipIdx {
+		result += "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
+			Render(m.Localizer.T("help.skipTurn"))
+	}
+	return result
 }

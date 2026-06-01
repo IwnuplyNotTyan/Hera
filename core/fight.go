@@ -9,11 +9,9 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	bubbletint "github.com/lrstanley/bubbletint"
-	bz "github.com/lrstanley/bubblezone"
 )
 
-func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletint.Registry) Model {
+func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, enableBackground bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -21,9 +19,9 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 	if playerCount > 4 {
 		playerCount = 4
 	}
- 	if enemysCount < 0 {
- 		enemysCount = 0
- 	}
+	if enemysCount < 0 {
+		enemysCount = 0
+	}
 
 	blocked := make(map[Point]bool)
 
@@ -39,11 +37,14 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 
 	players := make([]Player, playerCount)
 	for i := range players {
+		effs := make([]Effect, len(playerEffects))
+		copy(effs, playerEffects)
 		players[i] = Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
+			Effects:    effs,
 			Style:      styles.PlayerStyles[i%len(styles.EnemysStyles)],
 		}
 	}
@@ -66,35 +67,52 @@ func NewModel(playerCount, enemysCount int, loc i18n.Localizer, theme *bubbletin
 
 	enemys := make([]Enemy, enemysCount)
 	for i := range enemys {
+		effs := make([]Effect, len(enemyEffects))
+		copy(effs, enemyEffects)
 		enemys[i] = Enemy{
-			X:     enemyPositions[i].X,
-			Y:     enemyPositions[i].Y,
-			HP:    MaxHP,
-			Style: styles.EnemysStyles[i],
+			X:       enemyPositions[i].X,
+			Y:       enemyPositions[i].Y,
+			HP:      MaxHP,
+			Effects: effs,
+			Style:   styles.EnemysStyles[i],
 		}
 	}
 
 	return Model{
-		Theme:         theme,
-		Styles:        styles,
-		Players:       players,
-		Enemys:        enemys,
-		CurrentPlayer: 0,
-		CurrentEnemy:  0,
-		CursorX:       players[0].X,
-		CursorY:       players[0].Y,
-		Walls:         walls,
-		Water:         water,
-		FireTiles:     make(map[Point]int),
-		SmokeTiles:    make(map[Point]int),
-		keys:          newKeyMap(loc),
-		help:          help.New(),
-		Localizer:     loc,
-		Z:             bz.New(),
+		Theme:              theme,
+		ThemeName:          themeName,
+		Styles:             styles,
+		CenterWindow:       centerWindow,
+		EnableBackground:   enableBackground,
+		Screen:             ScreenMenu,
+		EasterEgg:          loc.RandomEasterEgg(),
+		Players:            players,
+		Enemys:             enemys,
+		CurrentPlayer:      0,
+		CurrentEnemy:       0,
+		CursorX:            players[0].X,
+		CursorY:            players[0].Y,
+		Walls:              walls,
+		Water:              water,
+		FireTiles:          make(map[Point]int),
+		SmokeTiles:         make(map[Point]int),
+		keys:               newKeyMap(loc),
+		help:               help.New(),
+		Localizer:          loc,
+		startPlayers:       playerCount,
+		startEnemies:       enemysCount,
+		startPlayerEffects: playerEffects,
+		startEnemyEffects:  enemyEffects,
 	}
 }
 
-func (m Model) closestPlayer(ex, ey int) (int, int) {
+func (m *Model) SetAvailableThemes() {
+	if m.Theme != nil {
+		m.AvailableThemes = m.Theme.TintIDs()
+	}
+}
+
+func (m *Model) closestPlayer(ex, ey int) (int, int) {
 	if len(m.Players) == 0 {
 		return ex, ey
 	}
@@ -110,7 +128,7 @@ func (m Model) closestPlayer(ex, ey int) (int, int) {
 	return bestX, bestY
 }
 
-func (m Model) enemyOccupied(x, y, skipIdx int) bool {
+func (m *Model) enemyOccupied(x, y, skipIdx int) bool {
 	for i, e := range m.Enemys {
 		if i != skipIdx && e.X == x && e.Y == y {
 			return true
@@ -124,7 +142,7 @@ func (m Model) enemyOccupied(x, y, skipIdx int) bool {
 	return false
 }
 
-func (m Model) doEnemyTurn(idx int) Model {
+func (m *Model) doEnemyTurn(idx int) *Model {
 	if len(m.Players) == 0 || idx >= len(m.Enemys) {
 		return m
 	}
@@ -138,6 +156,8 @@ func (m Model) doEnemyTurn(idx int) Model {
 			for j, pl := range m.Players {
 				if pl.X == tx && pl.Y == ty {
 					m.Players[j].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
 					if m.Players[j].HP <= 0 {
 						m.Players = append(m.Players[:j], m.Players[j+1:]...)
 						if m.CurrentPlayer >= len(m.Players) {
@@ -176,14 +196,14 @@ func (m Model) doEnemyTurn(idx int) Model {
 			m.Enemys[idx].Y = mv.Y
 
 			p := Point{mv.X, mv.Y}
-			if m.FireTiles[p] > 0 && !hasEffect(m.Enemys[idx].Effects, EffectWet) {
-				m.Enemys[idx].Effects = resolveEffects(
+			if m.FireTiles[p] > 0 && !HasEffect(m.Enemys[idx].Effects, EffectWet) {
+				m.Enemys[idx].Effects = ResolveEffects(
 					m.Enemys[idx].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
 			}
 			if m.Water[p] {
-				m.Enemys[idx].Effects = resolveEffects(
+				m.Enemys[idx].Effects = ResolveEffects(
 					m.Enemys[idx].Effects,
 					Effect{Type: EffectWet, Duration: 2},
 				)
@@ -197,25 +217,25 @@ func (m Model) doEnemyTurn(idx int) Model {
 		}
 	}
 
-	if hasEffect(m.Enemys[idx].Effects, EffectFire) && m.Enemys[idx].HP > 1 {
+	if HasEffect(m.Enemys[idx].Effects, EffectFire) && m.Enemys[idx].HP > 1 {
 		m.Enemys[idx].HP--
 	}
 
-	m.Enemys[idx].Effects = tickEffects(m.Enemys[idx].Effects)
+	m.Enemys[idx].Effects = TickEffects(m.Enemys[idx].Effects)
 	return m
 }
 
-func (m Model) Move(newX, newY int) Model {
+func (m *Model) Move(newX, newY int) *Model {
 	return m
 }
 
-func (m Model) currentRange() int {
+func (m *Model) currentRange() int {
 	r := moveRange
 	if m.ShootMode {
 		return shootRange
 	}
 	if len(m.Players) > 0 && m.CurrentPlayer < len(m.Players) {
-		if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+		if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
 			r -= 2
 		}
 	}
@@ -225,7 +245,7 @@ func (m Model) currentRange() int {
 	return r
 }
 
-func (m Model) IsInRange(col, row int) bool {
+func (m *Model) IsInRange(col, row int) bool {
 	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
 		return false
 	}
@@ -239,7 +259,7 @@ func (m Model) IsInRange(col, row int) bool {
 	return !m.HasWallBetweenPoints(current.X, current.Y, col, row)
 }
 
-func (m Model) Reachable(sx, sy, r int) map[Point]bool {
+func (m *Model) Reachable(sx, sy, r int) map[Point]bool {
 	type state struct {
 		x, y, steps int
 	}
@@ -286,7 +306,7 @@ func (m Model) Reachable(sx, sy, r int) map[Point]bool {
 	return result
 }
 
-func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
+func (m *Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	startX, startY := x0, y0
 	dx := utils.Abs(x1 - x0)
 	dy := utils.Abs(y1 - y0)
@@ -324,7 +344,7 @@ func (m Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	return false
 }
 
-func (m Model) ultCross(cx, cy int) []Point {
+func (m *Model) ultCross(cx, cy int) []Point {
 	offsets := []Point{
 		{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1},
 	}
@@ -342,12 +362,95 @@ func (m Model) ultCross(cx, cy int) []Point {
 	return pts
 }
 
-func (m Model) ultInAxisRange(cx, cy int) bool {
+func (m *Model) ultInAxisRange(cx, cy int) bool {
 	current := m.Players[m.CurrentPlayer]
 	return cx == current.X || cy == current.Y
 }
 
-func (m Model) doUlt() Model {
+func (m *Model) doConfirm() *Model {
+	p := Point{m.CursorX, m.CursorY}
+	current := m.Players[m.CurrentPlayer]
+	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+
+	if m.UltMode && !m.Shot {
+		m = m.doUlt()
+		cur := m.Players[m.CurrentPlayer]
+		m.CursorX = cur.X
+		m.CursorY = cur.Y
+	} else if m.ShootMode && !m.Shot {
+		if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
+			m.Shot = true
+			m.ShootMode = false
+			return m
+		}
+		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+			for i, pl := range m.Players {
+				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
+					m.Players[i].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
+					if m.Players[i].HP <= 0 {
+						m.Players = append(m.Players[:i], m.Players[i+1:]...)
+						if m.CurrentPlayer >= len(m.Players) {
+							m.CurrentPlayer = 0
+						}
+					}
+					break
+				}
+			}
+			for i, en := range m.Enemys {
+				if en.X == m.CursorX && en.Y == m.CursorY {
+					m.Enemys[i].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
+					if m.Enemys[i].HP <= 0 {
+						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+					}
+					break
+				}
+			}
+			m.Shot = true
+			m.ShootMode = false
+			cur := m.Players[m.CurrentPlayer]
+			m.CursorX = cur.X
+			m.CursorY = cur.Y
+		}
+	} else if !m.ShootMode && !m.UltMode && !m.Moved {
+		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+			m.Players[m.CurrentPlayer].X = m.CursorX
+			m.Players[m.CurrentPlayer].Y = m.CursorY
+
+			if m.Water[p] {
+				m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+					m.Players[m.CurrentPlayer].Effects,
+					Effect{Type: EffectWet, Duration: 2},
+				)
+			}
+			if m.FireTiles[p] > 0 {
+				if !HasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+					m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+						m.Players[m.CurrentPlayer].Effects,
+						Effect{Type: EffectFire, Duration: 2},
+					)
+				}
+			}
+			if m.SmokeTiles[p] > 0 {
+				m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+					m.Players[m.CurrentPlayer].Effects,
+					Effect{Type: EffectSmoke, Duration: 2},
+				)
+			}
+
+			m.Moved = true
+			m.CursorX = m.Players[m.CurrentPlayer].X
+			m.CursorY = m.Players[m.CurrentPlayer].Y
+		}
+	}
+
+	return m
+}
+
+func (m *Model) doUlt() *Model {
 	current := m.Players[m.CurrentPlayer]
 	if current.UltCharges <= 0 {
 		return m
@@ -382,15 +485,15 @@ func (m Model) doUlt() Model {
 			continue
 		}
 		if m.SmokeTiles[p] > 0 {
-			m.Players[i].Effects = resolveEffects(
+			m.Players[i].Effects = ResolveEffects(
 				m.Players[i].Effects,
 				Effect{Type: EffectSmoke, Duration: 2},
 			)
 		} else if m.FireTiles[p] > 0 {
-			if hasEffect(pl.Effects, EffectWet) {
-				m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
+			if HasEffect(pl.Effects, EffectWet) {
+				m.Players[i].Effects = RemoveEffect(m.Players[i].Effects, EffectWet)
 			} else {
-				m.Players[i].Effects = resolveEffects(
+				m.Players[i].Effects = ResolveEffects(
 					m.Players[i].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
@@ -404,15 +507,15 @@ func (m Model) doUlt() Model {
 			continue
 		}
 		if m.SmokeTiles[p] > 0 {
-			m.Enemys[i].Effects = resolveEffects(
+			m.Enemys[i].Effects = ResolveEffects(
 				m.Enemys[i].Effects,
 				Effect{Type: EffectSmoke, Duration: 2},
 			)
 		} else if m.FireTiles[p] > 0 {
-			if hasEffect(en.Effects, EffectWet) {
-				m.Enemys[i].Effects = removeEffect(m.Enemys[i].Effects, EffectWet)
+			if HasEffect(en.Effects, EffectWet) {
+				m.Enemys[i].Effects = RemoveEffect(m.Enemys[i].Effects, EffectWet)
 			} else {
-				m.Enemys[i].Effects = resolveEffects(
+				m.Enemys[i].Effects = ResolveEffects(
 					m.Enemys[i].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
@@ -423,7 +526,7 @@ func (m Model) doUlt() Model {
 	return m
 }
 
-func (m Model) tickFireTiles() Model {
+func (m *Model) tickFireTiles() *Model {
 	for p, t := range m.FireTiles {
 		t--
 		if t <= 0 {
@@ -443,24 +546,26 @@ func (m Model) tickFireTiles() Model {
 	return m
 }
 
-func (m Model) nextTurn() Model {
+func (m *Model) nextTurn() *Model {
 	m.Moved = false
 	m.Shot = false
 	m.ShootMode = false
 	m.UltMode = false
 	m.UltAxis = ""
 
-	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
+	if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
 		m.Players[m.CurrentPlayer].HP--
+		m.BoxTrigger = TriggerDamage
+		m.TriggerTimer = 6
 	}
 
-	m.Players[m.CurrentPlayer].Effects = tickEffects(
+	m.Players[m.CurrentPlayer].Effects = TickEffects(
 		m.Players[m.CurrentPlayer].Effects,
 	)
 
 	p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
 	if m.Water[p] {
-		m.Players[m.CurrentPlayer].Effects = resolveEffects(
+		m.Players[m.CurrentPlayer].Effects = ResolveEffects(
 			m.Players[m.CurrentPlayer].Effects,
 			Effect{Type: EffectWet, Duration: 2},
 		)
@@ -469,7 +574,7 @@ func (m Model) nextTurn() Model {
 	if m.CurrentPlayer == len(m.Players)-1 {
 		m = m.tickFireTiles()
 		for i := range m.Players {
-			m.Players[i].Effects = tickEffects(m.Players[i].Effects)
+			m.Players[i].Effects = TickEffects(m.Players[i].Effects)
 		}
 	}
 
@@ -486,7 +591,7 @@ func enemyTurnCmd(idx int) tea.Cmd {
 	})
 }
 
-func (m Model) OccupiedByOther(x, y int) bool {
+func (m *Model) OccupiedByOther(x, y int) bool {
 	for i, p := range m.Players {
 		if i != m.CurrentPlayer && p.X == x && p.Y == y {
 			return true
@@ -500,7 +605,7 @@ func (m Model) OccupiedByOther(x, y int) bool {
 	return false
 }
 
-func (m Model) turnOrder() string {
+func (m *Model) turnOrder() string {
 	var parts []string
 
 	for i, pl := range m.Players {
@@ -514,7 +619,7 @@ func (m Model) turnOrder() string {
 	}
 
 	parts = append(parts, lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).Render(" · "))
+		Foreground(m.Theme.SelectionBg()).Render(" · "))
 
 	for i, en := range m.Enemys {
 		symbol := " ▲ "
@@ -527,4 +632,64 @@ func (m Model) turnOrder() string {
 	}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
+}
+
+func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
+	if m.Screen == ScreenMenu {
+		switch m.MenuSelected {
+		case 0:
+			m.Screen = ScreenGame
+			m.startGame()
+		case 1:
+			m.Screen = ScreenSettings
+			m.MenuSelected = 0
+		case 2:
+			return m, tea.Quit
+		}
+	} else if m.Screen == ScreenSettings {
+		hasLang := len(m.Localizer.AvailableLanguages()) > 1
+		hasThemes := len(m.AvailableThemes) > 1
+		n := 0
+		if hasLang {
+			if m.MenuSelected == n {
+				languages := m.Localizer.AvailableLanguages()
+				currentIdx := 0
+				for i, l := range languages {
+					if l == m.Localizer.GetLanguage() {
+						currentIdx = i
+						break
+					}
+				}
+				nextIdx := (currentIdx + 1) % len(languages)
+				if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
+					return m, nil
+				}
+				return m, nil
+			}
+			n++
+		}
+		if hasThemes {
+			if m.MenuSelected == n {
+				m.Screen = ScreenThemeSelect
+				m.MenuSelected = 0
+				return m, nil
+			}
+			n++
+		}
+		if m.MenuSelected == n {
+			m.CenterWindow = !m.CenterWindow
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
+			m.EnableBackground = !m.EnableBackground
+			return m, nil
+		}
+		m.Screen = ScreenMenu
+		m.MenuSelected = 0
+	} else if m.Screen == ScreenThemeSelect {
+		m.Screen = ScreenSettings
+		m.MenuSelected = 0
+	}
+	return m, nil
 }

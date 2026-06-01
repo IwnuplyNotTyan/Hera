@@ -16,8 +16,8 @@ func TestStringWidth_WithWideChars(t *testing.T) {
 	assert.Equal(t, 5, StringWidth("hello"))
 	assert.Equal(t, 12, StringWidth("Привет"))
 	assert.Equal(t, 15, StringWidth("Привет hi"))
-	assert.Equal(t, 2, StringWidth("⽕"))
-	assert.Equal(t, 5, StringWidth("⽕ U "))
+	assert.Equal(t, 1, StringWidth("⚹"))
+	assert.Equal(t, 4, StringWidth("⚹ U "))
 }
 
 func TestStringWidth_WithEmoji(t *testing.T) {
@@ -32,7 +32,7 @@ func TestRuneWidth(t *testing.T) {
 	assert.Equal(t, 1, RuneWidth('a'))
 	assert.Equal(t, 1, RuneWidth('1'))
 	assert.Equal(t, 1, RuneWidth(' '))
-	assert.Equal(t, 2, RuneWidth('⽕'))
+	assert.Equal(t, 1, RuneWidth('⚹'))
 	assert.Equal(t, 2, RuneWidth('♥'))
 	assert.Equal(t, 2, RuneWidth('●'))
 }
@@ -81,7 +81,7 @@ func TestAlignCenter_ASCII(t *testing.T) {
 }
 
 func TestAlignCenter_WithWideChars(t *testing.T) {
-	result := AlignCenter("⽕", 6)
+	result := AlignCenter("⚹", 6)
 	assert.Equal(t, 6, StringWidth(result))
 }
 
@@ -96,21 +96,22 @@ func TestAlignRight_WithWideChars(t *testing.T) {
 	assert.Equal(t, 12, StringWidth(result))
 }
 
-func TestContainsWideChars_True(t *testing.T) {
-	assert.True(t, ContainsWideChars("⽕ U "))
-	assert.True(t, ContainsWideChars("hello⽕"))
+func TestContainsWideChars_CJK(t *testing.T) {
+	assert.True(t, ContainsWideChars("你好"))
+	assert.True(t, ContainsWideChars("그래"))
 }
 
 func TestContainsWideChars_False(t *testing.T) {
 	assert.False(t, ContainsWideChars("hello"))
 	assert.False(t, ContainsWideChars("12345"))
 	assert.False(t, ContainsWideChars("abc"))
+	assert.False(t, ContainsWideChars("⚹ U "))
 }
 
 func TestValidUTF8(t *testing.T) {
 	assert.True(t, ValidUTF8("hello"))
 	assert.True(t, ValidUTF8("Привет"))
-	assert.True(t, ValidUTF8("⽕ U "))
+	assert.True(t, ValidUTF8("⚹ U "))
 	assert.False(t, ValidUTF8(string([]byte{0xff, 0xfe})))
 }
 

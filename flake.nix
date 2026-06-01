@@ -1,27 +1,62 @@
 {
-  description = "A very basic flake";
+  description = "🐙 Less 3";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = { nixpkgs, ... }:
-	let
-		system = "x86_64-linux";
-		pkgs = nixpkgs.legacyPackages.${system};
-	in
-	{
-		devShells.${system}.default = pkgs.mkShell {
-			packages = with pkgs; [
-				go
-				gopls
-				gotools
-				golangci-lint			
-			];
+  outputs = { self, nixpkgs, ... }:
+    let
+      systems = [
+        "x86_64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      packages = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+	  version = "0.1.0";
+          commit = self.rev or "dirty";
+        in
+        {
+          default = pkgs.buildGoModule {
+            pname = "hera";
+            inherit version;
+            src = self;
+            modules = ./gomod2nix.toml;
 
-			shellHook = ''
-				alias build="go build -o ./bin/hera ."
-			'';
-		};
-  };
+            ldflags = [
+              "-X main.version=${version}"
+              "-X main.commit=${commit}"
+	      "-s"
+	      "-w"
+            ];
+
+            vendorHash = "sha256-YTEHyzFRtYsLRQZ3oAPqIZSklLk97QvCf5Gbx5oJpSE=";
+
+            meta = {
+              description = "A tactical turn-based game. Made with ♡";
+              homepage = "https://github.com/IwnuplyNotTyan/hera";
+              mainProgram = "hera";
+            };
+          };
+	});
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              go
+              gopls
+              gotools
+              golangci-lint
+            ];
+          };
+        });
+    };
 }

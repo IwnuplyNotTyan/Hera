@@ -3,6 +3,7 @@ package i18n
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,6 +16,7 @@ type Localizer interface {
 	GetLanguage() string
 	SetLanguage(lang string) error
 	AvailableLanguages() []string
+	RandomEasterEgg() string
 }
 
 type Translator struct {
@@ -230,4 +232,24 @@ func (t *Translator) AvailableLanguages() []string {
 		languages = append(languages, lang)
 	}
 	return languages
+}
+
+func (t *Translator) RandomEasterEgg() string {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	eggs, ok := t.translations[t.currentLang]["easterEggs"].([]any)
+	if !ok || len(eggs) == 0 {
+		eggs, ok = t.translations[t.defaultLang]["easterEggs"].([]any)
+		if !ok || len(eggs) == 0 {
+			return "???（ ╯°□°）╯︵ ┻━┻"
+		}
+	}
+
+	idx := rand.Intn(len(eggs))
+	egg, ok := eggs[idx].(string)
+	if !ok {
+		return "???（ ╯°□°）╯︵ ┻━┻"
+	}
+	return egg
 }

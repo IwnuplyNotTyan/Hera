@@ -7,16 +7,17 @@ import (
 )
 
 type keyMap struct {
-	Up      key.Binding
-	Down    key.Binding
-	Left    key.Binding
-	Right   key.Binding
-	Confirm key.Binding
-	Shoot   key.Binding
-	Ult     key.Binding
-	Help    key.Binding
-	Quit    key.Binding
-	loc     i18n.Localizer
+	Up         key.Binding
+	Down       key.Binding
+	Left       key.Binding
+	Right      key.Binding
+	Confirm    key.Binding
+	Shoot      key.Binding
+	Ult        key.Binding
+	EffectInfo key.Binding
+	Help       key.Binding
+	Quit       key.Binding
+	loc        i18n.Localizer
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
@@ -26,7 +27,7 @@ func (k keyMap) ShortHelp() []key.Binding {
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
-		{k.Confirm, k.Shoot, k.Ult},
+		{k.Confirm, k.Shoot, k.Ult, k.EffectInfo},
 		{k.Help, k.Quit},
 	}
 }
@@ -50,8 +51,8 @@ func newKeyMap(loc i18n.Localizer) keyMap {
 			key.WithHelp(loc.T("keys.right"), loc.T("help.moveRight")),
 		),
 		Confirm: key.NewBinding(
-			key.WithKeys("x"),
-			key.WithHelp(loc.T("keys.confirm"), loc.T("help.movePlayer")),
+			key.WithKeys("x", "enter"),
+			key.WithHelp("x", "confirm"),
 		),
 		Shoot: key.NewBinding(
 			key.WithKeys("z"),
@@ -60,6 +61,10 @@ func newKeyMap(loc i18n.Localizer) keyMap {
 		Ult: key.NewBinding(
 			key.WithKeys("c"),
 			key.WithHelp(loc.T("keys.ult"), loc.T("help.secondAttack")),
+		),
+		EffectInfo: key.NewBinding(
+			key.WithKeys("v"),
+			key.WithHelp(loc.T("keys.effectInfo"), loc.T("help.effectInfo")),
 		),
 		Help: key.NewBinding(
 			key.WithKeys("?"),

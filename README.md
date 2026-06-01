@@ -12,7 +12,9 @@
   <img src="https://img.shields.io/github/last-commit/IwnuplyNotTyan/Hera" alt="Last Commit"/>
 </p>
 
-![Screenshot](https://github.com/IwnuplyNotTyan/Hera/blob/main/.github/assets/screenshot.png?raw=true)
+<p align="center">
+  <img src="https://github.com/IwnuplyNotTyan/Hera/blob/main/.github/assets/screenshot.png?raw=true" alt="Screenshot">
+</p>
 
 ---
 
@@ -31,21 +33,33 @@ go mod download
 go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
-**Supported tags:**
+**Tags:**
 
 | Tag | Desc                 |
 |-----|----------------------|
 | eng | Only English Locales |
+| notint| Disable themes     |
 
 
-**Supported flags:**
+**LDFlags:**
+| Flags | Example | Desc |
+|-------|---------|------|
+|main.version|-ldflags="-X main.version=1.0.0| --version number|
+|main.commit|-ldflags="-X main.commit=$(git rev-parse HEAD)"| --version commit|
 
-| Short | Long     | Desc            |
-|-------|----------|-----------------|
-| -h    | help     | Help            |
-| -l    | --lang   | Change language |
-| -t    | --theme  | Change themes   |
-| -v    | --version| Version         |
+
+**Flags:**
+
+| Short | Long     | Desc             |
+|-------|----------|------------------|
+| -h    | help     | Help             |
+| -l    | --lang   | Change language  |
+| -t    | --theme  | Change themes    |
+| -v    | --version| Version          |
+| -e    | --enemies| Number of enemies|
+| -p    | --players| Number of players|
+| -E    | --enemy-effects| Effects for enemies|
+| -P    | --player-effects| Effects for players|
 
 
 ---
@@ -57,7 +71,6 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 ## 🛠️ Libraries Used
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) — TUI framework, core architecture
-    - [Bubblezone](https://github.com/lrstanley/bubblezone) — Mouse support
     - [Bubbletint](https://github.com/lrstanley/bubbletint) — Themes
     - [Bubbles](https://github.com/charmbracelet/bubbles) — Modular widgets/components
 - [Lip Gloss](https://github.com/charmbracelet/lipgloss) — Terminal styling

@@ -1,4 +1,33 @@
 {
+  "error": {
+    "terminalTooSmall": "Terminal too small"
+  },
+  "easterEggs": [
+    "the fish drowned",
+    "you asked for it",
+    "glitch in the matrix",
+    "this is fine",
+    "dont panic",
+    "its a feature",
+    "404 idea not found",
+    "I   Unicode"
+  ],
+  "menu": {
+    "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
+    "start": "Start Game",
+    "settings": "Settings",
+    "exit": "Exit"
+  },
+  "settings": {
+    "title": "SETTINGS",
+    "selectTheme": "SELECT THEME",
+    "noResults": "no results",
+    "language": "Language",
+    "theme": "Theme",
+    "center": "Center",
+    "background": "Background",
+    "back": "Back"
+  },
   "game": {
     "gameOver": " Game Over "
   },
@@ -6,9 +35,9 @@
     "player": "Player {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
-    "ult": "⽕ U",
-    "ultCharges": "⽕×{n}",
-    "ultChargesZero": "⽕×0"
+    "ult": "⚹ U",
+    "ultCharges": "⚹×{n}",
+    "ultChargesZero": "⚹×0"
   },
   "cursor": {
     "coordinates": "({x}, {y}) ",
@@ -26,10 +55,10 @@
       "wallInWay": "⊘ Wall in the way",
       "water": "≈ Water — passable",
       "smoke": "~ Smoke — {n} turns left",
-      "fire": "⽕ Fire — {n} turns left"
+      "fire": "⚹ Fire — {n} turns left"
     },
     "range": {
-      "ult": "⽕ Ult target",
+      "ult": "⚹ Ult target",
       "outOfUltAxis": "· Out of ult axis",
       "inShootRange": "· In shoot range",
       "inMoveRange": "· In move range",
@@ -37,9 +66,18 @@
     }
   },
   "effects": {
-    "fire": "⽕ {n}",
+    "fire": "⚹ {n}",
     "wet": "≈ {n}",
-    "smoke": "~ {n}"
+    "smoke": "~ {n}",
+    "desc": {
+      "fire": "Deals 1 dmg/turn. Removed by Water.",
+      "wet": "Range -2 & clears Fire",
+      "smoke": "Prevents shooting for duration."
+    }
+  },
+  "effectInfo": {
+    "title": "EFFECTS",
+    "none": "No effects"
   },
   "help": {
     "moveUp": "Move Up",
@@ -49,7 +87,9 @@
     "movePlayer": "Move Player",
     "changeMode": "Change Mode",
     "secondAttack": "Second Attack",
-    "toggleHelp": "Toggle Help",
+    "toggleHelp": "Help",
+    "effectInfo": "Menu",
+    "skipTurn": "⏭ Skip Turn",
     "quit": "Quit"
   },
   "keys": {
@@ -61,6 +101,7 @@
     "shoot": "Z",
     "ult": "C",
     "help": "?",
-    "quit": "q"
+    "quit": "q",
+    "effectInfo": "V"
   }
 }

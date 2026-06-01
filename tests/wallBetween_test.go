@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/lipgloss"
+	bubbletint "github.com/lrstanley/bubbletint"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,6 +20,9 @@ func TestHasWallBetween_WallBlocks(t *testing.T) {
 }
 
 func TestHasWallBetween_StartNotCounted(t *testing.T) {
+	bubbletint.NewDefaultRegistry()
+	generate.RegisterDefaults()
+	theme := bubbletint.DefaultRegistry
 	walls := map[generate.Point]bool{
 		{X: 4, Y: 5}: true,
 	}
@@ -27,6 +31,8 @@ func TestHasWallBetween_StartNotCounted(t *testing.T) {
 		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
 	}
 	m := generate.Model{
+		Theme:         theme,
+		Styles:        generate.NewStyles(theme),
 		Players:       players,
 		CurrentPlayer: 0,
 		CursorX:       4, CursorY: 5,
