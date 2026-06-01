@@ -8,11 +8,15 @@ import (
 	"hera/utils"
 
 	"github.com/charmbracelet/lipgloss"
+	bubbletint "github.com/lrstanley/bubbletint"
 	"github.com/stretchr/testify/assert"
 )
 
 func testModel() generate.Model {
 	loc, _ := i18n.NewTranslator("../locales", "en")
+	bubbletint.NewDefaultRegistry()
+	generate.RegisterDefaults()
+	theme := bubbletint.DefaultRegistry
 	walls := map[generate.Point]bool{
 		{X: 3, Y: 5}: true,
 	}
@@ -24,6 +28,8 @@ func testModel() generate.Model {
 		{X: 9, Y: 9, HP: generate.MaxHP, Style: lipgloss.NewStyle()},
 	}
 	return generate.Model{
+		Theme:         theme,
+		Styles:        generate.NewStyles(theme),
 		Players:       players,
 		CurrentPlayer: 0,
 		CursorX:       4,
