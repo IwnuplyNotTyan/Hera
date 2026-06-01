@@ -196,14 +196,14 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 			m.Enemys[idx].Y = mv.Y
 
 			p := Point{mv.X, mv.Y}
-			if m.FireTiles[p] > 0 && !hasEffect(m.Enemys[idx].Effects, EffectWet) {
-				m.Enemys[idx].Effects = resolveEffects(
+			if m.FireTiles[p] > 0 && !HasEffect(m.Enemys[idx].Effects, EffectWet) {
+				m.Enemys[idx].Effects = ResolveEffects(
 					m.Enemys[idx].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
 			}
 			if m.Water[p] {
-				m.Enemys[idx].Effects = resolveEffects(
+				m.Enemys[idx].Effects = ResolveEffects(
 					m.Enemys[idx].Effects,
 					Effect{Type: EffectWet, Duration: 2},
 				)
@@ -217,11 +217,11 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 		}
 	}
 
-	if hasEffect(m.Enemys[idx].Effects, EffectFire) && m.Enemys[idx].HP > 1 {
+	if HasEffect(m.Enemys[idx].Effects, EffectFire) && m.Enemys[idx].HP > 1 {
 		m.Enemys[idx].HP--
 	}
 
-	m.Enemys[idx].Effects = tickEffects(m.Enemys[idx].Effects)
+	m.Enemys[idx].Effects = TickEffects(m.Enemys[idx].Effects)
 	return m
 }
 
@@ -235,7 +235,7 @@ func (m *Model) currentRange() int {
 		return shootRange
 	}
 	if len(m.Players) > 0 && m.CurrentPlayer < len(m.Players) {
-		if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+		if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
 			r -= 2
 		}
 	}
@@ -378,7 +378,7 @@ func (m *Model) doConfirm() *Model {
 		m.CursorX = cur.X
 		m.CursorY = cur.Y
 	} else if m.ShootMode && !m.Shot {
-		if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
+		if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
 			m.Shot = true
 			m.ShootMode = false
 			return m
@@ -421,21 +421,21 @@ func (m *Model) doConfirm() *Model {
 			m.Players[m.CurrentPlayer].Y = m.CursorY
 
 			if m.Water[p] {
-				m.Players[m.CurrentPlayer].Effects = resolveEffects(
+				m.Players[m.CurrentPlayer].Effects = ResolveEffects(
 					m.Players[m.CurrentPlayer].Effects,
 					Effect{Type: EffectWet, Duration: 2},
 				)
 			}
 			if m.FireTiles[p] > 0 {
-				if !hasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
-					m.Players[m.CurrentPlayer].Effects = resolveEffects(
+				if !HasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+					m.Players[m.CurrentPlayer].Effects = ResolveEffects(
 						m.Players[m.CurrentPlayer].Effects,
 						Effect{Type: EffectFire, Duration: 2},
 					)
 				}
 			}
 			if m.SmokeTiles[p] > 0 {
-				m.Players[m.CurrentPlayer].Effects = resolveEffects(
+				m.Players[m.CurrentPlayer].Effects = ResolveEffects(
 					m.Players[m.CurrentPlayer].Effects,
 					Effect{Type: EffectSmoke, Duration: 2},
 				)
@@ -485,15 +485,15 @@ func (m *Model) doUlt() *Model {
 			continue
 		}
 		if m.SmokeTiles[p] > 0 {
-			m.Players[i].Effects = resolveEffects(
+			m.Players[i].Effects = ResolveEffects(
 				m.Players[i].Effects,
 				Effect{Type: EffectSmoke, Duration: 2},
 			)
 		} else if m.FireTiles[p] > 0 {
-			if hasEffect(pl.Effects, EffectWet) {
-				m.Players[i].Effects = removeEffect(m.Players[i].Effects, EffectWet)
+			if HasEffect(pl.Effects, EffectWet) {
+				m.Players[i].Effects = RemoveEffect(m.Players[i].Effects, EffectWet)
 			} else {
-				m.Players[i].Effects = resolveEffects(
+				m.Players[i].Effects = ResolveEffects(
 					m.Players[i].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
@@ -507,15 +507,15 @@ func (m *Model) doUlt() *Model {
 			continue
 		}
 		if m.SmokeTiles[p] > 0 {
-			m.Enemys[i].Effects = resolveEffects(
+			m.Enemys[i].Effects = ResolveEffects(
 				m.Enemys[i].Effects,
 				Effect{Type: EffectSmoke, Duration: 2},
 			)
 		} else if m.FireTiles[p] > 0 {
-			if hasEffect(en.Effects, EffectWet) {
-				m.Enemys[i].Effects = removeEffect(m.Enemys[i].Effects, EffectWet)
+			if HasEffect(en.Effects, EffectWet) {
+				m.Enemys[i].Effects = RemoveEffect(m.Enemys[i].Effects, EffectWet)
 			} else {
-				m.Enemys[i].Effects = resolveEffects(
+				m.Enemys[i].Effects = ResolveEffects(
 					m.Enemys[i].Effects,
 					Effect{Type: EffectFire, Duration: 2},
 				)
@@ -553,19 +553,19 @@ func (m *Model) nextTurn() *Model {
 	m.UltMode = false
 	m.UltAxis = ""
 
-	if hasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
+	if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectFire) && m.Players[m.CurrentPlayer].HP > 1 {
 		m.Players[m.CurrentPlayer].HP--
 		m.BoxTrigger = TriggerDamage
 		m.TriggerTimer = 6
 	}
 
-	m.Players[m.CurrentPlayer].Effects = tickEffects(
+	m.Players[m.CurrentPlayer].Effects = TickEffects(
 		m.Players[m.CurrentPlayer].Effects,
 	)
 
 	p := Point{m.Players[m.CurrentPlayer].X, m.Players[m.CurrentPlayer].Y}
 	if m.Water[p] {
-		m.Players[m.CurrentPlayer].Effects = resolveEffects(
+		m.Players[m.CurrentPlayer].Effects = ResolveEffects(
 			m.Players[m.CurrentPlayer].Effects,
 			Effect{Type: EffectWet, Duration: 2},
 		)
@@ -574,7 +574,7 @@ func (m *Model) nextTurn() *Model {
 	if m.CurrentPlayer == len(m.Players)-1 {
 		m = m.tickFireTiles()
 		for i := range m.Players {
-			m.Players[i].Effects = tickEffects(m.Players[i].Effects)
+			m.Players[i].Effects = TickEffects(m.Players[i].Effects)
 		}
 	}
 
@@ -619,7 +619,7 @@ func (m *Model) turnOrder() string {
 	}
 
 	parts = append(parts, lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#444444")).Render(" · "))
+		Foreground(m.Theme.SelectionBg()).Render(" · "))
 
 	for i, en := range m.Enemys {
 		symbol := " ▲ "

@@ -1,6 +1,6 @@
 package generate
 
-func effectIcon(t EffectType) string {
+func EffectIcon(t EffectType) string {
 	switch t {
 	case EffectWet:
 		return "≈"
@@ -13,7 +13,7 @@ func effectIcon(t EffectType) string {
 	}
 }
 
-func hasEffect(effects []Effect, t EffectType) bool {
+func HasEffect(effects []Effect, t EffectType) bool {
 	for _, e := range effects {
 		if e.Type == t {
 			return true
@@ -22,7 +22,7 @@ func hasEffect(effects []Effect, t EffectType) bool {
 	return false
 }
 
-func addEffect(effects []Effect, e Effect) []Effect {
+func AddEffect(effects []Effect, e Effect) []Effect {
 	for i, ex := range effects {
 		if ex.Type == e.Type {
 			effects[i].Duration = e.Duration
@@ -32,7 +32,7 @@ func addEffect(effects []Effect, e Effect) []Effect {
 	return append(effects, e)
 }
 
-func removeEffect(effects []Effect, t EffectType) []Effect {
+func RemoveEffect(effects []Effect, t EffectType) []Effect {
 	out := make([]Effect, 0, len(effects))
 	for _, e := range effects {
 		if e.Type != t {
@@ -42,20 +42,20 @@ func removeEffect(effects []Effect, t EffectType) []Effect {
 	return out
 }
 
-func resolveEffects(effects []Effect, new Effect) []Effect {
+func ResolveEffects(effects []Effect, new Effect) []Effect {
 	switch new.Type {
 	case EffectFire:
-		effects = removeEffect(effects, EffectWet)
+		effects = RemoveEffect(effects, EffectWet)
 	case EffectWet:
-		effects = removeEffect(effects, EffectFire)
+		effects = RemoveEffect(effects, EffectFire)
 	case EffectSmoke:
-		effects = removeEffect(effects, EffectFire)
-		effects = removeEffect(effects, EffectWet)
+		effects = RemoveEffect(effects, EffectFire)
+		effects = RemoveEffect(effects, EffectWet)
 	}
-	return addEffect(effects, new)
+	return AddEffect(effects, new)
 }
 
-func tickEffects(effects []Effect) []Effect {
+func TickEffects(effects []Effect) []Effect {
 	out := make([]Effect, 0, len(effects))
 	for _, e := range effects {
 		e.Duration--

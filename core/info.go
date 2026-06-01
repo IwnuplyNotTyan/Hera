@@ -11,21 +11,24 @@ import (
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
 
-func renderEffects(effects []Effect, loc i18n.Localizer, highlightIdx int) string {
+func renderEffects(effects []Effect, loc i18n.Localizer, highlightIdx int, th ThemeRegistry) string {
+	if th == nil {
+		return ""
+	}
 	var parts []string
 	for i, e := range effects {
-		icon := effectIcon(e.Type)
+		icon := EffectIcon(e.Type)
 		var s string
 		st := lipgloss.NewStyle().Bold(true)
 		switch e.Type {
 		case EffectFire:
-			st = st.Foreground(lipgloss.Color("#FF4400"))
+			st = st.Foreground(th.Red())
 			s = st.Render(loc.T("effects.fire", e.Duration))
 		case EffectWet:
-			st = st.Foreground(lipgloss.Color("#146fba"))
+			st = st.Foreground(th.Blue())
 			s = st.Render(loc.T("effects.wet", e.Duration))
 		case EffectSmoke:
-			st = st.Foreground(lipgloss.Color("#88AACC"))
+			st = st.Foreground(th.BrightCyan())
 			s = st.Render(loc.T("effects.smoke", e.Duration))
 		default:
 			s = icon + " " + fmt.Sprint(e.Duration)
@@ -90,7 +93,7 @@ func (m *Model) cursorInfo() string {
 				return pl.Style.Render(loc.T("cursor.player.you", hp))
 			}
 			if wallBlocked {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+				return lipgloss.NewStyle().Foreground(m.Theme.BrightRed()).
 					Render(loc.T("cursor.player.wallBlocked", i+1, hp))
 			}
 			return pl.Style.Render(loc.T("cursor.player.other", i+1, hp))
@@ -102,7 +105,7 @@ func (m *Model) cursorInfo() string {
 			hp := strings.Repeat("♥ ", en.HP) + strings.Repeat("♡ ", MaxHP-en.HP)
 
 			if wallBlocked {
-				return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF4444")).
+				return lipgloss.NewStyle().Foreground(m.Theme.BrightRed()).
 					Render(loc.T("cursor.enemy.wallBlocked", i+1, hp))
 			}
 			return en.Style.Render(loc.T("cursor.enemy.default", i+1, hp))
@@ -153,7 +156,7 @@ func (m *Model) effectsLine() string {
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
 		highlightIdx = m.ShowEffectIdx - 1
 	}
-	result := renderEffects(effects, loc, highlightIdx)
+	result := renderEffects(effects, loc, highlightIdx, m.Theme)
 
 	if m.ShowEffectIdx > 0 {
 		if m.ShowEffectIdx == skipIdx {

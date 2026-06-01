@@ -347,7 +347,7 @@ func (m *Model) View() string {
 	if len(m.Players) == 0 {
 		gameOver := m.boxStyle().Render(
 			lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#FF4444")).
+				Foreground(m.Theme.BrightRed()).
 				Bold(true).
 				Render(m.Localizer.T("game.gameOver")),
 		)
@@ -358,7 +358,7 @@ func (m *Model) View() string {
 	hp := strings.Repeat("♥ ", current.HP) + strings.Repeat("♡ ", MaxHP-current.HP)
 	hpStyle := current.Style
 	if current.HP == 1 {
-		hpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")).Bold(true).Blink(true)
+		hpStyle = lipgloss.NewStyle().Foreground(m.Theme.Red()).Bold(true).Blink(true)
 	}
 	hpStr := hpStyle.Render(m.Localizer.T("status.player", m.CurrentPlayer+1, hp))
 
@@ -366,17 +366,17 @@ func (m *Model) View() string {
 	switch {
 	case m.UltMode:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4400")).
+			Foreground(m.Theme.Red()).
 			Bold(true).
 			Render(m.Localizer.T("status.ult"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4444")).
+			Foreground(m.Theme.BrightRed()).
 			Bold(true).
 			Render(m.Localizer.T("status.shoot"))
 	default:
 		modeStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#AAAAAA")).
+			Foreground(m.Theme.Fg()).
 			Render(m.Localizer.T("status.move"))
 	}
 
@@ -384,11 +384,11 @@ func (m *Model) View() string {
 	var ultStr string
 	if ultCharges > 0 {
 		ultStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF4400")).
+			Foreground(m.Theme.Red()).
 			Render(m.Localizer.T("status.ultCharges", ultCharges))
 	} else {
 		ultStr = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#444444")).
+			Foreground(m.Theme.SelectionBg()).
 			Render(m.Localizer.T("status.ultChargesZero"))
 	}
 
@@ -471,7 +471,7 @@ func (m *Model) View() string {
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
-					st = st.Background(lipgloss.Color("#171717"))
+					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
 			case enemyIdx >= 0:
@@ -488,7 +488,7 @@ func (m *Model) View() string {
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
-					st = st.Background(lipgloss.Color("#171717"))
+					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
 			case m.Walls[p]:
@@ -549,7 +549,7 @@ func (m *Model) View() string {
 	)
 
 	line2 := lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(
+		lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render(
 			m.Localizer.T("cursor.coordinates", map[string]interface{}{"x": m.CursorX, "y": m.CursorY}),
 		),
 		info,
