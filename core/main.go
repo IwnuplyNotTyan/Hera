@@ -507,9 +507,9 @@ func (m *Model) View() string {
 					cellContent = m.Styles.WaterStyle.Render(" ≈ ")
 				}
 			case m.FireTiles[p] > 0:
-				cellContent = m.Styles.FireStyle.Render(" ⁺ ")
+				cellContent = m.Styles.FireStyle.Render(" ⚹ ")
 			case isUltCross:
-				cellContent = m.Styles.UltZoneStyle.Render(" + ")
+				cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
 			case isUltAxis:
 				cellContent = m.Styles.UltAxisStyle.Render(" · ")
 			case m.IsInRange(col, row):

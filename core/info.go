@@ -61,7 +61,7 @@ func (m *Model) effectDescLine(e Effect) string {
 	var desc string
 	switch e.Type {
 	case EffectFire:
-		icon = "⽕"
+		icon = "⚹"
 		desc = m.Localizer.T("effects.desc.fire")
 	case EffectWet:
 		icon = "≈"

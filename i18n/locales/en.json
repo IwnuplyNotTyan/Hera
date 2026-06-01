@@ -35,9 +35,9 @@
     "player": "Player {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
-    "ult": "⽕ U",
-    "ultCharges": "⽕×{n}",
-    "ultChargesZero": "⽕×0"
+    "ult": "⚹ U",
+    "ultCharges": "⚹×{n}",
+    "ultChargesZero": "⚹×0"
   },
   "cursor": {
     "coordinates": "({x}, {y}) ",
@@ -55,10 +55,10 @@
       "wallInWay": "⊘ Wall in the way",
       "water": "≈ Water — passable",
       "smoke": "~ Smoke — {n} turns left",
-      "fire": "⽕ Fire — {n} turns left"
+      "fire": "⚹ Fire — {n} turns left"
     },
     "range": {
-      "ult": "⽕ Ult target",
+      "ult": "⚹ Ult target",
       "outOfUltAxis": "· Out of ult axis",
       "inShootRange": "· In shoot range",
       "inMoveRange": "· In move range",
@@ -66,7 +66,7 @@
     }
   },
   "effects": {
-    "fire": "⽕ {n}",
+    "fire": "⚹ {n}",
     "wet": "≈ {n}",
     "smoke": "~ {n}",
     "desc": {

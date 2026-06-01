@@ -36,9 +36,9 @@
     "player": "Игрок {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
-    "ult": "⽕ U",
-    "ultCharges": "⽕×{n}",
-    "ultChargesZero": "⽕×0"
+    "ult": "⚹ U",
+    "ultCharges": "⚹×{n}",
+    "ultChargesZero": "⚹×0"
   },
   "cursor": {
     "coordinates": "({x}, {y}) ",
@@ -56,10 +56,10 @@
       "wallInWay": "⊘ Стена на пути",
       "water": "≈ Вода — проходимо",
       "smoke": "~ Дым — {n} ходов",
-      "fire": "⽕ Огонь — {n} ходов"
+      "fire": "⚹ Огонь — {n} ходов"
     },
     "range": {
-      "ult": "⽕ Цель ульты",
+      "ult": "⚹ Цель ульты",
       "outOfUltAxis": "· Вне оси ульты",
       "inShootRange": "· В зоне выстрела",
       "inMoveRange": "· В зоне движения",
@@ -67,7 +67,7 @@
     }
   },
   "effects": {
-    "fire": "⽕ {n}",
+    "fire": "⚹ {n}",
     "wet": "≈ {n}",
     "smoke": "~ {n}",
     "desc": {

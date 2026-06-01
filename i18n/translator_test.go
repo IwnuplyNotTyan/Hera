@@ -88,7 +88,7 @@ func TestTranslator_T_FallbackToDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	result := loc.T("status.ultCharges", 1)
-	assert.Equal(t, "⽕×1", result)
+	assert.Equal(t, "⚹×1", result)
 }
 
 func TestTranslator_T_WithEffectDuration(t *testing.T) {
@@ -96,7 +96,7 @@ func TestTranslator_T_WithEffectDuration(t *testing.T) {
 	require.NoError(t, err)
 
 	result := loc.T("effects.fire", 3)
-	assert.Equal(t, "⽕ 3", result)
+	assert.Equal(t, "⚹ 3", result)
 }
 
 func TestTranslator_T_MissingKey(t *testing.T) {
@@ -112,7 +112,7 @@ func TestTranslator_T_UltCharges(t *testing.T) {
 	require.NoError(t, err)
 
 	result := loc.T("status.ultCharges", 3)
-	assert.Equal(t, "⽕×3", result)
+	assert.Equal(t, "⚹×3", result)
 }
 
 func TestTranslator_T_UltChargesZero(t *testing.T) {
@@ -120,7 +120,7 @@ func TestTranslator_T_UltChargesZero(t *testing.T) {
 	require.NoError(t, err)
 
 	result := loc.T("status.ultChargesZero")
-	assert.Equal(t, "⽕×0", result)
+	assert.Equal(t, "⚹×0", result)
 }
 
 func TestTranslator_T_AllKeysPresent(t *testing.T) {

@@ -5,7 +5,7 @@ func effectIcon(t EffectType) string {
 	case EffectWet:
 		return "≈"
 	case EffectFire:
-		return "⽕"
+		return "⚹"
 	case EffectSmoke:
 		return "~"
 	default:
