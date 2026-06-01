@@ -43,6 +43,7 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 <details>
 <summary><b>Flags and tags</b></summary>
+
 **Tags:**
 
 | Tag | Desc                 |

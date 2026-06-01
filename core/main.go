@@ -549,7 +549,7 @@ func (m *Model) View() string {
 	)
 
 	line2 := lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render(
+		lipgloss.NewStyle().Foreground(m.Theme.Cyan()).Render(
 			m.Localizer.T("cursor.coordinates", map[string]interface{}{"x": m.CursorX, "y": m.CursorY}),
 		),
 		info,
