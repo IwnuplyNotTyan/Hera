@@ -636,8 +636,8 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	if m.Screen == ScreenMenu {
 		switch m.MenuSelected {
 		case 0:
-			m.Screen = ScreenGame
-			m.startGame()
+			m.Screen = ScreenProfiles
+			m.ProfileSlot = 0
 		case 1:
 			m.Screen = ScreenSettings
 			m.MenuSelected = 0
@@ -698,6 +698,16 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	} else if m.Screen == ScreenThemeSelect {
 		m.Screen = ScreenSettings
 		m.MenuSelected = 0
+	} else if m.Screen == ScreenProfiles {
+		slot := m.ProfileSlot
+		if m.Profiles[slot] != nil {
+			m.Screen = ScreenGame
+			m.startGame()
+		} else {
+			m.ProfileLetters = [3]rune{'A', 'A', 'A'}
+			m.ProfileCursor = 0
+			m.Screen = ScreenProfileCreate
+		}
 	}
 	return m, nil
 }

@@ -45,6 +45,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.Screen == ScreenMenu {
 						m.MenuSelected = elem.Index
 					}
+					if m.Screen == ScreenProfiles {
+						m.ProfileSlot = elem.Index
+					}
 				case ElementSettingsItem:
 					if m.Screen == ScreenSettings {
 						m.MenuSelected = elem.Index
@@ -80,7 +83,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, m.triggerTickCmd()
 			}
-			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenProfiles {
 				return m.doMenuConfirm()
 			}
 		}
@@ -122,7 +125,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate {
 		return m.updateMenu(msg)
 	}
 
@@ -342,6 +345,12 @@ func (m *Model) renderContent(s string) string {
 func (m *Model) View() string {
 	m.resetLayout()
 
+	if m.Screen == ScreenProfiles {
+		return m.viewProfiles()
+	}
+	if m.Screen == ScreenProfileCreate {
+		return m.viewProfileCreate()
+	}
 	if m.Screen == ScreenMenu {
 		return m.viewMenu()
 	}

@@ -356,6 +356,94 @@ func (m *Model) viewThemeSelect() string {
 	return m.renderContent(content)
 }
 
+func (m *Model) viewProfiles() string {
+	title := m.Localizer.T("menu.title")
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	for i := 0; i < 3; i++ {
+		var text string
+		if m.Profiles[i] != nil {
+			text = m.Profiles[i].Name
+		} else {
+			text = "  " + m.Localizer.T("menu.create")
+		}
+		row := len(lines) + 2
+		if i == m.ProfileSlot {
+			lines = append(lines, "  ● "+m.Styles.CursorStyle.Bold(true).Render(text))
+		} else {
+			lines = append(lines, "   ●  "+text)
+		}
+		m.trackElement(Element{
+			Type:   ElementMenuItem,
+			X:      4,
+			Y:      row,
+			Width:  lipgloss.Width(text) + 6,
+			Height: 1,
+			ID:     fmt.Sprintf("profile-%d", i),
+			Index:  i,
+		})
+	}
+
+	lines = append(lines, "")
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.Styles.BoxStyle.Render(content)
+	return m.renderContent(content)
+}
+
+func (m *Model) viewProfileCreate() string {
+	title := m.Localizer.T("menu.createProfile")
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	letterRenders := make([][]string, 3)
+	for i, r := range m.ProfileLetters {
+		if m.Font != nil {
+			rendered := m.Font.Render(string(r))
+			letterRenders[i] = strings.Split(rendered, "\n")
+		} else {
+			letterRenders[i] = []string{string(r), "", "", ""}
+		}
+	}
+
+	for row := 0; row < 4; row++ {
+		var combined string
+		for i := 0; i < 3; i++ {
+			if row < len(letterRenders[i]) {
+				combined += letterRenders[i][row] + "  "
+			} else {
+				combined += "   "
+			}
+		}
+		if row == 0 {
+			lines = append(lines, m.Styles.CursorStyle.Render(combined))
+		} else {
+			lines = append(lines, combined)
+		}
+	}
+
+	var cursorLine string
+	for i := 0; i < 3; i++ {
+		if i == m.ProfileCursor {
+			cursorLine += m.Styles.CursorStyle.Render("^") + "  "
+		} else {
+			cursorLine += "   "
+		}
+	}
+	lines = append(lines, "")
+	lines = append(lines, cursorLine)
+
+	hint := m.Localizer.T("menu.profileHint")
+	lines = append(lines, "")
+	lines = append(lines, lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(hint))
+
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.Styles.BoxStyle.Render(content)
+	return m.renderContent(content)
+}
+
 func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -394,10 +482,47 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		if m.Screen == ScreenProfileCreate {
+			switch keyStr {
+			case "j", "J":
+				m.ProfileLetters[m.ProfileCursor]++
+				if m.ProfileLetters[m.ProfileCursor] > 'Z' {
+					m.ProfileLetters[m.ProfileCursor] = 'A'
+				}
+			case "k", "K":
+				m.ProfileLetters[m.ProfileCursor]--
+				if m.ProfileLetters[m.ProfileCursor] < 'A' {
+					m.ProfileLetters[m.ProfileCursor] = 'Z'
+				}
+			case "h", "H":
+				m.ProfileCursor--
+				if m.ProfileCursor < 0 {
+					m.ProfileCursor = 2
+				}
+			case "l", "L":
+				m.ProfileCursor++
+				if m.ProfileCursor > 2 {
+					m.ProfileCursor = 0
+				}
+			case "enter", "x", "X":
+				name := string(m.ProfileLetters[:])
+				m.Profiles[m.ProfileSlot] = &Profile{Name: name}
+				m.Screen = ScreenProfiles
+			case "esc", "q":
+				m.Screen = ScreenProfiles
+			}
+			return m, nil
+		}
+
 		switch keyStr {
 		case "up", "k", "K":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
+			} else if m.Screen == ScreenProfiles {
+				m.ProfileSlot--
+				if m.ProfileSlot < 0 {
+					m.ProfileSlot = 2
+				}
 			} else {
 				m.MenuSelected--
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
@@ -416,6 +541,11 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j", "J":
 			if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(1)
+			} else if m.Screen == ScreenProfiles {
+				m.ProfileSlot++
+				if m.ProfileSlot > 2 {
+					m.ProfileSlot = 0
+				}
 			} else {
 				m.MenuSelected++
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
@@ -434,7 +564,12 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "left", "h", "H":
-			if m.Screen == ScreenThemeSelect {
+			if m.Screen == ScreenProfiles {
+				m.ProfileSlot--
+				if m.ProfileSlot < 0 {
+					m.ProfileSlot = 2
+				}
+			} else if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
 			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 && len(m.Localizer.AvailableLanguages()) > 1 {
 				languages := m.Localizer.AvailableLanguages()
@@ -454,7 +589,12 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "right", "l", "L":
-			if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
+			if m.Screen == ScreenProfiles {
+				m.ProfileSlot++
+				if m.ProfileSlot > 2 {
+					m.ProfileSlot = 0
+				}
+			} else if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
 				m.navigateTheme(1)
 			} else if m.Screen == ScreenSettings && m.MenuSelected == 0 && len(m.Localizer.AvailableLanguages()) > 1 {
 				languages := m.Localizer.AvailableLanguages()
@@ -490,6 +630,8 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case ScreenMenu:
 				return m, tea.Quit
+			case ScreenProfileCreate:
+				m.Screen = ScreenProfiles
 			}
 		}
 	}

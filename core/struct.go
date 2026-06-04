@@ -72,6 +72,10 @@ type Element struct {
 	Index         int
 }
 
+type Profile struct {
+	Name string
+}
+
 type Screen int
 
 const (
@@ -79,6 +83,8 @@ const (
 	ScreenSettings
 	ScreenThemeSelect
 	ScreenGame
+	ScreenProfiles
+	ScreenProfileCreate
 )
 
 type Model struct {
@@ -125,6 +131,12 @@ type Model struct {
 	startEnemies       int
 	startPlayerEffects []Effect
 	startEnemyEffects  []Effect
+
+	Profiles       [3]*Profile
+	ProfileSlot    int
+	ProfileLetters [3]rune
+	ProfileCursor  int
+	Font           *FLFFont
 }
 
 const (

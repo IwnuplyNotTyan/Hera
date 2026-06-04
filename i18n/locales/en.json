@@ -16,7 +16,10 @@
     "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
     "start": "Start Game",
     "settings": "Settings",
-    "exit": "Exit"
+    "exit": "Exit",
+    "create": "Create",
+    "createProfile": "Create Profile",
+    "profileHint": "j/k: letter  h/l: move  x: confirm"
   },
   "settings": {
     "title": "SETTINGS",

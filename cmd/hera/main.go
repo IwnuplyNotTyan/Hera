@@ -105,6 +105,17 @@ func main() {
 				model.Styles = generate.NewStyles(model.Theme)
 			}
 			model.SetAvailableThemes()
+
+			if model.Font == nil {
+				fontData, err := os.ReadFile("assets/Tmplr.flf")
+				if err == nil {
+					font, ferr := generate.ParseFLF(string(fontData))
+					if ferr == nil {
+						model.Font = font
+					}
+				}
+			}
+
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),
