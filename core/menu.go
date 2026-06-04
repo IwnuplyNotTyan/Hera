@@ -394,9 +394,6 @@ func (m *Model) viewProfiles() string {
 
 func (m *Model) viewProfileCreate() string {
 	title := m.Localizer.T("menu.createProfile")
-	var lines []string
-	lines = append(lines, title)
-	lines = append(lines, "")
 
 	letterRenders := make([][]string, 3)
 	for i, r := range m.ProfileLetters {
@@ -408,6 +405,7 @@ func (m *Model) viewProfileCreate() string {
 		}
 	}
 
+	var letterLines []string
 	for row := 0; row < 4; row++ {
 		var combined string
 		for i := 0; i < 3; i++ {
@@ -418,9 +416,9 @@ func (m *Model) viewProfileCreate() string {
 			}
 		}
 		if row == 0 {
-			lines = append(lines, m.Styles.CursorStyle.Render(combined))
+			letterLines = append(letterLines, m.Styles.CursorStyle.Render(combined))
 		} else {
-			lines = append(lines, combined)
+			letterLines = append(letterLines, combined)
 		}
 	}
 
@@ -432,15 +430,34 @@ func (m *Model) viewProfileCreate() string {
 			cursorLine += "   "
 		}
 	}
-	lines = append(lines, "")
-	lines = append(lines, cursorLine)
+
+	var boxLines []string
+	boxLines = append(boxLines, title)
+	boxLines = append(boxLines, "")
+	boxLines = append(boxLines, letterLines...)
+	boxLines = append(boxLines, "")
+	boxLines = append(boxLines, cursorLine)
+
+	maxW := 0
+	for _, l := range boxLines {
+		if w := lipgloss.Width(l); w > maxW {
+			maxW = w
+		}
+	}
+	for i, l := range boxLines {
+		if w := lipgloss.Width(l); w < maxW {
+			pad := (maxW - w) / 2
+			boxLines[i] = strings.Repeat(" ", pad) + l
+		}
+	}
+
+	boxContent := lipgloss.JoinVertical(lipgloss.Left, boxLines...)
+	content := m.Styles.BoxStyle.Render(boxContent)
 
 	hint := m.Localizer.T("menu.profileHint")
-	lines = append(lines, "")
-	lines = append(lines, lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(hint))
+	hint = lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(hint)
+	content = lipgloss.JoinVertical(lipgloss.Left, content, hint)
 
-	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
-	content = m.Styles.BoxStyle.Render(content)
 	return m.renderContent(content)
 }
 
@@ -630,6 +647,9 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case ScreenMenu:
 				return m, tea.Quit
+			case ScreenProfiles:
+				m.Screen = ScreenMenu
+				m.MenuSelected = 0
 			case ScreenProfileCreate:
 				m.Screen = ScreenProfiles
 			}
