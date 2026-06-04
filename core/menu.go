@@ -367,13 +367,13 @@ func (m *Model) viewProfiles() string {
 		if m.Profiles[i] != nil {
 			text = m.Profiles[i].Name
 		} else {
-			text = "  " + m.Localizer.T("menu.create")
+			text = m.Localizer.T("menu.create")
 		}
 		row := len(lines) + 2
 		if i == m.ProfileSlot {
-			lines = append(lines, "  ● "+m.Styles.CursorStyle.Bold(true).Render(text))
+			lines = append(lines, "  ●  "+m.Styles.CursorStyle.Bold(true).Render(text))
 		} else {
-			lines = append(lines, "   ●  "+text)
+			lines = append(lines, "   ● "+text)
 		}
 		m.trackElement(Element{
 			Type:   ElementMenuItem,
