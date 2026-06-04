@@ -112,12 +112,19 @@ func (m *Model) navigateTheme(direction int) {
 		nextIdx = 0
 	}
 	if m.Config != nil {
+		oldTheme := m.Config.ThemeName
 		m.Config.ThemeName = m.AvailableThemes[nextIdx]
 		if m.Theme != nil {
 			m.Theme.SetTintID(m.Config.ThemeName)
 		}
 		m.Styles = NewStyles(m.Theme)
-		m.SaveConfig()
+		if err := m.SaveConfig(); err != nil {
+			m.Config.ThemeName = oldTheme
+			if m.Theme != nil {
+				m.Theme.SetTintID(oldTheme)
+			}
+			m.Styles = NewStyles(m.Theme)
+		}
 	}
 }
 

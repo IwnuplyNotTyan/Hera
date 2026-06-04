@@ -51,12 +51,19 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				case ElementThemeItem:
 					if m.Screen == ScreenThemeSelect && m.Config != nil {
+						old := m.Config.ThemeName
 						m.Config.ThemeName = elem.ID
 						if m.Theme != nil {
 							m.Theme.SetTintID(elem.ID)
 						}
 						m.Styles = NewStyles(m.Theme)
-						m.SaveConfig()
+						if err := m.SaveConfig(); err != nil {
+							m.Config.ThemeName = old
+							if m.Theme != nil {
+								m.Theme.SetTintID(old)
+							}
+							m.Styles = NewStyles(m.Theme)
+						}
 					}
 				}
 			}

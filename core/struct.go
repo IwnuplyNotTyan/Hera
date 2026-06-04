@@ -84,7 +84,7 @@ const (
 type Model struct {
 	Theme                    ThemeRegistry
 	Styles                   Styles
-	Config 			 *Config
+	Config                   *Config
 	TerminalWidth            int
 	TerminalHeight           int
 	Screen                   Screen

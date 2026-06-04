@@ -6,12 +6,19 @@ import (
 	"path/filepath"
 )
 
+// Config holds persisted user settings (theme, centering, background fill).
+// JSON tags map to fields in ~/.config/hera/config.json.
 type Config struct {
-	ThemeName  string `json:"theme"`
-	CenterWindow   bool   `json:"centered"`
-	Background bool   `json:"background"`
+	ThemeName    string `json:"theme"`
+	CenterWindow bool   `json:"centered"`
+	Background   bool   `json:"background"`
 }
 
+// InitConfig loads settings from ~/.config/hera/config.json.
+// If the file does not exist it is created, using m.Config as defaults
+// (or hardcoded defaults when m.Config is nil). Returns an error when the
+// config directory cannot be determined or created, or when the file cannot
+// be written.
 func (m *Model) InitConfig() error {
 	configDir, err := getConfigDir()
 	if err != nil {
@@ -28,13 +35,16 @@ func (m *Model) InitConfig() error {
 		return m.loadConfig(configPath)
 	}
 
-	defaultConfig := &Config{
-		ThemeName:    "dark",
-		CenterWindow: true,
-		Background:   false,
+	cfg := m.Config
+	if cfg == nil {
+		cfg = &Config{
+			ThemeName:    "dark",
+			CenterWindow: true,
+			Background:   false,
+		}
 	}
 
-	data, err := json.MarshalIndent(defaultConfig, "", "  ")
+	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -43,10 +53,14 @@ func (m *Model) InitConfig() error {
 		return err
 	}
 
-	m.Config = defaultConfig
+	m.Config = cfg
 	return nil
 }
 
+// SaveConfig writes the current Config to ~/.config/hera/config.json.
+// Returns nil when m.Config is nil. Returns an error when the config
+// directory cannot be determined, marshalling fails, or the file cannot
+// be written.
 func (m *Model) SaveConfig() error {
 	if m.Config == nil {
 		return nil

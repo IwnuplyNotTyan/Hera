@@ -48,12 +48,6 @@ func main() {
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
 
-	model := &generate.Model{}
-
-	if err := model.InitConfig(); err != nil {
-		panic(err)
-	}
-
 	cmd := &cobra.Command{
 		Use:   "hera",
 		Short: "Hera - A tactical turn-based game",
@@ -90,16 +84,10 @@ func main() {
 				log.Warn("config", "err", err)
 			}
 			if model.Config != nil {
-				cfgThemes := model.Config.ThemeName
-				cfgCenter := model.Config.CenterWindow
-				cfgBg := model.Config.Background
 				if theme != "" {
-					cfgThemes = theme
+					model.Config.ThemeName = theme
 				}
-				model.Config.ThemeName = cfgThemes
-				model.Config.CenterWindow = cfgCenter
-				model.Config.Background = cfgBg
-				registry.SetTintID(cfgThemes)
+				registry.SetTintID(model.Config.ThemeName)
 				model.Theme = registry
 				model.Styles = generate.NewStyles(model.Theme)
 			}

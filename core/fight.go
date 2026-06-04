@@ -677,7 +677,9 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		if m.MenuSelected == n {
 			if m.Config != nil {
 				m.Config.CenterWindow = !m.Config.CenterWindow
-				m.SaveConfig()
+				if err := m.SaveConfig(); err != nil {
+					m.Config.CenterWindow = !m.Config.CenterWindow
+				}
 			}
 			return m, nil
 		}
@@ -685,7 +687,9 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		if m.MenuSelected == n {
 			if m.Config != nil {
 				m.Config.Background = !m.Config.Background
-				m.SaveConfig()
+				if err := m.SaveConfig(); err != nil {
+					m.Config.Background = !m.Config.Background
+				}
 			}
 			return m, nil
 		}
