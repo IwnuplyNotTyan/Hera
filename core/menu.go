@@ -409,26 +409,17 @@ func (m *Model) viewProfileCreate() string {
 	for row := 0; row < 4; row++ {
 		var combined string
 		for i := 0; i < 3; i++ {
+			part := ""
 			if row < len(letterRenders[i]) {
-				combined += letterRenders[i][row] + "  "
+				part = letterRenders[i][row]
+			}
+			if i == m.ProfileCursor {
+				combined += m.Styles.CursorStyle.Render(part) + "  "
 			} else {
-				combined += "   "
+				combined += part + "  "
 			}
 		}
-		if row == 0 {
-			letterLines = append(letterLines, m.Styles.CursorStyle.Render(combined))
-		} else {
-			letterLines = append(letterLines, combined)
-		}
-	}
-
-	var cursorLine string
-	for i := 0; i < 3; i++ {
-		if i == m.ProfileCursor {
-			cursorLine += m.Styles.CursorStyle.Render("^") + "  "
-		} else {
-			cursorLine += "   "
-		}
+		letterLines = append(letterLines, combined)
 	}
 
 	var boxLines []string
@@ -436,13 +427,16 @@ func (m *Model) viewProfileCreate() string {
 	boxLines = append(boxLines, "")
 	boxLines = append(boxLines, letterLines...)
 	boxLines = append(boxLines, "")
-	boxLines = append(boxLines, cursorLine)
 
+	minW := 42
 	maxW := 0
 	for _, l := range boxLines {
 		if w := lipgloss.Width(l); w > maxW {
 			maxW = w
 		}
+	}
+	if maxW < minW {
+		maxW = minW
 	}
 	for i, l := range boxLines {
 		if w := lipgloss.Width(l); w < maxW {
