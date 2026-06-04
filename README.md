@@ -80,6 +80,10 @@ go build -o ./bin/hera ./cmd/hera/main.go
 - [Cobra](https://github.com/spf13/cobra) — Powerfull flags
     - [Fang](https://github.com/charmbracelet/fang) —  Make it pretty
 
+### 🌑 Assets
+
+- [Tmplr](https://github.com/patorjk/figlet.js/blob/main/fonts/Tmplr.flf) —  ASCII font
+
 ---
 
 ## 📄 License
