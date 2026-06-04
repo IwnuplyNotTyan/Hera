@@ -413,7 +413,7 @@ func (m *Model) viewProfileCreate() string {
 			if row < len(letterRenders[i]) {
 				part = letterRenders[i][row]
 			}
-			if i == m.ProfileCursor {
+			if i == m.ProfileCursor && strings.TrimSpace(part) != "" {
 				combined += m.Styles.CursorStyle.Render(part) + "  "
 			} else {
 				combined += part + "  "
