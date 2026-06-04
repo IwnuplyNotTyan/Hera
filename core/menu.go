@@ -527,14 +527,15 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch keyStr {
 		case "up", "k", "K":
-			if m.Screen == ScreenThemeSelect {
+			switch m.Screen {
+			case ScreenThemeSelect:
 				m.navigateTheme(-1)
-			} else if m.Screen == ScreenProfiles {
+			case ScreenProfiles:
 				m.ProfileSlot--
 				if m.ProfileSlot < 0 {
 					m.ProfileSlot = 2
 				}
-			} else {
+			default:
 				m.MenuSelected--
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
 					m.MenuSelected = 2
@@ -550,14 +551,15 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "down", "j", "J":
-			if m.Screen == ScreenThemeSelect {
+			switch m.Screen {
+			case ScreenThemeSelect:
 				m.navigateTheme(1)
-			} else if m.Screen == ScreenProfiles {
+			case ScreenProfiles:
 				m.ProfileSlot++
 				if m.ProfileSlot > 2 {
 					m.ProfileSlot = 0
 				}
-			} else {
+			default:
 				m.MenuSelected++
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
 					m.MenuSelected = 0

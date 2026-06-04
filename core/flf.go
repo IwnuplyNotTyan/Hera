@@ -35,7 +35,9 @@ func ParseFLF(data string) (*FLFFont, error) {
 	}
 
 	comments := 0
-	fmt.Sscanf(fields[5], "%d", &comments)
+	if len(fields) > 5 {
+		_, _ = fmt.Sscanf(fields[5], "%d", &comments)
+	}
 
 	lineIdx := 1 + comments
 
