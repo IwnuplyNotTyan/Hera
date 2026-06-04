@@ -50,8 +50,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.MenuSelected = elem.Index
 					}
 				case ElementThemeItem:
-					if m.Screen == ScreenThemeSelect {
-						m.ThemeName = elem.ID
+					if m.Screen == ScreenThemeSelect && m.Config != nil {
+						m.Config.ThemeName = elem.ID
 						if m.Theme != nil {
 							m.Theme.SetTintID(elem.ID)
 						}
@@ -281,7 +281,7 @@ func (m *Model) renderContent(s string) string {
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	if m.CenterWindow {
+	if m.Config != nil && m.Config.CenterWindow {
 		marginX := (m.TerminalWidth - contentWidth) / 2
 		marginY := (m.TerminalHeight - contentHeight) / 2
 		s = lipgloss.NewStyle().
@@ -295,7 +295,7 @@ func (m *Model) renderContent(s string) string {
 		m.gridOffsetY = 0
 	}
 
-	if !m.EnableBackground {
+	if m.Config == nil || !m.Config.Background {
 		if m.TerminalWidth > contentWidth {
 			lines := strings.Split(s, "\n")
 			for i, line := range lines {
@@ -323,7 +323,7 @@ func (m *Model) renderContent(s string) string {
 	}
 
 	s = strings.Join(lines, "\n")
-	if m.EnableBackground {
+	if m.Config != nil && m.Config.Background {
 		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
 		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
 	}

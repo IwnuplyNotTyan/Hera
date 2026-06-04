@@ -100,7 +100,7 @@ func (m *Model) startGame() {
 func (m *Model) navigateTheme(direction int) {
 	currentIdx := 0
 	for i, t := range m.AvailableThemes {
-		if t == m.ThemeName {
+		if m.Config != nil && t == m.Config.ThemeName {
 			currentIdx = i
 			break
 		}
@@ -111,9 +111,11 @@ func (m *Model) navigateTheme(direction int) {
 	} else if nextIdx >= len(m.AvailableThemes) {
 		nextIdx = 0
 	}
-	m.ThemeName = m.AvailableThemes[nextIdx]
+	if m.Config != nil {
+		m.Config.ThemeName = m.AvailableThemes[nextIdx]
+	}
 	if m.Theme != nil {
-		m.Theme.SetTintID(m.ThemeName)
+		m.Theme.SetTintID(m.Config.ThemeName)
 	}
 	m.Styles = NewStyles(m.Theme)
 }
@@ -171,13 +173,16 @@ func (m *Model) viewMenu() string {
 func (m *Model) viewSettings() string {
 	title := m.Localizer.T("settings.title")
 	lang := m.Localizer.GetLanguage()
-	themeName := m.ThemeName
+	themeName := ""
+	if m.Config != nil {
+		themeName = m.Config.ThemeName
+	}
 	centerStr := "on"
-	if !m.CenterWindow {
+	if m.Config != nil && !m.Config.CenterWindow {
 		centerStr = "off"
 	}
 	bgStr := "on"
-	if !m.EnableBackground {
+	if m.Config != nil && !m.Config.Background {
 		bgStr = "off"
 	}
 
@@ -267,7 +272,7 @@ func (m *Model) viewThemeSelect() string {
 	currentIdx := 0
 	if len(themes) > 0 {
 		for i, t := range themes {
-			if t == m.ThemeName {
+			if m.Config != nil && t == m.Config.ThemeName {
 				currentIdx = i
 				break
 			}
@@ -290,7 +295,7 @@ func (m *Model) viewThemeSelect() string {
 	for i := startIdx; i < endIdx; i++ {
 		theme := themes[i]
 		row := len(lines) + 2
-		if theme == m.ThemeName {
+		if (m.Config != nil && theme == m.Config.ThemeName) || (m.Config == nil && theme == "default") {
 			style := m.Styles.CursorStyle.Bold(true)
 			lines = append(lines, "  ● "+style.Render(theme))
 		} else {

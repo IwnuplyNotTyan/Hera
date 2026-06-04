@@ -83,10 +83,8 @@ const (
 
 type Model struct {
 	Theme                    ThemeRegistry
-	ThemeName                string
 	Styles                   Styles
-	EnableBackground         bool
-	CenterWindow             bool
+	Config 			 *Config
 	TerminalWidth            int
 	TerminalHeight           int
 	Screen                   Screen

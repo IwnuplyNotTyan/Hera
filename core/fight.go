@@ -80,10 +80,8 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	return Model{
 		Theme:              theme,
-		ThemeName:          themeName,
+		Config:             &Config{ThemeName: themeName, CenterWindow: centerWindow, Background: enableBackground},
 		Styles:             styles,
-		CenterWindow:       centerWindow,
-		EnableBackground:   enableBackground,
 		Screen:             ScreenMenu,
 		EasterEgg:          loc.RandomEasterEgg(),
 		Players:            players,
@@ -677,12 +675,16 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 			n++
 		}
 		if m.MenuSelected == n {
-			m.CenterWindow = !m.CenterWindow
+			if m.Config != nil {
+				m.Config.CenterWindow = !m.Config.CenterWindow
+			}
 			return m, nil
 		}
 		n++
 		if m.MenuSelected == n {
-			m.EnableBackground = !m.EnableBackground
+			if m.Config != nil {
+				m.Config.Background = !m.Config.Background
+			}
 			return m, nil
 		}
 		m.Screen = ScreenMenu

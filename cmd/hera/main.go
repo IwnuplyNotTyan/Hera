@@ -48,6 +48,12 @@ func main() {
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
 
+	model := &generate.Model{}
+
+	if err := model.InitConfig(); err != nil {
+		panic(err)
+	}
+
 	cmd := &cobra.Command{
 		Use:   "hera",
 		Short: "Hera - A tactical turn-based game",
