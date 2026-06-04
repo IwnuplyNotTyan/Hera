@@ -117,6 +117,7 @@ type Model struct {
 	layoutElements           []Element
 	gridOffsetX, gridOffsetY int
 
+	BannerText   string
 	BoxTrigger   string
 	TriggerTimer int
 

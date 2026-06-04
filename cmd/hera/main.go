@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	generate "hera/core"
@@ -47,6 +48,7 @@ func main() {
 	var background bool
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
+	var asciiText string
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -80,6 +82,17 @@ func main() {
 				ec = 0
 			}
 			model := generate.NewModel(pc, ec, parseEffects(flagPlayerEffects), parseEffects(flagEnemyEffects), loc, registry, centerWindow, enableBackground, themeName)
+
+			if asciiText != "" {
+				fontData, err := os.ReadFile("assets/Tmplr.flf")
+				if err == nil {
+					font, ferr := generate.ParseFLF(string(fontData))
+					if ferr == nil {
+						model.BannerText = font.Render(asciiText)
+					}
+				}
+			}
+
 			if err := model.InitConfig(); err != nil {
 				log.Warn("config", "err", err)
 			}
@@ -112,6 +125,7 @@ func main() {
 	cmd.Flags().IntVarP(&flagEnemies, "enemies", "e", 0, "Number of enemies (0=random)")
 	cmd.Flags().StringVarP(&flagPlayerEffects, "player-effects", "P", "", "Starting effects for players (comma-separated: fire,wet,smoke)")
 	cmd.Flags().StringVarP(&flagEnemyEffects, "enemy-effects", "E", "", "Starting effects for enemies (comma-separated: fire,wet,smoke)")
+	cmd.Flags().StringVarP(&asciiText, "ascii", "a", "", "Render text as ASCII banner using assets/Tmplr.flf")
 
 	opts := []fang.Option{fang.WithVersion(version)}
 	if commit != "" {

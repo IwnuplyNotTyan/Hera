@@ -130,6 +130,9 @@ func (m *Model) navigateTheme(direction int) {
 
 func (m *Model) viewMenu() string {
 	title := m.Localizer.T("menu.title")
+	if m.BannerText != "" {
+		title = m.Styles.CursorStyle.Render(m.BannerText)
+	}
 	menuItems := []string{
 		m.Localizer.T("menu.start"),
 		m.Localizer.T("menu.settings"),
