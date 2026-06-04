@@ -113,11 +113,12 @@ func (m *Model) navigateTheme(direction int) {
 	}
 	if m.Config != nil {
 		m.Config.ThemeName = m.AvailableThemes[nextIdx]
+		if m.Theme != nil {
+			m.Theme.SetTintID(m.Config.ThemeName)
+		}
+		m.Styles = NewStyles(m.Theme)
+		m.SaveConfig()
 	}
-	if m.Theme != nil {
-		m.Theme.SetTintID(m.Config.ThemeName)
-	}
-	m.Styles = NewStyles(m.Theme)
 }
 
 func (m *Model) viewMenu() string {

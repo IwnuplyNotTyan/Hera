@@ -29,9 +29,9 @@ func (m *Model) InitConfig() error {
 	}
 
 	defaultConfig := &Config{
-		ThemeName:      "dark",
-		CenterWindow:   true,
-		Background: false,
+		ThemeName:    "dark",
+		CenterWindow: true,
+		Background:   false,
 	}
 
 	data, err := json.MarshalIndent(defaultConfig, "", "  ")
@@ -45,6 +45,26 @@ func (m *Model) InitConfig() error {
 
 	m.Config = defaultConfig
 	return nil
+}
+
+func (m *Model) SaveConfig() error {
+	if m.Config == nil {
+		return nil
+	}
+
+	configDir, err := getConfigDir()
+	if err != nil {
+		return err
+	}
+
+	configPath := filepath.Join(configDir, "config.json")
+
+	data, err := json.MarshalIndent(m.Config, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(configPath, data, 0644)
 }
 
 func (m *Model) loadConfig(path string) error {

@@ -86,6 +86,23 @@ func main() {
 				ec = 0
 			}
 			model := generate.NewModel(pc, ec, parseEffects(flagPlayerEffects), parseEffects(flagEnemyEffects), loc, registry, centerWindow, enableBackground, themeName)
+			if err := model.InitConfig(); err != nil {
+				log.Warn("config", "err", err)
+			}
+			if model.Config != nil {
+				cfgThemes := model.Config.ThemeName
+				cfgCenter := model.Config.CenterWindow
+				cfgBg := model.Config.Background
+				if theme != "" {
+					cfgThemes = theme
+				}
+				model.Config.ThemeName = cfgThemes
+				model.Config.CenterWindow = cfgCenter
+				model.Config.Background = cfgBg
+				registry.SetTintID(cfgThemes)
+				model.Theme = registry
+				model.Styles = generate.NewStyles(model.Theme)
+			}
 			model.SetAvailableThemes()
 			p := tea.NewProgram(
 				&model,

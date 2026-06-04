@@ -56,6 +56,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.Theme.SetTintID(elem.ID)
 						}
 						m.Styles = NewStyles(m.Theme)
+						m.SaveConfig()
 					}
 				}
 			}
