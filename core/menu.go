@@ -379,18 +379,18 @@ func (m *Model) viewProfiles() string {
 				yesFocused := m.ProfileConfirmChoice == 0 || m.HoveredConfirm == "confirm-yes"
 				noFocused := m.ProfileConfirmChoice == 1 || m.HoveredConfirm == "confirm-no"
 				if yesFocused {
-					yesBtn = lipgloss.NewStyle().Foreground(m.Theme.Green()).Render("✓ ")
+					yesBtn = lipgloss.NewStyle().Foreground(m.Theme.Green()).Background(m.Theme.SelectionBg()).Render("✓ ")
 				} else {
 					yesBtn = gray.Render("✓ ")
 				}
 				if noFocused {
-					noBtn = lipgloss.NewStyle().Foreground(m.Theme.Red()).Render("✕ ")
+					noBtn = lipgloss.NewStyle().Foreground(m.Theme.Red()).Background(m.Theme.SelectionBg()).Render("✕ ")
 				} else {
 					noBtn = gray.Render("✕ ")
 				}
 				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
 				lines = append(lines, nameLine)
-				scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				scoreLine := lipgloss.NewStyle().Foreground(m.Theme.Purple()).Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
 				lines = append(lines, scoreLine)
 
 				m.trackElement(Element{
@@ -424,7 +424,7 @@ func (m *Model) viewProfiles() string {
 			} else {
 				nameLine := prefix + namePart
 				lines = append(lines, nameLine)
-				scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				scoreLine := lipgloss.NewStyle().Foreground(m.Theme.Cyan()).Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
 				lines = append(lines, scoreLine)
 
 				m.trackElement(Element{
