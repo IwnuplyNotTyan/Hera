@@ -22,7 +22,9 @@
     "createProfile": "Создать профиль",
     "profileHint": "j/k: буква  h/l: выбор  x: подтвердить",
     "score": "Очки",
-    "profiles": "Профили"
+    "profiles": "Профили",
+    "deleteConfirm": "Удалить профиль?",
+    "profilesHint": "z: удалить  h/l: выбрать  esc: назад"
   },
   "settings": {
     "title": "НАСТРОЙКИ",

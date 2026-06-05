@@ -68,9 +68,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.Styles = NewStyles(m.Theme)
 						}
 					}
-				case ElementProfileDelete:
+				case ElementProfileConfirm:
 					if m.Screen == ScreenProfiles {
-						m.Profiles[elem.Index] = nil
+						if elem.ID == "confirm-yes" {
+							m.Profiles[m.ProfileSlot] = nil
+						}
+						m.ProfileDeleteConfirm = false
 					}
 				}
 			}

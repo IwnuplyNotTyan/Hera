@@ -21,7 +21,9 @@
     "createProfile": "Create Profile",
     "profileHint": "j/k: letter  h/l: move  x: confirm",
     "score": "Score",
-    "profiles": "Profiles"
+    "profiles": "Profiles",
+    "deleteConfirm": "Delete profile?",
+    "profilesHint": "z: delete  h/l: move  esc: back"
   },
   "settings": {
     "title": "SETTINGS",

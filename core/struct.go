@@ -62,7 +62,7 @@ const (
 	ElementMenuItem
 	ElementSettingsItem
 	ElementThemeItem
-	ElementProfileDelete
+	ElementProfileConfirm
 )
 
 type Element struct {
@@ -134,11 +134,13 @@ type Model struct {
 	startPlayerEffects []Effect
 	startEnemyEffects  []Effect
 
-	Profiles       [3]*Profile
-	ProfileSlot    int
-	ProfileLetters [3]rune
-	ProfileCursor  int
-	Font           *FLFFont
+	Profiles             [3]*Profile
+	ProfileSlot          int
+	ProfileLetters       [3]rune
+	ProfileCursor        int
+	Font                 *FLFFont
+	ProfileDeleteConfirm bool
+	ProfileConfirmChoice int
 }
 
 const (

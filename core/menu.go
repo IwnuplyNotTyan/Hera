@@ -367,35 +367,70 @@ func (m *Model) viewProfiles() string {
 	for i := 0; i < 3; i++ {
 		row := len(lines) + 2
 		if m.Profiles[i] != nil {
-			del := gray.Render("✕")
-			var nameLine string
+			var namePart string
 			if i == m.ProfileSlot {
-				nameLine = prefix + m.Styles.CursorStyle.Bold(true).Render(m.Profiles[i].Name) + "  " + del
+				namePart = m.Styles.CursorStyle.Bold(true).Render(m.Profiles[i].Name)
 			} else {
-				nameLine = prefix + m.Profiles[i].Name + "  " + del
+				namePart = m.Profiles[i].Name
 			}
-			lines = append(lines, nameLine)
-			scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
-			lines = append(lines, scoreLine)
 
-			m.trackElement(Element{
-				Type:   ElementMenuItem,
-				X:      4,
-				Y:      row,
-				Width:  lipgloss.Width(m.Profiles[i].Name) + 6,
-				Height: 1,
-				ID:     fmt.Sprintf("profile-%d", i),
-				Index:  i,
-			})
-			m.trackElement(Element{
-				Type:   ElementProfileDelete,
-				X:      len(prefix) + lipgloss.Width(m.Profiles[i].Name) + 2,
-				Y:      row,
-				Width:  lipgloss.Width(del),
-				Height: 1,
-				ID:     fmt.Sprintf("delete-%d", i),
-				Index:  i,
-			})
+			if m.ProfileDeleteConfirm && i == m.ProfileSlot {
+				var yesBtn, noBtn string
+				if m.ProfileConfirmChoice == 0 {
+					yesBtn = m.Styles.CursorStyle.Render("[Y]")
+					noBtn = gray.Render("[N]")
+				} else {
+					yesBtn = gray.Render("[Y]")
+					noBtn = m.Styles.CursorStyle.Render("[N]")
+				}
+				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
+				lines = append(lines, nameLine)
+				lines = append(lines, "")
+
+				m.trackElement(Element{
+					Type:   ElementMenuItem,
+					X:      4,
+					Y:      row,
+					Width:  lipgloss.Width(m.Profiles[i].Name) + 6,
+					Height: 1,
+					ID:     fmt.Sprintf("profile-%d", i),
+					Index:  i,
+				})
+				ynStart := 6 + lipgloss.Width(m.Profiles[i].Name) + 4
+				m.trackElement(Element{
+					Type:   ElementProfileConfirm,
+					X:      ynStart,
+					Y:      row,
+					Width:  lipgloss.Width("[Y]"),
+					Height: 1,
+					ID:     "confirm-yes",
+					Index:  0,
+				})
+				m.trackElement(Element{
+					Type:   ElementProfileConfirm,
+					X:      ynStart + lipgloss.Width("[Y]") + 1,
+					Y:      row,
+					Width:  lipgloss.Width("[N]"),
+					Height: 1,
+					ID:     "confirm-no",
+					Index:  0,
+				})
+			} else {
+				nameLine := prefix + namePart
+				lines = append(lines, nameLine)
+				scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				lines = append(lines, scoreLine)
+
+				m.trackElement(Element{
+					Type:   ElementMenuItem,
+					X:      4,
+					Y:      row,
+					Width:  lipgloss.Width(m.Profiles[i].Name) + 6,
+					Height: 1,
+					ID:     fmt.Sprintf("profile-%d", i),
+					Index:  i,
+				})
+			}
 		} else {
 			text := m.Localizer.T("menu.create")
 			if i == m.ProfileSlot {
@@ -420,6 +455,10 @@ func (m *Model) viewProfiles() string {
 	lines = append(lines, "")
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
 	content = m.Styles.BoxStyle.Render(content)
+
+	hint := gray.Render(m.Localizer.T("menu.profilesHint"))
+	content = lipgloss.JoinVertical(lipgloss.Left, content, hint)
+
 	return m.renderContent(content)
 }
 
@@ -609,9 +648,13 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "left", "h", "H":
 			if m.Screen == ScreenProfiles {
-				m.ProfileSlot--
-				if m.ProfileSlot < 0 {
-					m.ProfileSlot = 2
+				if m.ProfileDeleteConfirm {
+					m.ProfileConfirmChoice = 0
+				} else {
+					m.ProfileSlot--
+					if m.ProfileSlot < 0 {
+						m.ProfileSlot = 2
+					}
 				}
 			} else if m.Screen == ScreenThemeSelect {
 				m.navigateTheme(-1)
@@ -634,9 +677,13 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "right", "l", "L":
 			if m.Screen == ScreenProfiles {
-				m.ProfileSlot++
-				if m.ProfileSlot > 2 {
-					m.ProfileSlot = 0
+				if m.ProfileDeleteConfirm {
+					m.ProfileConfirmChoice = 1
+				} else {
+					m.ProfileSlot++
+					if m.ProfileSlot > 2 {
+						m.ProfileSlot = 0
+					}
 				}
 			} else if m.Screen == ScreenThemeSelect && !m.ThemeSearch {
 				m.navigateTheme(1)
@@ -658,10 +705,22 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "enter", "x", "X":
+			if m.Screen == ScreenProfiles && m.ProfileDeleteConfirm {
+				if m.ProfileConfirmChoice == 0 {
+					m.Profiles[m.ProfileSlot] = nil
+				}
+				m.ProfileDeleteConfirm = false
+				return m, nil
+			}
 			return m.doMenuConfirm()
-		case "backspace", "d", "D":
-			if m.Screen == ScreenProfiles && m.Profiles[m.ProfileSlot] != nil {
-				m.Profiles[m.ProfileSlot] = nil
+		case "backspace", "z", "Z":
+			if m.Screen == ScreenProfiles {
+				if m.ProfileDeleteConfirm {
+					m.ProfileDeleteConfirm = false
+				} else if m.Profiles[m.ProfileSlot] != nil {
+					m.ProfileDeleteConfirm = true
+					m.ProfileConfirmChoice = 0
+				}
 			}
 		case "esc", "q":
 			switch m.Screen {
