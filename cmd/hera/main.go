@@ -97,6 +97,12 @@ func main() {
 				if theme != "" {
 					model.Config.ThemeName = theme
 				}
+				if cmd.Flags().Changed("background") {
+					model.Config.Background = background
+				}
+				if cmd.Flags().Changed("no-center") {
+					model.Config.CenterWindow = !noCenter
+				}
 				registry.SetTintID(model.Config.ThemeName)
 				model.Theme = registry
 				model.Styles = generate.NewStyles(model.Theme)
