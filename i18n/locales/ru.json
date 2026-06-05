@@ -21,7 +21,8 @@
     "create": "Создать",
     "createProfile": "Создать профиль",
     "profileHint": "j/k: буква  h/l: выбор  x: подтвердить",
-    "score": "Очки"
+    "score": "Очки",
+    "profiles": "Профили"
   },
   "settings": {
     "title": "НАСТРОЙКИ",

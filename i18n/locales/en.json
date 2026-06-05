@@ -20,7 +20,8 @@
     "create": "Create",
     "createProfile": "Create Profile",
     "profileHint": "j/k: letter  h/l: move  x: confirm",
-    "score": "Score"
+    "score": "Score",
+    "profiles": "Profiles"
   },
   "settings": {
     "title": "SETTINGS",

@@ -357,21 +357,22 @@ func (m *Model) viewThemeSelect() string {
 }
 
 func (m *Model) viewProfiles() string {
-	title := m.Localizer.T("menu.title")
+	title := m.Localizer.T("menu.profiles")
 	gray := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
 	var lines []string
 	lines = append(lines, title)
 	lines = append(lines, "")
 
+	prefix := "   ● "
 	for i := 0; i < 3; i++ {
 		row := len(lines) + 2
 		if m.Profiles[i] != nil {
 			del := gray.Render("✕")
 			var nameLine string
 			if i == m.ProfileSlot {
-				nameLine = "  ●  " + m.Styles.CursorStyle.Bold(true).Render(m.Profiles[i].Name) + "  " + del
+				nameLine = prefix + m.Styles.CursorStyle.Bold(true).Render(m.Profiles[i].Name) + "  " + del
 			} else {
-				nameLine = "   ● " + m.Profiles[i].Name + "  " + del
+				nameLine = prefix + m.Profiles[i].Name + "  " + del
 			}
 			lines = append(lines, nameLine)
 			scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
@@ -388,7 +389,7 @@ func (m *Model) viewProfiles() string {
 			})
 			m.trackElement(Element{
 				Type:   ElementProfileDelete,
-				X:      lipgloss.Width(nameLine) - lipgloss.Width(del) + 4,
+				X:      len(prefix) + lipgloss.Width(m.Profiles[i].Name) + 2,
 				Y:      row,
 				Width:  lipgloss.Width(del),
 				Height: 1,
@@ -398,9 +399,9 @@ func (m *Model) viewProfiles() string {
 		} else {
 			text := m.Localizer.T("menu.create")
 			if i == m.ProfileSlot {
-				lines = append(lines, "  ●  "+m.Styles.CursorStyle.Bold(true).Render(text))
+				lines = append(lines, prefix+m.Styles.CursorStyle.Bold(true).Render(text))
 			} else {
-				lines = append(lines, "   ● "+text)
+				lines = append(lines, prefix+text)
 			}
 			lines = append(lines, "")
 
@@ -658,6 +659,10 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter", "x", "X":
 			return m.doMenuConfirm()
+		case "backspace", "d", "D":
+			if m.Screen == ScreenProfiles && m.Profiles[m.ProfileSlot] != nil {
+				m.Profiles[m.ProfileSlot] = nil
+			}
 		case "esc", "q":
 			switch m.Screen {
 			case ScreenSettings:
