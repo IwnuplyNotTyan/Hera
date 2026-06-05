@@ -141,6 +141,7 @@ type Model struct {
 	Font                 *FLFFont
 	ProfileDeleteConfirm bool
 	ProfileConfirmChoice int
+	HoveredConfirm       string
 }
 
 const (

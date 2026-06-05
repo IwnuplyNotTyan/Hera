@@ -358,7 +358,7 @@ func (m *Model) viewThemeSelect() string {
 
 func (m *Model) viewProfiles() string {
 	title := m.Localizer.T("menu.profiles")
-	gray := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
+	gray := lipgloss.NewStyle().Foreground(m.Theme.SelectionBg())
 	var lines []string
 	lines = append(lines, title)
 	lines = append(lines, "")
@@ -376,16 +376,22 @@ func (m *Model) viewProfiles() string {
 
 			if m.ProfileDeleteConfirm && i == m.ProfileSlot {
 				var yesBtn, noBtn string
-				if m.ProfileConfirmChoice == 0 {
-					yesBtn = m.Styles.CursorStyle.Render("✓ ")
-					noBtn = gray.Render("✕ ")
+				yesFocused := m.ProfileConfirmChoice == 0 || m.HoveredConfirm == "confirm-yes"
+				noFocused := m.ProfileConfirmChoice == 1 || m.HoveredConfirm == "confirm-no"
+				if yesFocused {
+					yesBtn = lipgloss.NewStyle().Foreground(m.Theme.Green()).Render("✓ ")
 				} else {
 					yesBtn = gray.Render("✓ ")
-					noBtn = m.Styles.CursorStyle.Render("✕ ")
+				}
+				if noFocused {
+					noBtn = lipgloss.NewStyle().Foreground(m.Theme.Red()).Render("✕ ")
+				} else {
+					noBtn = gray.Render("✕ ")
 				}
 				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
 				lines = append(lines, nameLine)
-				lines = append(lines, "")
+				scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				lines = append(lines, scoreLine)
 
 				m.trackElement(Element{
 					Type:   ElementMenuItem,

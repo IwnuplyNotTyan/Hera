@@ -95,6 +95,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		if msg.Action == tea.MouseActionMotion {
+			m.HoveredConfirm = ""
+			elem := m.hitTest(msg.X, msg.Y)
+			if elem != nil && elem.Type == ElementProfileConfirm {
+				m.HoveredConfirm = elem.ID
+			}
+		}
+
 	case tea.WindowSizeMsg:
 		m.TerminalWidth = msg.Width
 		m.TerminalHeight = msg.Height
