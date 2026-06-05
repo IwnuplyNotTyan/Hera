@@ -123,15 +123,15 @@ func newMenuKeyMap(loc i18n.Localizer) menuKeyMap {
 		),
 		Confirm: key.NewBinding(
 			key.WithKeys("x", "enter"),
-			key.WithHelp(loc.T("keys.confirm"), "confirm"),
+			key.WithHelp(loc.T("keys.confirm"), loc.T("help.confirm")),
 		),
 		Delete: key.NewBinding(
 			key.WithKeys("z"),
-			key.WithHelp("z", "delete"),
+			key.WithHelp(loc.T("keys.delete"), loc.T("help.delete")),
 		),
 		Back: key.NewBinding(
 			key.WithKeys("esc"),
-			key.WithHelp("esc", "back"),
+			key.WithHelp(loc.T("keys.back"), loc.T("help.back")),
 		),
 		Help: key.NewBinding(
 			key.WithKeys("?"),

@@ -40,7 +40,7 @@ func NewStyles(th ThemeRegistry) Styles {
 			Padding(1, 2).
 			Width(46),
 		HelpStyle: lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#666666")).
+			Foreground(th.Fg()).
 			Padding(1, 2),
 		CellStyle: lipgloss.NewStyle().
 			Foreground(th.Fg()),

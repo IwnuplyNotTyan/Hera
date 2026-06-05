@@ -97,7 +97,10 @@
     "toggleHelp": "Help",
     "effectInfo": "Menu",
     "skipTurn": "⏭ Skip Turn",
-    "quit": "Quit"
+    "quit": "Quit",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "back": "Back"
   },
   "keys": {
     "up": "↑/K",
@@ -109,6 +112,8 @@
     "ult": "C",
     "help": "?",
     "quit": "q",
-    "effectInfo": "V"
+    "effectInfo": "V",
+    "delete": "Z",
+    "back": "esc"
   }
 }

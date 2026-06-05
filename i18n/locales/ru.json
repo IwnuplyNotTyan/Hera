@@ -98,7 +98,10 @@
     "toggleHelp": "Помощь",
     "effectInfo": "Меню",
     "skipTurn": "⏭ Пропустить ход",
-    "quit": "Выход"
+    "quit": "Выход",
+    "confirm": "Подтвердить",
+    "delete": "Удалить",
+    "back": "Назад"
   },
   "keys": {
     "up": "↑/K",
@@ -110,6 +113,8 @@
     "ult": "C",
     "help": "?",
     "quit": "q",
-    "effectInfo": "V"
+    "effectInfo": "V",
+    "delete": "Z",
+    "back": "esc"
   }
 }
