@@ -77,3 +77,70 @@ func newKeyMap(loc i18n.Localizer) keyMap {
 		loc: loc,
 	}
 }
+
+type menuKeyMap struct {
+	Left    key.Binding
+	Right   key.Binding
+	Up      key.Binding
+	Down    key.Binding
+	Confirm key.Binding
+	Delete  key.Binding
+	Back    key.Binding
+	Help    key.Binding
+	Quit    key.Binding
+	loc     i18n.Localizer
+}
+
+func (k menuKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Confirm, k.Delete, k.Back}
+}
+
+func (k menuKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Left, k.Right, k.Up, k.Down},
+		{k.Confirm, k.Delete, k.Back},
+		{k.Help, k.Quit},
+	}
+}
+
+func newMenuKeyMap(loc i18n.Localizer) menuKeyMap {
+	return menuKeyMap{
+		Left: key.NewBinding(
+			key.WithKeys("left", "h"),
+			key.WithHelp(loc.T("keys.left"), loc.T("help.moveLeft")),
+		),
+		Right: key.NewBinding(
+			key.WithKeys("right", "l"),
+			key.WithHelp(loc.T("keys.right"), loc.T("help.moveRight")),
+		),
+		Up: key.NewBinding(
+			key.WithKeys("up", "k"),
+			key.WithHelp(loc.T("keys.up"), loc.T("help.moveUp")),
+		),
+		Down: key.NewBinding(
+			key.WithKeys("down", "j"),
+			key.WithHelp(loc.T("keys.down"), loc.T("help.moveDown")),
+		),
+		Confirm: key.NewBinding(
+			key.WithKeys("x", "enter"),
+			key.WithHelp(loc.T("keys.confirm"), "confirm"),
+		),
+		Delete: key.NewBinding(
+			key.WithKeys("z"),
+			key.WithHelp("z", "delete"),
+		),
+		Back: key.NewBinding(
+			key.WithKeys("esc"),
+			key.WithHelp("esc", "back"),
+		),
+		Help: key.NewBinding(
+			key.WithKeys("?"),
+			key.WithHelp(loc.T("keys.help"), loc.T("help.toggleHelp")),
+		),
+		Quit: key.NewBinding(
+			key.WithKeys("q", "ctrl+c"),
+			key.WithHelp(loc.T("keys.quit"), loc.T("help.quit")),
+		),
+		loc: loc,
+	}
+}

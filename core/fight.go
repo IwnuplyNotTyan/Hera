@@ -95,6 +95,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		FireTiles:          make(map[Point]int),
 		SmokeTiles:         make(map[Point]int),
 		keys:               newKeyMap(loc),
+		menuKeys:           newMenuKeyMap(loc),
 		help:               help.New(),
 		Localizer:          loc,
 		startPlayers:       playerCount,

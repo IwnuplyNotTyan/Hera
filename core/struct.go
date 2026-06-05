@@ -119,6 +119,7 @@ type Model struct {
 	Shot                     bool
 	keys                     keyMap
 	help                     help.Model
+	menuKeys                 menuKeyMap
 	EnemyTurn                bool
 	EnemyIdx                 int
 	Localizer                i18n.Localizer

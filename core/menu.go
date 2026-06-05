@@ -462,13 +462,15 @@ func (m *Model) viewProfiles() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
 	content = m.Styles.BoxStyle.Render(content)
 
-	hint := gray.Render(m.Localizer.T("menu.profilesHint"))
+	m.help.ShowAll = false
+	hint := m.Styles.HelpStyle.Render(m.help.View(m.menuKeys))
 	content = lipgloss.JoinVertical(lipgloss.Left, content, hint)
 
 	return m.renderContent(content)
 }
 
 func (m *Model) viewProfileCreate() string {
+	m.help.ShowAll = false
 	title := m.Localizer.T("menu.createProfile")
 
 	letterRenders := make([][]string, 3)
@@ -524,8 +526,7 @@ func (m *Model) viewProfileCreate() string {
 	boxContent := lipgloss.JoinVertical(lipgloss.Left, boxLines...)
 	content := m.Styles.BoxStyle.Render(boxContent)
 
-	hint := m.Localizer.T("menu.profileHint")
-	hint = lipgloss.NewStyle().Foreground(lipgloss.Color("#666666")).Render(hint)
+	hint := m.Styles.HelpStyle.Render(m.help.View(m.menuKeys))
 	content = lipgloss.JoinVertical(lipgloss.Left, content, hint)
 
 	return m.renderContent(content)
