@@ -6,12 +6,13 @@ import (
 	"path/filepath"
 )
 
-// Config holds persisted user settings (theme, centering, background fill).
+// Config holds persisted user settings (theme, centering, background fill, language).
 // JSON tags map to fields in ~/.config/hera/config.json.
 type Config struct {
 	ThemeName    string `json:"theme"`
 	CenterWindow bool   `json:"centered"`
 	Background   bool   `json:"background"`
+	Language     string `json:"language,omitempty"`
 }
 
 // InitConfig loads settings from ~/.config/hera/config.json.
@@ -37,10 +38,15 @@ func (m *Model) InitConfig() error {
 
 	cfg := m.Config
 	if cfg == nil {
+		lang := "en"
+		if m != nil {
+			lang = m.Localizer.GetLanguage()
+		}
 		cfg = &Config{
 			ThemeName:    "dark",
 			CenterWindow: true,
 			Background:   false,
+			Language:     lang,
 		}
 	}
 
@@ -103,4 +109,21 @@ func getConfigDir() (string, error) {
 	}
 
 	return filepath.Join(home, ".config", "hera"), nil
+}
+
+// SetLanguage switches the UI language at runtime, persists the choice to
+// config, and rebuilds key bindings so help text matches the new language.
+func (m *Model) SetLanguage(lang string) error {
+	if err := m.Localizer.SetLanguage(lang); err != nil {
+		return err
+	}
+	m.keys = newKeyMap(m.Localizer)
+	m.menuKeys = newMenuKeyMap(m.Localizer)
+	if m.Config != nil {
+		m.Config.Language = lang
+		if err := m.SaveConfig(); err != nil {
+			return err
+		}
+	}
+	return nil
 }

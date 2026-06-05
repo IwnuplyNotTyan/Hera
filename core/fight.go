@@ -660,7 +660,7 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 					}
 				}
 				nextIdx := (currentIdx + 1) % len(languages)
-				if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
+				if err := m.SetLanguage(languages[nextIdx]); err != nil {
 					return m, nil
 				}
 				return m, nil

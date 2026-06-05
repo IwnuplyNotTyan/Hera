@@ -678,7 +678,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if currentIdx < 0 {
 					currentIdx = len(languages) - 1
 				}
-				if err := m.Localizer.SetLanguage(languages[currentIdx]); err != nil {
+				if err := m.SetLanguage(languages[currentIdx]); err != nil {
 					return m, nil
 				}
 			}
@@ -707,7 +707,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if currentIdx >= len(languages) {
 					currentIdx = 0
 				}
-				if err := m.Localizer.SetLanguage(languages[currentIdx]); err != nil {
+				if err := m.SetLanguage(languages[currentIdx]); err != nil {
 					return m, nil
 				}
 			}

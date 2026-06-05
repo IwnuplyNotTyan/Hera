@@ -103,6 +103,11 @@ func main() {
 				if cmd.Flags().Changed("no-center") {
 					model.Config.CenterWindow = !noCenter
 				}
+				if model.Config.Language != "" && !cmd.Flags().Changed("lang") {
+					if err := model.SetLanguage(model.Config.Language); err != nil {
+						log.Warn("language", "err", err)
+					}
+				}
 				registry.SetTintID(model.Config.ThemeName)
 				model.Theme = registry
 				model.Styles = generate.NewStyles(model.Theme)
