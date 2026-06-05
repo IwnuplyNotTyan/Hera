@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
+	"hera/assets"
 	generate "hera/core"
 	"hera/i18n"
 
@@ -84,12 +84,9 @@ func main() {
 			model := generate.NewModel(pc, ec, parseEffects(flagPlayerEffects), parseEffects(flagEnemyEffects), loc, registry, centerWindow, enableBackground, themeName)
 
 			if asciiText != "" {
-				fontData, err := os.ReadFile("assets/Tmplr.flf")
-				if err == nil {
-					font, ferr := generate.ParseFLF(string(fontData))
-					if ferr == nil {
-						model.BannerText = font.Render(asciiText)
-					}
+				font, ferr := generate.ParseFLF(assets.FontData)
+				if ferr == nil {
+					model.BannerText = font.Render(asciiText)
 				}
 			}
 
@@ -107,12 +104,9 @@ func main() {
 			model.SetAvailableThemes()
 
 			if model.Font == nil {
-				fontData, err := os.ReadFile("assets/Tmplr.flf")
-				if err == nil {
-					font, ferr := generate.ParseFLF(string(fontData))
-					if ferr == nil {
-						model.Font = font
-					}
+				font, ferr := generate.ParseFLF(assets.FontData)
+				if ferr == nil {
+					model.Font = font
 				}
 			}
 
