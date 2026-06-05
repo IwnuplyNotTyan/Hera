@@ -377,11 +377,11 @@ func (m *Model) viewProfiles() string {
 			if m.ProfileDeleteConfirm && i == m.ProfileSlot {
 				var yesBtn, noBtn string
 				if m.ProfileConfirmChoice == 0 {
-					yesBtn = m.Styles.CursorStyle.Render("[Y]")
-					noBtn = gray.Render("[N]")
+					yesBtn = m.Styles.CursorStyle.Render("✓ ")
+					noBtn = gray.Render("✕ ")
 				} else {
-					yesBtn = gray.Render("[Y]")
-					noBtn = m.Styles.CursorStyle.Render("[N]")
+					yesBtn = gray.Render("✓ ")
+					noBtn = m.Styles.CursorStyle.Render("✕ ")
 				}
 				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
 				lines = append(lines, nameLine)
