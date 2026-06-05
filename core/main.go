@@ -68,6 +68,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.Styles = NewStyles(m.Theme)
 						}
 					}
+				case ElementProfileDelete:
+					if m.Screen == ScreenProfiles {
+						m.Profiles[elem.Index] = nil
+					}
 				}
 			}
 		}

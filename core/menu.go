@@ -358,32 +358,62 @@ func (m *Model) viewThemeSelect() string {
 
 func (m *Model) viewProfiles() string {
 	title := m.Localizer.T("menu.title")
+	gray := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
 	var lines []string
 	lines = append(lines, title)
 	lines = append(lines, "")
 
 	for i := 0; i < 3; i++ {
-		var text string
-		if m.Profiles[i] != nil {
-			text = m.Profiles[i].Name
-		} else {
-			text = m.Localizer.T("menu.create")
-		}
 		row := len(lines) + 2
-		if i == m.ProfileSlot {
-			lines = append(lines, "  ●  "+m.Styles.CursorStyle.Bold(true).Render(text))
+		if m.Profiles[i] != nil {
+			del := gray.Render("✕")
+			var nameLine string
+			if i == m.ProfileSlot {
+				nameLine = "  ●  " + m.Styles.CursorStyle.Bold(true).Render(m.Profiles[i].Name) + "  " + del
+			} else {
+				nameLine = "   ● " + m.Profiles[i].Name + "  " + del
+			}
+			lines = append(lines, nameLine)
+			scoreLine := gray.Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+			lines = append(lines, scoreLine)
+
+			m.trackElement(Element{
+				Type:   ElementMenuItem,
+				X:      4,
+				Y:      row,
+				Width:  lipgloss.Width(m.Profiles[i].Name) + 6,
+				Height: 1,
+				ID:     fmt.Sprintf("profile-%d", i),
+				Index:  i,
+			})
+			m.trackElement(Element{
+				Type:   ElementProfileDelete,
+				X:      lipgloss.Width(nameLine) - lipgloss.Width(del) + 4,
+				Y:      row,
+				Width:  lipgloss.Width(del),
+				Height: 1,
+				ID:     fmt.Sprintf("delete-%d", i),
+				Index:  i,
+			})
 		} else {
-			lines = append(lines, "   ● "+text)
+			text := m.Localizer.T("menu.create")
+			if i == m.ProfileSlot {
+				lines = append(lines, "  ●  "+m.Styles.CursorStyle.Bold(true).Render(text))
+			} else {
+				lines = append(lines, "   ● "+text)
+			}
+			lines = append(lines, "")
+
+			m.trackElement(Element{
+				Type:   ElementMenuItem,
+				X:      4,
+				Y:      row,
+				Width:  lipgloss.Width(text) + 6,
+				Height: 1,
+				ID:     fmt.Sprintf("profile-%d", i),
+				Index:  i,
+			})
 		}
-		m.trackElement(Element{
-			Type:   ElementMenuItem,
-			X:      4,
-			Y:      row,
-			Width:  lipgloss.Width(text) + 6,
-			Height: 1,
-			ID:     fmt.Sprintf("profile-%d", i),
-			Index:  i,
-		})
 	}
 
 	lines = append(lines, "")
@@ -517,7 +547,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case "enter", "x", "X":
 				name := string(m.ProfileLetters[:])
-				m.Profiles[m.ProfileSlot] = &Profile{Name: name}
+				m.Profiles[m.ProfileSlot] = &Profile{Name: name, Score: 0}
 				m.Screen = ScreenProfiles
 			case "esc", "q":
 				m.Screen = ScreenProfiles

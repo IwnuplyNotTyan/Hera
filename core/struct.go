@@ -62,6 +62,7 @@ const (
 	ElementMenuItem
 	ElementSettingsItem
 	ElementThemeItem
+	ElementProfileDelete
 )
 
 type Element struct {
@@ -73,7 +74,8 @@ type Element struct {
 }
 
 type Profile struct {
-	Name string
+	Name  string
+	Score int
 }
 
 type Screen int

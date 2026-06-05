@@ -19,7 +19,8 @@
     "exit": "Exit",
     "create": "Create",
     "createProfile": "Create Profile",
-    "profileHint": "j/k: letter  h/l: move  x: confirm"
+    "profileHint": "j/k: letter  h/l: move  x: confirm",
+    "score": "Score"
   },
   "settings": {
     "title": "SETTINGS",
