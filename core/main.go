@@ -72,6 +72,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.Screen == ScreenProfiles {
 						if elem.ID == "confirm-yes" {
 							m.Profiles[m.ProfileSlot] = nil
+							_ = m.SaveProfiles()
 						}
 						m.ProfileDeleteConfirm = false
 					}
@@ -81,6 +82,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Button == tea.MouseButtonRight && msg.Action == tea.MouseActionPress {
 			if m.Screen == ScreenGame && !m.EnemyTurn {
 				m = m.doConfirm()
+				if len(m.Players) == 0 {
+					m.endGame(3)
+					return m, nil
+				}
+				if len(m.Enemys) == 0 {
+					m.endGame(15)
+					return m, nil
+				}
 				if m.Moved && m.Shot {
 					m = m.nextTurn()
 					if m.CurrentPlayer == 0 {
@@ -110,7 +119,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
-			return m, tea.Quit
+			m.endGame(3)
+			return m, nil
 		}
 		if msg.enemyIdx >= len(m.Enemys) {
 			m.EnemyTurn = false
@@ -127,7 +137,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.EnemyIdx = msg.enemyIdx
 		m = m.doEnemyTurn(msg.enemyIdx)
 		if len(m.Players) == 0 {
-			return m, tea.Quit
+			m.endGame(3)
+			return m, nil
 		}
 		return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(msg.enemyIdx+1))
 
@@ -265,6 +276,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.triggerTickCmd()
 			}
 			m = m.doConfirm()
+			if len(m.Players) == 0 {
+				m.endGame(3)
+				return m, nil
+			}
+			if len(m.Enemys) == 0 {
+				m.endGame(15)
+				return m, nil
+			}
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
 				if m.CurrentPlayer == 0 {
@@ -288,6 +307,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Quit):
+			if m.Screen == ScreenGame && m.ActiveSlot >= 0 {
+				m.endGame(0)
+				return m, nil
+			}
 			return m, tea.Quit
 		}
 	}
@@ -374,16 +397,6 @@ func (m *Model) View() string {
 	}
 	if m.Screen == ScreenThemeSelect {
 		return m.viewThemeSelect()
-	}
-
-	if len(m.Players) == 0 {
-		gameOver := m.boxStyle().Render(
-			lipgloss.NewStyle().
-				Foreground(m.Theme.BrightRed()).
-				Bold(true).
-				Render(m.Localizer.T("game.gameOver")),
-		)
-		return m.renderContent(gameOver)
 	}
 
 	current := m.Players[m.CurrentPlayer]

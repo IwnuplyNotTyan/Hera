@@ -143,6 +143,8 @@ type Model struct {
 	ProfileDeleteConfirm bool
 	ProfileConfirmChoice int
 	HoveredConfirm       string
+	CurrentScore         int
+	ActiveSlot           int
 }
 
 const (

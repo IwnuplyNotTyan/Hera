@@ -114,6 +114,10 @@ func main() {
 			}
 			model.SetAvailableThemes()
 
+			if err := model.LoadProfiles(); err != nil {
+				log.Warn("profiles", "err", err)
+			}
+
 			if model.Font == nil {
 				font, ferr := generate.ParseFLF(assets.FontData)
 				if ferr == nil {

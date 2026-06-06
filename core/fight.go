@@ -383,30 +383,40 @@ func (m *Model) doConfirm() *Model {
 			return m
 		}
 		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+			var hit bool
 			for i, pl := range m.Players {
 				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
 					m.Players[i].HP--
 					m.BoxTrigger = TriggerDamage
 					m.TriggerTimer = 6
 					if m.Players[i].HP <= 0 {
+						m.CurrentScore -= 5
 						m.Players = append(m.Players[:i], m.Players[i+1:]...)
 						if m.CurrentPlayer >= len(m.Players) {
 							m.CurrentPlayer = 0
 						}
 					}
+					hit = true
 					break
 				}
 			}
-			for i, en := range m.Enemys {
-				if en.X == m.CursorX && en.Y == m.CursorY {
-					m.Enemys[i].HP--
-					m.BoxTrigger = TriggerDamage
-					m.TriggerTimer = 6
-					if m.Enemys[i].HP <= 0 {
-						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+			if !hit {
+				for i, en := range m.Enemys {
+					if en.X == m.CursorX && en.Y == m.CursorY {
+						m.Enemys[i].HP--
+						m.BoxTrigger = TriggerDamage
+						m.TriggerTimer = 6
+						if m.Enemys[i].HP <= 0 {
+							m.CurrentScore += 10
+							m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+						}
+						hit = true
+						break
 					}
-					break
 				}
+			}
+			if hit {
+				m.CurrentScore++
 			}
 			m.Shot = true
 			m.ShootMode = false
@@ -462,6 +472,7 @@ func (m *Model) doUlt() *Model {
 	m.UltMode = false
 	m.UltAxis = ""
 	m.Shot = true
+	m.CurrentScore += 2
 
 	affected := m.ultCross(m.CursorX, m.CursorY)
 
@@ -578,6 +589,7 @@ func (m *Model) nextTurn() *Model {
 	}
 
 	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+	m.CurrentScore++
 	next := m.Players[m.CurrentPlayer]
 	m.CursorX = next.X
 	m.CursorY = next.Y
@@ -631,6 +643,25 @@ func (m *Model) turnOrder() string {
 	}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
+}
+
+
+
+// endGame saves the current score to the active profile, persists profiles
+// to disk, and returns the UI to the main menu. scoreBonus is added on top
+// of CurrentScore (e.g. win/loss bonus).
+func (m *Model) endGame(scoreBonus int) {
+	score := m.CurrentScore + scoreBonus
+	if score < 0 {
+		score = 0
+	}
+	if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
+		m.Profiles[m.ActiveSlot].Score += score
+	}
+	_ = m.SaveProfiles()
+	m.ActiveSlot = -1
+	m.Screen = ScreenMenu
+	m.MenuSelected = 0
 }
 
 func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
@@ -702,6 +733,8 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	} else if m.Screen == ScreenProfiles {
 		slot := m.ProfileSlot
 		if m.Profiles[slot] != nil {
+			m.ActiveSlot = slot
+			m.CurrentScore = 0
 			m.Screen = ScreenGame
 			m.startGame()
 		} else {

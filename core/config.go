@@ -111,6 +111,40 @@ func getConfigDir() (string, error) {
 	return filepath.Join(home, ".config", "hera"), nil
 }
 
+func (m *Model) profilesPath() (string, error) {
+	d, err := getConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(d, "profiles.json"), nil
+}
+
+// SaveProfiles persists the profile array to ~/.config/hera/profiles.json.
+func (m *Model) SaveProfiles() error {
+	p, err := m.profilesPath()
+	if err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(m.Profiles, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(p, data, 0644)
+}
+
+// LoadProfiles reads the profile array from ~/.config/hera/profiles.json.
+func (m *Model) LoadProfiles() error {
+	p, err := m.profilesPath()
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(p)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, &m.Profiles)
+}
+
 // SetLanguage switches the UI language at runtime, persists the choice to
 // config, and rebuilds key bindings so help text matches the new language.
 // On SaveConfig failure the previous language is restored.
