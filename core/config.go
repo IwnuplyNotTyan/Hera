@@ -39,7 +39,7 @@ func (m *Model) InitConfig() error {
 	cfg := m.Config
 	if cfg == nil {
 		lang := "en"
-		if m != nil {
+		if m.Localizer != nil {
 			lang = m.Localizer.GetLanguage()
 		}
 		cfg = &Config{
@@ -113,7 +113,9 @@ func getConfigDir() (string, error) {
 
 // SetLanguage switches the UI language at runtime, persists the choice to
 // config, and rebuilds key bindings so help text matches the new language.
+// On SaveConfig failure the previous language is restored.
 func (m *Model) SetLanguage(lang string) error {
+	prevLang := m.Localizer.GetLanguage()
 	if err := m.Localizer.SetLanguage(lang); err != nil {
 		return err
 	}
@@ -122,6 +124,10 @@ func (m *Model) SetLanguage(lang string) error {
 	if m.Config != nil {
 		m.Config.Language = lang
 		if err := m.SaveConfig(); err != nil {
+			_ = m.Localizer.SetLanguage(prevLang)
+			m.keys = newKeyMap(m.Localizer)
+			m.menuKeys = newMenuKeyMap(m.Localizer)
+			m.Config.Language = prevLang
 			return err
 		}
 	}
