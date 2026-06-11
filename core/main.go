@@ -151,6 +151,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if m.Screen == ScreenGameOver {
+		switch msg.(type) {
+		case tea.KeyMsg, tea.MouseMsg:
+			m.Screen = ScreenMenu
+			m.MenuSelected = 0
+			return m, nil
+		}
+	}
+
 	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate {
 		return m.updateMenu(msg)
 	}
@@ -397,6 +406,9 @@ func (m *Model) View() string {
 	}
 	if m.Screen == ScreenThemeSelect {
 		return m.viewThemeSelect()
+	}
+	if m.Screen == ScreenGameOver {
+		return m.viewGameOver()
 	}
 
 	current := m.Players[m.CurrentPlayer]

@@ -87,6 +87,7 @@ const (
 	ScreenGame
 	ScreenProfiles
 	ScreenProfileCreate
+	ScreenGameOver
 )
 
 type Model struct {

@@ -532,6 +532,33 @@ func (m *Model) viewProfileCreate() string {
 	return m.renderContent(content)
 }
 
+func (m *Model) viewGameOver() string {
+	var titleLines []string
+	if m.Font != nil {
+		titleLines = strings.Split(m.Font.Render("GAME OVER"), "\n")
+		if len(titleLines) > 0 && strings.TrimSpace(titleLines[len(titleLines)-1]) == "" {
+			titleLines = titleLines[:len(titleLines)-1]
+		}
+	} else {
+		titleLines = []string{m.Styles.CursorStyle.Bold(true).Render(m.Localizer.T("game.gameOver"))}
+	}
+
+	for i, l := range titleLines {
+		titleLines[i] = m.Styles.CursorStyle.Render(l)
+	}
+
+	score := m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.CurrentScore)
+	prompt := m.Localizer.T("game.anyKey")
+
+	var lines []string
+	lines = append(lines, titleLines...)
+	lines = append(lines, "", score, "", prompt)
+
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.boxStyle().Align(lipgloss.Center).Render(content)
+	return m.renderContent(content)
+}
+
 func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:

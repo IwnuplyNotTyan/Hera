@@ -36,7 +36,8 @@
     "back": "Back"
   },
   "game": {
-    "gameOver": " Game Over "
+    "gameOver": " Game Over ",
+    "anyKey": "Press any key to continue"
   },
   "status": {
     "player": "Player {n} {hp}",

@@ -645,8 +645,6 @@ func (m *Model) turnOrder() string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
 
-
-
 // endGame saves the current score to the active profile, persists profiles
 // to disk, and returns the UI to the main menu. scoreBonus is added on top
 // of CurrentScore (e.g. win/loss bonus).
@@ -660,7 +658,11 @@ func (m *Model) endGame(scoreBonus int) {
 	}
 	_ = m.SaveProfiles()
 	m.ActiveSlot = -1
-	m.Screen = ScreenMenu
+	if len(m.Players) == 0 {
+		m.Screen = ScreenGameOver
+	} else {
+		m.Screen = ScreenMenu
+	}
 	m.MenuSelected = 0
 }
 
