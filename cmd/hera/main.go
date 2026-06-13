@@ -44,7 +44,7 @@ func parseEffects(s string) []generate.Effect {
 func main() {
 	var lang string
 	var theme string
-	var noCenter bool
+	var centerMode string
 	var background bool
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
@@ -67,7 +67,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			centerWindow := !noCenter
+			centerWindow := centerMode
 			enableBackground := background
 			themeName := theme
 			if themeName == "" {
@@ -100,8 +100,8 @@ func main() {
 				if cmd.Flags().Changed("background") {
 					model.Config.Background = background
 				}
-				if cmd.Flags().Changed("no-center") {
-					model.Config.CenterWindow = !noCenter
+				if cmd.Flags().Changed("center") {
+					model.Config.CenterWindow = centerMode
 				}
 				if model.Config.Language != "" && !cmd.Flags().Changed("lang") {
 					if err := model.SetLanguage(model.Config.Language); err != nil {
@@ -139,7 +139,7 @@ func main() {
 
 	cmd.Flags().StringVarP(&lang, "lang", "l", "en", "Language code (en, ru)")
 	cmd.Flags().StringVarP(&theme, "theme", "t", "", "Theme name (e.g., dracula, tokyonight, gruvbox)")
-	cmd.Flags().BoolVarP(&noCenter, "no-center", "c", false, "Disable centered window")
+	cmd.Flags().StringVarP(&centerMode, "center", "C", "", "Window position: tl, tc, tr, cl, c, cr, bl, bc, br (default: c)")
 	cmd.Flags().BoolVarP(&background, "background", "b", false, "Background fill")
 	cmd.Flags().IntVarP(&flagPlayers, "players", "p", 0, "Number of players (0=random, 2-4)")
 	cmd.Flags().IntVarP(&flagEnemies, "enemies", "e", 0, "Number of enemies (0=random)")
