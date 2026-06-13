@@ -593,7 +593,7 @@ func (m *Model) viewCenterSelect() string {
 				Align(lipgloss.Center)
 
 			if selected {
-				box = box.Bold(true).Foreground(m.Theme.Cursor())
+				box = box.Background(m.Theme.SelectionBg()).Foreground(m.Theme.Fg())
 			} else {
 				box = box.Foreground(m.Theme.Fg())
 			}
