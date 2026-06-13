@@ -177,7 +177,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate {
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenCenterSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate {
 		return m.updateMenu(msg)
 	}
 
