@@ -579,7 +579,7 @@ func (m *Model) viewCenterSelect() string {
 		var rowCells []string
 		for col := 0; col < 3; col++ {
 			code := grid[row][col]
-			label := code
+			var label string
 			if code == "c" {
 				label = " C "
 			} else {
