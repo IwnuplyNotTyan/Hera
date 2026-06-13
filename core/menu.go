@@ -188,9 +188,12 @@ func (m *Model) viewSettings() string {
 	if m.Config != nil {
 		themeName = m.Config.ThemeName
 	}
-	centerStr := "on"
-	if m.Config != nil && !m.Config.CenterWindow {
-		centerStr = "off"
+	centerStr := "c"
+	if m.Config != nil {
+		centerStr = m.Config.CenterWindow
+		if centerStr == "" {
+			centerStr = "c"
+		}
 	}
 	bgStr := "on"
 	if m.Config != nil && !m.Config.Background {
@@ -683,6 +686,45 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Screen = ScreenProfiles
 			case "esc", "q":
 				m.Screen = ScreenProfiles
+			}
+			return m, nil
+		}
+
+		if m.Screen == ScreenCenterSelect {
+			switch keyStr {
+			case "up", "k", "K":
+				m.CenterRow--
+				if m.CenterRow < 0 {
+					m.CenterRow = 2
+				}
+			case "down", "j", "J":
+				m.CenterRow++
+				if m.CenterRow > 2 {
+					m.CenterRow = 0
+				}
+			case "left", "h", "H":
+				m.CenterCol--
+				if m.CenterCol < 0 {
+					m.CenterCol = 2
+				}
+			case "right", "l", "L":
+				m.CenterCol++
+				if m.CenterCol > 2 {
+					m.CenterCol = 0
+				}
+			case "enter", "x", "X":
+				if m.Config != nil {
+					old := m.Config.CenterWindow
+					m.Config.CenterWindow = gridToCenter(m.CenterRow, m.CenterCol)
+					if err := m.SaveConfig(); err != nil {
+						m.Config.CenterWindow = old
+					}
+				}
+				m.Screen = ScreenSettings
+				m.MenuSelected = 0
+			case "esc", "q":
+				m.Screen = ScreenSettings
+				m.MenuSelected = 0
 			}
 			return m, nil
 		}
