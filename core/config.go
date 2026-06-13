@@ -10,7 +10,7 @@ import (
 // JSON tags map to fields in ~/.config/hera/config.json.
 type Config struct {
 	ThemeName    string `json:"theme"`
-	CenterWindow bool   `json:"centered"`
+	CenterWindow string `json:"centered"`
 	Background   bool   `json:"background"`
 	Language     string `json:"language,omitempty"`
 }
@@ -44,7 +44,7 @@ func (m *Model) InitConfig() error {
 		}
 		cfg = &Config{
 			ThemeName:    "dark",
-			CenterWindow: true,
+			CenterWindow: "c",
 			Background:   false,
 			Language:     lang,
 		}
