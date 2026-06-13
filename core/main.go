@@ -68,6 +68,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.Styles = NewStyles(m.Theme)
 						}
 					}
+				case ElementCenterItem:
+					if m.Screen == ScreenCenterSelect {
+						var row, col int
+						if _, err := fmt.Sscanf(elem.ID, "center-%d-%d", &row, &col); err == nil {
+							if m.Config != nil {
+								m.CenterRow = row
+								m.CenterCol = col
+								old := m.Config.CenterWindow
+								m.Config.CenterWindow = gridToCenter(row, col)
+								if err := m.SaveConfig(); err != nil {
+									m.Config.CenterWindow = old
+								}
+							}
+							m.Screen = ScreenSettings
+							m.MenuSelected = 0
+						}
+					}
 				case ElementProfileConfirm:
 					if m.Screen == ScreenProfiles {
 						if elem.ID == "confirm-yes" {

@@ -599,6 +599,18 @@ func (m *Model) viewCenterSelect() string {
 			}
 
 			rowCells = append(rowCells, box.Render(label))
+
+			cellX := col * 9
+			cellY := len(lines) + 2
+			m.trackElement(Element{
+				Type:   ElementCenterItem,
+				X:      cellX,
+				Y:      cellY,
+				Width:  9,
+				Height: 3,
+				ID:     fmt.Sprintf("center-%d-%d", row, col),
+				Index:  row*3 + col,
+			})
 		}
 		lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, rowCells...))
 		lines = append(lines, "")
