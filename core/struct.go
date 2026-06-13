@@ -84,6 +84,7 @@ const (
 	ScreenMenu Screen = iota
 	ScreenSettings
 	ScreenThemeSelect
+	ScreenCenterSelect
 	ScreenGame
 	ScreenProfiles
 	ScreenProfileCreate
@@ -126,6 +127,7 @@ type Model struct {
 	Localizer                i18n.Localizer
 	layoutElements           []Element
 	gridOffsetX, gridOffsetY int
+	CenterRow, CenterCol     int
 
 	BannerText   string
 	BoxTrigger   string
