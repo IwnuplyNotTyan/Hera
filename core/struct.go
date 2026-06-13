@@ -63,6 +63,7 @@ const (
 	ElementSettingsItem
 	ElementThemeItem
 	ElementProfileConfirm
+	ElementCenterItem
 )
 
 type Element struct {

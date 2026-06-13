@@ -29,12 +29,24 @@
   "settings": {
     "title": "НАСТРОЙКИ",
     "selectTheme": "ВЫБОР ТЕМЫ",
+    "selectCenter": "ВЫБОР ЦЕНТРА",
     "noResults": "нет результатов",
     "language": "Язык",
     "theme": "Тема",
     "center": "Центрирование",
     "background": "Фон",
     "back": "Назад"
+  },
+  "center": {
+    "topLeft": "Верхний левый",
+    "topCenter": "Верхний центр",
+    "topRight": "Верхний правый",
+    "centerLeft": "Центр слева",
+    "center": "Центр",
+    "centerRight": "Центр справа",
+    "bottomLeft": "Нижний левый",
+    "bottomCenter": "Нижний центр",
+    "bottomRight": "Нижний правый"
   },
   "game": {
     "gameOver": " Конец игры ",

@@ -339,9 +339,32 @@ func (m *Model) renderContent(s string) string {
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	if m.Config != nil && m.Config.CenterWindow {
-		marginX := (m.TerminalWidth - contentWidth) / 2
-		marginY := (m.TerminalHeight - contentHeight) / 2
+	if m.Config != nil && m.Config.CenterWindow != "" {
+		var marginX, marginY int
+
+		switch m.Config.CenterWindow {
+		case "tl":
+			marginX, marginY = 0, 0
+		case "tc":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, 0
+		case "tr":
+			marginX, marginY = m.TerminalWidth-contentWidth, 0
+		case "cl":
+			marginX, marginY = 0, (m.TerminalHeight-contentHeight)/2
+		case "c":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, (m.TerminalHeight-contentHeight)/2
+		case "cr":
+			marginX, marginY = m.TerminalWidth-contentWidth, (m.TerminalHeight-contentHeight)/2
+		case "bl":
+			marginX, marginY = 0, m.TerminalHeight-contentHeight
+		case "bc":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, m.TerminalHeight-contentHeight
+		case "br":
+			marginX, marginY = m.TerminalWidth-contentWidth, m.TerminalHeight-contentHeight
+		default:
+			marginX, marginY = 0, 0
+		}
+
 		s = lipgloss.NewStyle().
 			MarginLeft(marginX).
 			MarginTop(marginY).
@@ -406,6 +429,9 @@ func (m *Model) View() string {
 	}
 	if m.Screen == ScreenThemeSelect {
 		return m.viewThemeSelect()
+	}
+	if m.Screen == ScreenCenterSelect {
+		return m.viewCenterSelect()
 	}
 	if m.Screen == ScreenGameOver {
 		return m.viewGameOver()
