@@ -563,60 +563,50 @@ func (m *Model) viewGameOver() string {
 }
 
 func (m *Model) viewCenterSelect() string {
-	positions := []string{
-		"tl", "tc", "tr",
-		"cl", "c", "cr",
-		"bl", "bc", "br",
-	}
-	labels := []string{
-		m.Localizer.T("center.topLeft"),
-		m.Localizer.T("center.topCenter"),
-		m.Localizer.T("center.topRight"),
-		m.Localizer.T("center.centerLeft"),
-		m.Localizer.T("center.center"),
-		m.Localizer.T("center.centerRight"),
-		m.Localizer.T("center.bottomLeft"),
-		m.Localizer.T("center.bottomCenter"),
-		m.Localizer.T("center.bottomRight"),
-	}
-
 	title := m.Localizer.T("settings.selectCenter")
-	var lines []string
-	lines = append(lines, title, "")
 
-	currentIdx := 0
-	if m.Config != nil {
-		for i, p := range positions {
-			if p == m.Config.CenterWindow {
-				currentIdx = i
-				break
-			}
-		}
+	grid := [3][3]string{
+		{"tl", "tc", "tr"},
+		{"cl", "c", "cr"},
+		{"bl", "bc", "br"},
 	}
 
-	for i, label := range labels {
-		row := len(lines) + 2
-		selected := i == currentIdx
-		if selected {
-			style := m.Styles.CursorStyle.Bold(true)
-			lines = append(lines, "  ● "+style.Render(label))
-		} else {
-			lines = append(lines, "   ●  "+label)
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	for row := 0; row < 3; row++ {
+		var rowCells []string
+		for col := 0; col < 3; col++ {
+			code := grid[row][col]
+			label := code
+			if code == "c" {
+				label = " C "
+			} else {
+				label = " " + strings.ToUpper(code) + " "
+			}
+
+			selected := row == m.CenterRow && col == m.CenterCol
+			box := lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				Width(7).
+				Align(lipgloss.Center)
+
+			if selected {
+				box = box.Bold(true).Foreground(m.Theme.Cursor())
+			} else {
+				box = box.Foreground(m.Theme.Fg())
+			}
+
+			rowCells = append(rowCells, box.Render(label))
 		}
-		m.trackElement(Element{
-			Type:   ElementCenterItem,
-			X:      4,
-			Y:      row,
-			Width:  lipgloss.Width("   ●  ") + lipgloss.Width(label),
-			Height: 1,
-			ID:     positions[i],
-			Index:  i,
-		})
+		lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, rowCells...))
+		lines = append(lines, "")
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
-	boxStyle := m.Styles.BoxStyle.Border(lipgloss.RoundedBorder())
-	return m.renderContent(boxStyle.Render(content))
+	content = m.Styles.BoxStyle.Render(content)
+	return m.renderContent(content)
 }
 
 func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
