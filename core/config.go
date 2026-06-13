@@ -93,8 +93,35 @@ func (m *Model) loadConfig(path string) error {
 		return err
 	}
 
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Migration: convert old bool "centered" to new string format
+	if centered, ok := raw["centered"]; ok {
+		switch v := centered.(type) {
+		case bool:
+			if v {
+				raw["centered"] = "c"
+			} else {
+				raw["centered"] = "tl"
+			}
+		}
+	}
+
+	// Ensure default if missing
+	if _, ok := raw["centered"]; !ok {
+		raw["centered"] = "c"
+	}
+
+	fixed, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+
 	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := json.Unmarshal(fixed, &cfg); err != nil {
 		return err
 	}
 
