@@ -612,7 +612,9 @@ func (m *Model) viewCenterSelect() string {
 				Index:  row*3 + col,
 			})
 		}
-		lines = append(lines, lipgloss.JoinHorizontal(lipgloss.Top, rowCells...))
+		rowStr := lipgloss.JoinHorizontal(lipgloss.Top, rowCells...)
+		rowStr = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Render(rowStr)
+		lines = append(lines, rowStr)
 		lines = append(lines, "")
 	}
 
