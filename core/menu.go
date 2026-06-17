@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -434,6 +435,32 @@ func (m *Model) viewProfiles() string {
 					ID:     "confirm-no",
 					Index:  0,
 				})
+			} else if m.SeedConfirmActive && i == m.ProfileSlot {
+				var yesBtn, noBtn string
+				if m.SeedConfirmChoice == 0 {
+					yesBtn = lipgloss.NewStyle().Background(m.Theme.SelectionBg()).Render(" ? ")
+				} else {
+					yesBtn = gray.Render("?")
+				}
+				if m.SeedConfirmChoice == 1 {
+					noBtn = lipgloss.NewStyle().Background(m.Theme.SelectionBg()).Render(" ● ")
+				} else {
+					noBtn = gray.Render("● ")
+				}
+				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
+				lines = append(lines, nameLine)
+				scoreLine := lipgloss.NewStyle().Foreground(m.Theme.Cyan()).Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				lines = append(lines, scoreLine)
+
+				m.trackElement(Element{
+					Type:   ElementMenuItem,
+					X:      4,
+					Y:      row,
+					Width:  lipgloss.Width(m.Profiles[i].Name) + 6,
+					Height: 1,
+					ID:     fmt.Sprintf("profile-%d", i),
+					Index:  i,
+				})
 			} else {
 				nameLine := prefix + namePart
 				lines = append(lines, nameLine)
@@ -580,11 +607,13 @@ func (m *Model) viewSeedPrompt() string {
 	warning := m.Localizer.T("game.seedWarning")
 
 	var lines []string
-	lines = append(lines, "🎲 "+title)
+	lines = append(lines, title)
 	lines = append(lines, "")
 	lines = append(lines, warning)
 	lines = append(lines, "")
-	lines = append(lines, m.Localizer.T("game.seedEnter")+" "+m.SeedPromptCustom+"_")
+	lines = append(lines, m.Localizer.T("game.seedEnter"))
+	lines = append(lines, "")
+	lines = append(lines, m.SeedPromptInput.View())
 
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
 	content = m.Styles.BoxStyle.Render(content)
@@ -763,36 +792,29 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if m.Screen == ScreenSeedPrompt {
+			var cmd tea.Cmd
+			m.SeedPromptInput, cmd = m.SeedPromptInput.Update(msg)
+
 			switch keyStr {
-			case "backspace":
-				if len(m.SeedPromptCustom) > 0 {
-					m.SeedPromptCustom = m.SeedPromptCustom[:len(m.SeedPromptCustom)-1]
-				}
-			case "enter", "x", "X":
-				if m.SeedPromptCustom == "" {
-					m.Screen = ScreenGame
-					m.CurrentScore = 0
-					m.startGame()
-				} else {
-					m.Seed = ParseSeed(m.SeedPromptCustom)
+			case "enter":
+				val := m.SeedPromptInput.Value()
+				if val != "" {
+					m.Seed = ParseSeed(val)
 					m.SeedLocked = true
-					m.Screen = ScreenGame
-					m.CurrentScore = 0
-					m.startGame()
 				}
-				return m, nil
+				m.Screen = ScreenGame
+				m.CurrentScore = 0
+				m.SeedConfirmChoice = 0
+				m.SeedPromptInput.SetValue("")
+				m.startGame()
+				return m, cmd
 			case "esc", "q":
 				m.Screen = ScreenProfiles
-				m.SeedPromptCustom = ""
-			default:
-				if len(keyStr) == 1 {
-					r := []rune(keyStr)[0]
-					if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
-						m.SeedPromptCustom += keyStr
-					}
-				}
+				m.SeedConfirmChoice = 0
+				m.SeedPromptInput.SetValue("")
+				return m, cmd
 			}
-			return m, nil
+			return m, cmd
 		}
 
 		switch keyStr {
@@ -848,7 +870,9 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "left", "h", "H":
 			if m.Screen == ScreenProfiles {
-				if m.ProfileDeleteConfirm {
+				if m.SeedConfirmActive {
+					m.SeedConfirmChoice = 0
+				} else if m.ProfileDeleteConfirm {
 					m.ProfileConfirmChoice = 0
 				} else {
 					m.ProfileSlot--
@@ -877,7 +901,9 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "right", "l", "L":
 			if m.Screen == ScreenProfiles {
-				if m.ProfileDeleteConfirm {
+				if m.SeedConfirmActive {
+					m.SeedConfirmChoice = 1
+				} else if m.ProfileDeleteConfirm {
 					m.ProfileConfirmChoice = 1
 				} else {
 					m.ProfileSlot++
@@ -913,10 +939,33 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ProfileDeleteConfirm = false
 				return m, nil
 			}
+			if m.Screen == ScreenProfiles && m.SeedConfirmActive {
+				m.SeedConfirmActive = false
+				if m.SeedConfirmChoice == 0 {
+					m.Screen = ScreenGame
+					m.CurrentScore = 0
+					m.SeedConfirmChoice = 0
+					m.SeedPromptInput.SetValue("")
+					m.startGame()
+				} else {
+					m.Screen = ScreenSeedPrompt
+					ti := textinput.New()
+					ti.Placeholder = "123456789"
+					ti.CharLimit = 64
+					ti.Width = 30
+					ti.Prompt = ""
+					m.SeedPromptInput = ti
+					cmd := m.SeedPromptInput.Focus()
+					return m, cmd
+				}
+				return m, nil
+			}
 			return m.doMenuConfirm()
 		case "backspace", "z", "Z":
 			if m.Screen == ScreenProfiles {
-				if m.ProfileDeleteConfirm {
+				if m.SeedConfirmActive {
+					m.SeedConfirmActive = false
+				} else if m.ProfileDeleteConfirm {
 					m.ProfileDeleteConfirm = false
 				} else if m.Profiles[m.ProfileSlot] != nil {
 					m.ProfileDeleteConfirm = true
@@ -939,13 +988,18 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case ScreenMenu:
 				return m, tea.Quit
 			case ScreenProfiles:
-				m.Screen = ScreenMenu
-				m.MenuSelected = 0
+				if m.SeedConfirmActive {
+					m.SeedConfirmActive = false
+				} else {
+					m.Screen = ScreenMenu
+					m.MenuSelected = 0
+				}
 			case ScreenProfileCreate:
 				m.Screen = ScreenProfiles
 			case ScreenSeedPrompt:
 				m.Screen = ScreenProfiles
-				m.SeedPromptCustom = ""
+				m.SeedConfirmChoice = 0
+				m.SeedPromptInput.SetValue("")
 			}
 		}
 	}

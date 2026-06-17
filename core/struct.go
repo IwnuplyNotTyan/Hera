@@ -2,6 +2,7 @@ package generate
 
 import (
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 
 	"hera/i18n"
@@ -152,7 +153,9 @@ type Model struct {
 	ActiveSlot           int
 	Seed                 int64
 	SeedLocked           bool
-	SeedPromptCustom     string
+	SeedConfirmActive    bool
+	SeedConfirmChoice    int
+	SeedPromptInput      textinput.Model
 }
 
 const (

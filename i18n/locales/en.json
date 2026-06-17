@@ -50,8 +50,9 @@
 	"game": {
 		"gameOver": " Game Over ",
 		"anyKey": "Press any key to continue",
-		"seedLabel": "Seed",
-		"seedEnter": "Enter seed (leave empty for random):",
+		"seedLabel": "SEED",
+		"seedChoice": "Use random seed?",
+		"seedEnter": "Enter seed",
 		"seedWarning": "Scores will not be saved if you enter a specific seed."
 	},
   "status": {
