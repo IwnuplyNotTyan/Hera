@@ -25,8 +25,8 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	blocked := make(map[Point]bool)
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil, nil)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls, nil)
 
 	starts := []Point{
 		{X: 1, Y: 1},
@@ -59,7 +59,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		blocked[p] = true
 	}
 
-	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemysCount, blocked)
+	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemysCount, blocked, nil)
 	enemyPositions := make([]Point, 0, enemysCount)
 	for p := range enemyStarts {
 		enemyPositions = append(enemyPositions, p)

@@ -10,13 +10,13 @@ import (
 )
 
 func TestGenerateTiles_Count(t *testing.T) {
-	tiles := generate.GenerateTiles(5, 5, 10, nil)
+	tiles := generate.GenerateTiles(5, 5, 10, nil, nil)
 	assert.Len(t, tiles, 10)
 }
 
 func TestGenerateTiles_NotNearPlayer(t *testing.T) {
 	playerX, playerY := 5, 5
-	tiles := generate.GenerateTiles(playerX, playerY, 20, nil)
+	tiles := generate.GenerateTiles(playerX, playerY, 20, nil, nil)
 	for p := range tiles {
 		assert.False(t,
 			utils.Abs(p.X-playerX) <= 1 && utils.Abs(p.Y-playerY) <= 1,
@@ -26,8 +26,8 @@ func TestGenerateTiles_NotNearPlayer(t *testing.T) {
 }
 
 func TestGenerateTiles_NoOverlapWithBlocked(t *testing.T) {
-	walls := generate.GenerateTiles(5, 5, 10, nil)
-	water := generate.GenerateTiles(5, 5, 10, walls)
+	walls := generate.GenerateTiles(5, 5, 10, nil, nil)
+	water := generate.GenerateTiles(5, 5, 10, walls, nil)
 	for p := range water {
 		assert.False(t, walls[p], "water and wall overlap at %v", p)
 	}

@@ -6,11 +6,17 @@ import (
 	"hera/utils"
 )
 
-func GenerateTiles(playerX, playerY, count int, blocked map[Point]bool) map[Point]bool {
+func GenerateTiles(playerX, playerY, count int, blocked map[Point]bool, rng *rand.Rand) map[Point]bool {
 	tiles := make(map[Point]bool)
 	for len(tiles) < count {
-		x := rand.Intn(GridW)
-		y := rand.Intn(GridH)
+		var x, y int
+		if rng != nil {
+			x = rng.Intn(GridW)
+			y = rng.Intn(GridH)
+		} else {
+			x = rand.Intn(GridW)
+			y = rand.Intn(GridH)
+		}
 		p := Point{x, y}
 
 		if utils.Abs(x-playerX) <= 1 && utils.Abs(y-playerY) <= 1 {

@@ -51,17 +51,17 @@ func (m *Model) startGame() {
 		blocked[Point{p.X, p.Y}] = true
 	}
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked)
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, nil)
 	for p := range walls {
 		blocked[p] = true
 	}
 
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked, nil)
 	for p := range water {
 		blocked[p] = true
 	}
 
-	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemyCount, blocked)
+	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemyCount, blocked, nil)
 	enemyPositions := make([]Point, 0, enemyCount)
 	for p := range enemyStarts {
 		enemyPositions = append(enemyPositions, p)
