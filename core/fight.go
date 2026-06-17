@@ -727,6 +727,12 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		}
 		n++
 		if m.MenuSelected == n {
+			m.Seed = 0
+			m.SeedPhrase = ""
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
 			m.Screen = ScreenMenu
 			m.MenuSelected = 0
 			return m, nil
