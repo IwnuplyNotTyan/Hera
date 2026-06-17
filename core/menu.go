@@ -10,9 +10,6 @@ import (
 )
 
 func (m *Model) startGame() {
-	if m.Seed != 0 {
-		rand.Seed(m.Seed)
-	}
 	players := []Player{}
 	starts := []Point{
 		{X: 1, Y: 1},
@@ -21,13 +18,24 @@ func (m *Model) startGame() {
 		{X: 1, Y: GridH - 2},
 	}
 
+	if m.Seed == 0 {
+		m.Seed = RandomSeed()
+		m.SeedPhrase = GenerateSeedPhrase(m.Seed)
+	}
+
+	rng := rand.New(rand.NewSource(m.Seed))
+
+	intn := func(n int) int {
+		return rng.Intn(n)
+	}
+
 	playerCount := m.startPlayers
 	if playerCount <= 0 {
-		playerCount = rand.Intn(3) + 2
+		playerCount = intn(3) + 2
 	}
 	enemyCount := m.startEnemies
 	if enemyCount <= 0 {
-		enemyCount = rand.Intn(3) + 2
+		enemyCount = intn(3) + 2
 	}
 	if enemyCount > len(m.Styles.EnemysStyles) {
 		enemyCount = len(m.Styles.EnemysStyles)
@@ -51,17 +59,17 @@ func (m *Model) startGame() {
 		blocked[Point{p.X, p.Y}] = true
 	}
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, nil)
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
 	for p := range walls {
 		blocked[p] = true
 	}
 
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked, nil)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked, rng)
 	for p := range water {
 		blocked[p] = true
 	}
 
-	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemyCount, blocked, nil)
+	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemyCount, blocked, rng)
 	enemyPositions := make([]Point, 0, enemyCount)
 	for p := range enemyStarts {
 		enemyPositions = append(enemyPositions, p)
