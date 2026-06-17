@@ -34,6 +34,8 @@
     "theme": "Theme",
     "center": "Center",
     "background": "Background",
+    "seed": "Seed",
+    "off": "off",
     "back": "Back"
   },
   "center": {
