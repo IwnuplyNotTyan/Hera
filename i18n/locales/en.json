@@ -34,8 +34,6 @@
     "theme": "Theme",
     "center": "Center",
     "background": "Background",
-    "seed": "Seed",
-    "off": "off",
     "back": "Back"
   },
   "center": {
@@ -49,10 +47,15 @@
     "bottomCenter": "Bottom Center",
     "bottomRight": "Bottom Right"
   },
-  "game": {
-    "gameOver": " Game Over ",
-    "anyKey": "Press any key to continue"
-  },
+	"game": {
+		"gameOver": " Game Over ",
+		"anyKey": "Press any key to continue",
+		"seedPrompt": "Random seed?",
+		"seedEnter": "Enter seed:",
+		"seedYes": "Y",
+		"seedNo": "n",
+		"seedLabel": "Seed"
+	},
   "status": {
     "player": "Player {n} {hp}",
     "move": "♧ M",
