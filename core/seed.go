@@ -1,0 +1,30 @@
+package generate
+
+import (
+	"hash/fnv"
+	"math/rand"
+	"strconv"
+
+	"github.com/charmbracelet/hotdiva2000"
+)
+
+func parseSeed(s string) int64 {
+	if s == "" {
+		return 0
+	}
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		h := fnv.New64a()
+		h.Write([]byte(s))
+		return int64(h.Sum64())
+	}
+	return n
+}
+
+func generateSeedPhrase(seed int64) string {
+	if seed == 0 {
+		return ""
+	}
+	rand.Seed(seed)
+	return hotdiva2000.Generate()
+}
