@@ -563,7 +563,7 @@ func (m *Model) viewGameOver() string {
 
 	score := m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.CurrentScore)
 	if m.SeedPhrase != "" {
-		score += "  |  " + m.Localizer.T("game.seedLabel") + ": " + m.SeedPhrase
+		score += "  |  " + m.Localizer.T("game.seedLabel") + ": " + fmt.Sprint(m.Seed) + " (" + m.SeedPhrase + ")"
 	}
 	prompt := m.Localizer.T("game.anyKey")
 
@@ -577,28 +577,15 @@ func (m *Model) viewGameOver() string {
 }
 
 func (m *Model) viewSeedPrompt() string {
-	title := m.Localizer.T("game.seedPrompt")
+	title := m.Localizer.T("game.seedLabel")
+	warning := m.Localizer.T("game.seedWarning")
 
 	var lines []string
-	lines = append(lines, title)
+	lines = append(lines, "🎲 "+title)
 	lines = append(lines, "")
-
-	yesLabel := m.Localizer.T("game.seedYes")
-	noLabel := m.Localizer.T("game.seedNo")
-
-	if m.SeedPromptCustom == "" {
-		yesLine := "  ● " + yesLabel
-		noLine := "   " + noLabel
-		if m.SeedPromptChoice {
-			lines = append(lines, "  "+m.Styles.CursorStyle.Bold(true).Render(yesLine))
-			lines = append(lines, "   "+noLabel)
-		} else {
-			lines = append(lines, "   "+yesLabel)
-			lines = append(lines, "  "+m.Styles.CursorStyle.Bold(true).Render(noLine))
-		}
-	} else {
-		lines = append(lines, m.Localizer.T("game.seedEnter")+" "+m.SeedPromptCustom+"_")
-	}
+	lines = append(lines, warning)
+	lines = append(lines, "")
+	lines = append(lines, m.Localizer.T("game.seedEnter")+" "+m.SeedPromptCustom+"_")
 
 	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
 	content = m.Styles.BoxStyle.Render(content)
@@ -776,24 +763,29 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		if m.Screen == ScreenSeedPrompt && m.SeedPromptCustom != "" {
+		if m.Screen == ScreenSeedPrompt {
 			switch keyStr {
 			case "backspace":
 				if len(m.SeedPromptCustom) > 0 {
 					m.SeedPromptCustom = m.SeedPromptCustom[:len(m.SeedPromptCustom)-1]
 				}
 			case "enter", "x", "X":
-				m.Seed = ParseSeed(m.SeedPromptCustom)
-				m.SeedPhrase = GenerateSeedPhrase(m.Seed)
-				m.SeedLocked = true
-				m.Screen = ScreenGame
-				m.CurrentScore = 0
-				m.startGame()
+				if m.SeedPromptCustom == "" {
+					m.Screen = ScreenGame
+					m.CurrentScore = 0
+					m.startGame()
+				} else {
+					m.Seed = ParseSeed(m.SeedPromptCustom)
+					m.SeedPhrase = GenerateSeedPhrase(m.Seed)
+					m.SeedLocked = true
+					m.Screen = ScreenGame
+					m.CurrentScore = 0
+					m.startGame()
+				}
 				return m, nil
 			case "esc", "q":
 				m.Screen = ScreenProfiles
 				m.SeedPromptCustom = ""
-				m.SeedPromptChoice = true
 			default:
 				if len(keyStr) == 1 {
 					r := []rune(keyStr)[0]

@@ -741,7 +741,6 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 		if m.Profiles[slot] != nil {
 			m.ActiveSlot = slot
 			m.Screen = ScreenSeedPrompt
-			m.SeedPromptChoice = true
 			m.SeedPromptCustom = ""
 		} else {
 			m.ProfileLetters = [3]rune{'A', 'A', 'A'}
