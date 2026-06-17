@@ -151,6 +151,7 @@ type Model struct {
 	ActiveSlot           int
 	Seed                 int64
 	SeedPhrase           string
+	SeedLocked           bool
 }
 
 const (
