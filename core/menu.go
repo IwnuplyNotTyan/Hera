@@ -449,7 +449,7 @@ func (m *Model) viewProfiles() string {
 				}
 				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
 				lines = append(lines, nameLine)
-				scoreLine := lipgloss.NewStyle().Foreground(m.Theme.Cyan()).Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
+				scoreLine := lipgloss.NewStyle().Foreground(m.Theme.Purple()).Render("      " + m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.Profiles[i].Score))
 				lines = append(lines, scoreLine)
 
 				m.trackElement(Element{
