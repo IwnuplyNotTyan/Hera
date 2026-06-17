@@ -653,10 +653,12 @@ func (m *Model) endGame(scoreBonus int) {
 	if score < 0 {
 		score = 0
 	}
-	if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
-		m.Profiles[m.ActiveSlot].Score += score
+	if m.Seed == 0 {
+		if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
+			m.Profiles[m.ActiveSlot].Score += score
+		}
+		_ = m.SaveProfiles()
 	}
-	_ = m.SaveProfiles()
 	m.ActiveSlot = -1
 	if len(m.Players) == 0 {
 		m.Screen = ScreenGameOver

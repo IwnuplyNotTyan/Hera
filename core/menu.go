@@ -10,6 +10,9 @@ import (
 )
 
 func (m *Model) startGame() {
+	if m.Seed != 0 {
+		rand.Seed(m.Seed)
+	}
 	players := []Player{}
 	starts := []Point{
 		{X: 1, Y: 1},
