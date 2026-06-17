@@ -153,7 +153,6 @@ type Model struct {
 	Seed                 int64
 	SeedPhrase           string
 	SeedLocked           bool
-	SeedPromptChoice     bool
 	SeedPromptCustom     string
 }
 
