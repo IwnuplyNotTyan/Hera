@@ -393,14 +393,14 @@ func (m *Model) viewProfiles() string {
 				yesFocused := m.ProfileConfirmChoice == 0 || m.HoveredConfirm == "confirm-yes"
 				noFocused := m.ProfileConfirmChoice == 1 || m.HoveredConfirm == "confirm-no"
 				if yesFocused {
-					yesBtn = lipgloss.NewStyle().Foreground(m.Theme.Green()).Background(m.Theme.SelectionBg()).Render("✓ ")
+					yesBtn = " " + lipgloss.NewStyle().Foreground(m.Theme.Green()).Background(m.Theme.SelectionBg()).Render("✓ ")
 				} else {
-					yesBtn = gray.Render("✓ ")
+					yesBtn = gray.Render("✓")
 				}
 				if noFocused {
-					noBtn = lipgloss.NewStyle().Foreground(m.Theme.Red()).Background(m.Theme.SelectionBg()).Render("✕ ")
+					noBtn = " " + lipgloss.NewStyle().Foreground(m.Theme.Red()).Background(m.Theme.SelectionBg()).Render("✕ ")
 				} else {
-					noBtn = gray.Render("✕ ")
+					noBtn = gray.Render("✕")
 				}
 				nameLine := prefix + namePart + "  " + yesBtn + " " + noBtn
 				lines = append(lines, nameLine)
