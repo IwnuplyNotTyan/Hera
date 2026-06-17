@@ -576,6 +576,35 @@ func (m *Model) viewGameOver() string {
 	return m.renderContent(content)
 }
 
+func (m *Model) viewSeedPrompt() string {
+	title := m.Localizer.T("game.seedPrompt")
+
+	var lines []string
+	lines = append(lines, title)
+	lines = append(lines, "")
+
+	yesLabel := m.Localizer.T("game.seedYes")
+	noLabel := m.Localizer.T("game.seedNo")
+
+	if m.SeedPromptCustom == "" {
+		yesLine := "  ● " + yesLabel
+		noLine := "   " + noLabel
+		if m.SeedPromptChoice {
+			lines = append(lines, "  "+m.Styles.CursorStyle.Bold(true).Render(yesLine))
+			lines = append(lines, "   "+noLabel)
+		} else {
+			lines = append(lines, "   "+yesLabel)
+			lines = append(lines, "  "+m.Styles.CursorStyle.Bold(true).Render(noLine))
+		}
+	} else {
+		lines = append(lines, m.Localizer.T("game.seedEnter")+" "+m.SeedPromptCustom+"_")
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left, lines...)
+	content = m.Styles.BoxStyle.Render(content)
+	return m.renderContent(content)
+}
+
 func (m *Model) viewCenterSelect() string {
 	title := m.Localizer.T("settings.selectCenter")
 
@@ -747,6 +776,35 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		if m.Screen == ScreenSeedPrompt && m.SeedPromptCustom != "" {
+			switch keyStr {
+			case "backspace":
+				if len(m.SeedPromptCustom) > 0 {
+					m.SeedPromptCustom = m.SeedPromptCustom[:len(m.SeedPromptCustom)-1]
+				}
+			case "enter", "x", "X":
+				m.Seed = ParseSeed(m.SeedPromptCustom)
+				m.SeedPhrase = GenerateSeedPhrase(m.Seed)
+				m.SeedLocked = true
+				m.Screen = ScreenGame
+				m.CurrentScore = 0
+				m.startGame()
+				return m, nil
+			case "esc", "q":
+				m.Screen = ScreenProfiles
+				m.SeedPromptCustom = ""
+				m.SeedPromptChoice = true
+			default:
+				if len(keyStr) == 1 {
+					r := []rune(keyStr)[0]
+					if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+						m.SeedPromptCustom += keyStr
+					}
+				}
+			}
+			return m, nil
+		}
+
 		switch keyStr {
 		case "up", "k", "K":
 			switch m.Screen {
@@ -799,6 +857,10 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "left", "h", "H":
+			if m.Screen == ScreenSeedPrompt && m.SeedPromptCustom == "" {
+				m.SeedPromptChoice = true
+				return m, nil
+			}
 			if m.Screen == ScreenProfiles {
 				if m.ProfileDeleteConfirm {
 					m.ProfileConfirmChoice = 0
@@ -828,6 +890,10 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "right", "l", "L":
+			if m.Screen == ScreenSeedPrompt && m.SeedPromptCustom == "" {
+				m.SeedPromptChoice = false
+				return m, nil
+			}
 			if m.Screen == ScreenProfiles {
 				if m.ProfileDeleteConfirm {
 					m.ProfileConfirmChoice = 1
@@ -865,6 +931,16 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ProfileDeleteConfirm = false
 				return m, nil
 			}
+			if m.Screen == ScreenSeedPrompt {
+				if m.SeedPromptChoice {
+					m.Screen = ScreenGame
+					m.CurrentScore = 0
+					m.startGame()
+				} else {
+					m.SeedPromptCustom = ""
+				}
+				return m, nil
+			}
 			return m.doMenuConfirm()
 		case "backspace", "z", "Z":
 			if m.Screen == ScreenProfiles {
@@ -895,6 +971,10 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.MenuSelected = 0
 			case ScreenProfileCreate:
 				m.Screen = ScreenProfiles
+			case ScreenSeedPrompt:
+				m.Screen = ScreenProfiles
+				m.SeedPromptCustom = ""
+				m.SeedPromptChoice = true
 			}
 		}
 	}

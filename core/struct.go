@@ -90,6 +90,7 @@ const (
 	ScreenProfiles
 	ScreenProfileCreate
 	ScreenGameOver
+	ScreenSeedPrompt
 )
 
 type Model struct {
@@ -152,6 +153,8 @@ type Model struct {
 	Seed                 int64
 	SeedPhrase           string
 	SeedLocked           bool
+	SeedPromptChoice     bool
+	SeedPromptCustom     string
 }
 
 const (

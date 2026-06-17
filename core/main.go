@@ -177,7 +177,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenCenterSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate {
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenCenterSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate || m.Screen == ScreenSeedPrompt {
 		return m.updateMenu(msg)
 	}
 
@@ -452,6 +452,9 @@ func (m *Model) View() string {
 	}
 	if m.Screen == ScreenGameOver {
 		return m.viewGameOver()
+	}
+	if m.Screen == ScreenSeedPrompt {
+		return m.viewSeedPrompt()
 	}
 
 	current := m.Players[m.CurrentPlayer]
