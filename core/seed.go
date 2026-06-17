@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/hotdiva2000"
 )
 
-func parseSeed(s string) int64 {
+func ParseSeed(s string) int64 {
 	if s == "" {
 		return 0
 	}
@@ -21,7 +21,7 @@ func parseSeed(s string) int64 {
 	return n
 }
 
-func generateSeedPhrase(seed int64) string {
+func GenerateSeedPhrase(seed int64) string {
 	if seed == 0 {
 		return ""
 	}

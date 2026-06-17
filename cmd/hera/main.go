@@ -49,6 +49,7 @@ func main() {
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
 	var asciiText string
+	var seedStr string
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -125,6 +126,11 @@ func main() {
 				}
 			}
 
+			if seedStr != "" {
+				model.Seed = generate.ParseSeed(seedStr)
+				model.SeedPhrase = generate.GenerateSeedPhrase(model.Seed)
+			}
+
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),
@@ -146,6 +152,7 @@ func main() {
 	cmd.Flags().StringVarP(&flagPlayerEffects, "player-effects", "P", "", "Starting effects for players (comma-separated: fire,wet,smoke)")
 	cmd.Flags().StringVarP(&flagEnemyEffects, "enemy-effects", "E", "", "Starting effects for enemies (comma-separated: fire,wet,smoke)")
 	cmd.Flags().StringVarP(&asciiText, "ascii", "a", "", "Render text as ASCII banner using assets/Tmplr.flf")
+	cmd.Flags().StringVarP(&seedStr, "seed", "s", "", "Seed for deterministic world generation")
 
 	opts := []fang.Option{fang.WithVersion(version)}
 	if commit != "" {
