@@ -653,7 +653,7 @@ func (m *Model) endGame(scoreBonus int) {
 	if score < 0 {
 		score = 0
 	}
-	if m.Seed == 0 {
+	if !m.SeedLocked {
 		if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
 			m.Profiles[m.ActiveSlot].Score += score
 		}
