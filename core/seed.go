@@ -4,6 +4,7 @@ import (
 	"hash/fnv"
 	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/charmbracelet/hotdiva2000"
 )
@@ -19,6 +20,10 @@ func ParseSeed(s string) int64 {
 		return int64(h.Sum64())
 	}
 	return n
+}
+
+func RandomSeed() int64 {
+	return time.Now().UnixNano()
 }
 
 func GenerateSeedPhrase(seed int64) string {
