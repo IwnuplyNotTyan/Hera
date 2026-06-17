@@ -20,7 +20,6 @@ func (m *Model) startGame() {
 
 	if m.Seed == 0 {
 		m.Seed = RandomSeed()
-		m.SeedPhrase = GenerateSeedPhrase(m.Seed)
 	}
 
 	rng := rand.New(rand.NewSource(m.Seed))
@@ -562,8 +561,8 @@ func (m *Model) viewGameOver() string {
 	}
 
 	score := m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.CurrentScore)
-	if m.SeedPhrase != "" {
-		score += "  |  " + m.Localizer.T("game.seedLabel") + ": " + fmt.Sprint(m.Seed) + " (" + m.SeedPhrase + ")"
+	if m.Seed != 0 {
+		score += "  |  " + m.Localizer.T("game.seedLabel") + ": " + fmt.Sprint(m.Seed)
 	}
 	prompt := m.Localizer.T("game.anyKey")
 
@@ -776,7 +775,6 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.startGame()
 				} else {
 					m.Seed = ParseSeed(m.SeedPromptCustom)
-					m.SeedPhrase = GenerateSeedPhrase(m.Seed)
 					m.SeedLocked = true
 					m.Screen = ScreenGame
 					m.CurrentScore = 0

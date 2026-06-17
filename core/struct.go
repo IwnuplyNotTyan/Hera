@@ -151,7 +151,6 @@ type Model struct {
 	CurrentScore         int
 	ActiveSlot           int
 	Seed                 int64
-	SeedPhrase           string
 	SeedLocked           bool
 	SeedPromptCustom     string
 }

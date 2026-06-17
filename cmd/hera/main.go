@@ -128,7 +128,6 @@ func main() {
 
 			if seedStr != "" {
 				model.Seed = generate.ParseSeed(seedStr)
-				model.SeedPhrase = generate.GenerateSeedPhrase(model.Seed)
 				model.SeedLocked = true
 			}
 

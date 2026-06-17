@@ -2,11 +2,8 @@ package generate
 
 import (
 	"hash/fnv"
-	"math/rand"
 	"strconv"
 	"time"
-
-	"github.com/charmbracelet/hotdiva2000"
 )
 
 func ParseSeed(s string) int64 {
@@ -24,12 +21,4 @@ func ParseSeed(s string) int64 {
 
 func RandomSeed() int64 {
 	return time.Now().UnixNano()
-}
-
-func GenerateSeedPhrase(seed int64) string {
-	if seed == 0 {
-		return ""
-	}
-	rand.Seed(seed)
-	return hotdiva2000.Generate()
 }
