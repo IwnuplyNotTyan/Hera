@@ -149,6 +149,8 @@ type Model struct {
 	HoveredConfirm       string
 	CurrentScore         int
 	ActiveSlot           int
+	Seed                 int64
+	SeedPhrase           string
 }
 
 const (
