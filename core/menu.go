@@ -569,8 +569,8 @@ func (m *Model) viewGameOver() string {
 	}
 
 	score := m.Localizer.T("menu.score") + ": " + fmt.Sprint(m.CurrentScore)
-	if m.Seed != 0 && m.SeedPhrase != "" {
-		score += "  |  Seed: " + m.SeedPhrase
+	if m.SeedPhrase != "" {
+		score += "  |  " + m.Localizer.T("game.seedLabel") + ": " + m.SeedPhrase
 	}
 	prompt := m.Localizer.T("game.anyKey")
 
