@@ -36,7 +36,8 @@
     "center": "Центрирование",
     "background": "Фон",
     "debug": "Режим отладки",
-    "back": "Назад"
+    "back": "Назад",
+    "searchHint": "esc: закрыть"
   },
   "center": {
     "topLeft": "Верхний левый",

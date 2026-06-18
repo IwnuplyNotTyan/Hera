@@ -8,24 +8,6 @@ import (
 	"hera/i18n"
 )
 
-type EffectType string
-
-const (
-	GridW      = 14
-	GridH      = 10
-	wallCount  = 10
-	waterCount = 10
-	moveRange  = 4
-	shootRange = 2
-	MaxHP      = 3
-
-	EffectWet   EffectType = "wet"
-	EffectFire  EffectType = "fire"
-	EffectSmoke EffectType = "smoke"
-
-	maxUltCharges = 3
-)
-
 type Effect struct {
 	Type     EffectType
 	Duration int
@@ -56,17 +38,6 @@ type enemyTurnMsg struct {
 
 type triggerTickMsg struct{}
 
-type ElementType int
-
-const (
-	ElementGridCell ElementType = iota
-	ElementMenuItem
-	ElementSettingsItem
-	ElementThemeItem
-	ElementProfileConfirm
-	ElementCenterItem
-)
-
 type Element struct {
 	Type          ElementType
 	X, Y          int
@@ -79,20 +50,6 @@ type Profile struct {
 	Name  string
 	Score int
 }
-
-type Screen int
-
-const (
-	ScreenMenu Screen = iota
-	ScreenSettings
-	ScreenThemeSelect
-	ScreenCenterSelect
-	ScreenGame
-	ScreenProfiles
-	ScreenProfileCreate
-	ScreenGameOver
-	ScreenSeedPrompt
-)
 
 type Model struct {
 	Theme                    ThemeRegistry
@@ -164,8 +121,3 @@ type Model struct {
 	ConsoleHistory    []string
 	ConsoleHistoryIdx int
 }
-
-const (
-	TriggerNone   = ""
-	TriggerDamage = "damage"
-)
