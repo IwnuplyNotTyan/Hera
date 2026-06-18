@@ -578,9 +578,7 @@ func (m *Model) ConsoleView() string {
 	if len(m.ConsoleOutput) > maxOut {
 		start = len(m.ConsoleOutput) - maxOut
 	}
-	for _, l := range m.ConsoleOutput[start:] {
-		lines = append(lines, l)
-	}
+	lines = append(lines, m.ConsoleOutput[start:]...)
 	lines = append(lines, m.ConsoleInput.View())
 	return borderStyle.Render(strings.Join(lines, "\n"))
 }
