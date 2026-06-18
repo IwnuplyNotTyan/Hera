@@ -292,18 +292,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.Confirm):
 			if m.ShowEffectIdx > 0 {
-				m.ShowEffectIdx = 0
-				m.Moved = true
-				m.Shot = true
-				m = m.nextTurn()
-				cur := m.Players[m.CurrentPlayer]
-				m.CursorX = cur.X
-				m.CursorY = cur.Y
-				if m.CurrentPlayer == 0 {
-					m.EnemyTurn = true
-					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
+				skipIdx := len(m.effectsAtCursor()) + 1
+				if m.ShowEffectIdx == skipIdx {
+					m.ShowEffectIdx = 0
+					m.Moved = true
+					m.Shot = true
+					m = m.nextTurn()
+					cur := m.Players[m.CurrentPlayer]
+					m.CursorX = cur.X
+					m.CursorY = cur.Y
+					if m.CurrentPlayer == 0 {
+						m.EnemyTurn = true
+						return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
+					}
+					return m, m.triggerTickCmd()
 				}
-				return m, m.triggerTickCmd()
+				m.ShowEffectIdx = 0
+				break
 			}
 			m = m.doConfirm()
 			if len(m.Players) == 0 {
