@@ -562,10 +562,21 @@ func (m *Model) ConsoleView() string {
 		Padding(0, 2).
 		Width(46)
 
+	maxOut := 15
+	if m.TerminalHeight > 0 {
+		available := m.TerminalHeight - 25
+		if available < 3 {
+			available = 3
+		}
+		if available < maxOut {
+			maxOut = available
+		}
+	}
+
 	var lines []string
 	start := 0
-	if len(m.ConsoleOutput) > 15 {
-		start = len(m.ConsoleOutput) - 15
+	if len(m.ConsoleOutput) > maxOut {
+		start = len(m.ConsoleOutput) - maxOut
 	}
 	for _, l := range m.ConsoleOutput[start:] {
 		lines = append(lines, l)

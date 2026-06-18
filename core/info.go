@@ -157,10 +157,16 @@ func (m *Model) effectsLine() string {
 		result = renderEffects(effects, loc, highlightIdx, m.Theme)
 	}
 
+	var skipIcon string
 	if m.ShowEffectIdx == skipIdx {
-		result += effectSep + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render("⏭")
+		skipIcon = lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render("⏭")
 	} else {
-		result += effectSep + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("⏭")
+		skipIcon = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("⏭")
+	}
+	if result == "" {
+		result = skipIcon
+	} else {
+		result += effectSep + skipIcon
 	}
 
 	if m.DebugMode {
