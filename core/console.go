@@ -560,15 +560,9 @@ func (m *Model) ConsoleView() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(m.Theme.Purple()).
 		Padding(0, 2).
-		Width(52)
-
-	header := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#888888")).
-		Render("» ── Console ──")
+		Width(46)
 
 	var lines []string
-	lines = append(lines, header)
-
 	start := 0
 	if len(m.ConsoleOutput) > 5 {
 		start = len(m.ConsoleOutput) - 5
@@ -576,7 +570,6 @@ func (m *Model) ConsoleView() string {
 	for _, l := range m.ConsoleOutput[start:] {
 		lines = append(lines, l)
 	}
-
 	lines = append(lines, m.ConsoleInput.View())
 	return borderStyle.Render(strings.Join(lines, "\n"))
 }
