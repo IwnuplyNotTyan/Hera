@@ -119,6 +119,13 @@
     "delete": "Delete",
     "back": "Back"
   },
+  "console": {
+    "title": "CONSOLE",
+    "regenerating": "Map regenerated.",
+    "unknown": "Unknown command. Type 'help' for commands.",
+    "notInGame": "Commands are only available during a game.",
+    "invalidTarget": "Invalid target. Use p1, p2, ... or e1, e2, ..."
+  },
   "keys": {
     "up": "↑/K",
     "down": "↓/J",

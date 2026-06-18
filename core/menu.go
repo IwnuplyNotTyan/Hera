@@ -105,6 +105,7 @@ func (m *Model) startGame() {
 	m.UltAxis = ""
 	m.EnemyTurn = false
 	m.EnemyIdx = 0
+	m.InitConsole()
 	m.MenuSelected = 0
 }
 

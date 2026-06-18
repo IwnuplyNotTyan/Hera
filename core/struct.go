@@ -156,6 +156,12 @@ type Model struct {
 	SeedConfirmActive    bool
 	SeedConfirmChoice    int
 	SeedPromptInput      textinput.Model
+
+	ConsoleMode       bool
+	ConsoleInput      textinput.Model
+	ConsoleOutput     []string
+	ConsoleHistory    []string
+	ConsoleHistoryIdx int
 }
 
 const (

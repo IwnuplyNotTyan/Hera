@@ -181,6 +181,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateMenu(msg)
 	}
 
+	if m.ConsoleMode {
+		return m.UpdateConsole(msg)
+	}
+
 	if m.EnemyTurn {
 		return m, nil
 	}
@@ -320,14 +324,29 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.EffectInfo):
 			if m.Screen == ScreenGame {
+				if m.ConsoleMode {
+					m.ConsoleMode = false
+					m.ShowEffectIdx = 0
+					m.ConsoleInput.Blur()
+					break
+				}
 				effects := m.effectsAtCursor()
+				maxIdx := 0
 				if len(effects) > 0 {
+					maxIdx = len(effects) + 1
+				} else {
+					maxIdx = 1
+				}
+				if m.ShowEffectIdx > 0 {
 					m.ShowEffectIdx++
-					if m.ShowEffectIdx > len(effects)+1 {
+					if m.ShowEffectIdx > maxIdx {
 						m.ShowEffectIdx = 0
+						m.ConsoleMode = true
+						fi := m.ConsoleInput.Focus()
+						return m, fi
 					}
 				} else {
-					m.ShowEffectIdx = (m.ShowEffectIdx + 1) % 2
+					m.ShowEffectIdx = 1
 				}
 			}
 		case key.Matches(msg, m.keys.Help):
@@ -668,8 +687,14 @@ func (m *Model) View() string {
 	}
 	grid := strings.Join(rows, "\n")
 	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
-	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
-	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	var content string
+	if m.ConsoleMode {
+		consoleView := m.ConsoleView()
+		content = lipgloss.JoinVertical(lipgloss.Left, box, status, consoleView)
+	} else {
+		helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
+		content = lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	}
 
 	return m.renderContent(content)
 }
