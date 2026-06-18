@@ -24,6 +24,7 @@ func helpText() string {
   help                 — This help`
 }
 
+// ExecuteConsoleCmd processes a parsed console command and returns its output string.
 func (m *Model) ExecuteConsoleCmd(cmd ConsoleCmd) string {
 	switch cmd.Command {
 	case "help":

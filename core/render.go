@@ -16,6 +16,8 @@ func (m *Model) renderContent(s string) string {
 	contentWidth := lipgloss.Width(s)
 	contentHeight := lipgloss.Height(s)
 	if contentWidth > m.TerminalWidth || contentHeight > m.TerminalHeight {
+		m.gridOffsetX = 0
+		m.gridOffsetY = 0
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 

@@ -68,7 +68,9 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter", "x", "X":
 				name := string(m.ProfileLetters[:])
 				m.Profiles[m.ProfileSlot] = &Profile{Name: name, Score: 0}
-				_ = m.SaveProfiles()
+				if err := m.SaveProfiles(); err != nil {
+					// non-fatal
+				}
 				m.Screen = ScreenProfiles
 			case "esc", "q":
 				m.Screen = ScreenProfiles
@@ -258,7 +260,9 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Screen == ScreenProfiles && m.ProfileDeleteConfirm {
 				if m.ProfileConfirmChoice == 0 {
 					m.Profiles[m.ProfileSlot] = nil
-					_ = m.SaveProfiles()
+					if err := m.SaveProfiles(); err != nil {
+						// non-fatal
+					}
 				}
 				m.ProfileDeleteConfirm = false
 				return m, nil

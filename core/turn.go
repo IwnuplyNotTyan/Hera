@@ -7,6 +7,9 @@ import (
 )
 
 func (m *Model) nextTurn() *Model {
+	if len(m.Players) == 0 {
+		return m
+	}
 	m.Moved = false
 	m.Shot = false
 	m.ShootMode = false
@@ -34,6 +37,9 @@ func (m *Model) nextTurn() *Model {
 	if m.CurrentPlayer == len(m.Players)-1 {
 		m = m.tickFireTiles()
 		for i := range m.Players {
+			if i == m.CurrentPlayer {
+				continue
+			}
 			m.Players[i].Effects = TickEffects(m.Players[i].Effects)
 		}
 	}

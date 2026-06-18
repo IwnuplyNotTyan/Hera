@@ -13,7 +13,9 @@ func (m *Model) endGame(scoreBonus int) {
 		if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
 			m.Profiles[m.ActiveSlot].Score += score
 		}
-		_ = m.SaveProfiles()
+		if err := m.SaveProfiles(); err != nil {
+			// Save failed — non-fatal, continue
+		}
 	}
 	m.ActiveSlot = -1
 	if len(m.Players) == 0 {

@@ -2,6 +2,7 @@ package generate
 
 import "hera/utils"
 
+// currentRange returns the movement or shoot range for the current player.
 func (m *Model) currentRange() int {
 	r := moveRange
 	if m.ShootMode {
@@ -18,6 +19,7 @@ func (m *Model) currentRange() int {
 	return r
 }
 
+// IsInRange checks whether (col, row) is within the current player's range and not wall-blocked.
 func (m *Model) IsInRange(col, row int) bool {
 	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
 		return false
@@ -32,6 +34,7 @@ func (m *Model) IsInRange(col, row int) bool {
 	return !m.HasWallBetweenPoints(current.X, current.Y, col, row)
 }
 
+// Reachable returns the set of points reachable from (sx, sy) within r steps, avoiding walls and occupied cells.
 func (m *Model) Reachable(sx, sy, r int) map[Point]bool {
 	type state struct {
 		x, y, steps int
@@ -79,6 +82,7 @@ func (m *Model) Reachable(sx, sy, r int) map[Point]bool {
 	return result
 }
 
+// HasWallBetweenPoints returns true if a wall lies on the Bresenham line between the two points.
 func (m *Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 	startX, startY := x0, y0
 	dx := utils.Abs(x1 - x0)
@@ -136,14 +140,14 @@ func (m *Model) ultCross(cx, cy int) []Point {
 }
 
 func (m *Model) ultInAxisRange(cx, cy int) bool {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return false
+	}
 	current := m.Players[m.CurrentPlayer]
 	return cx == current.X || cy == current.Y
 }
 
-func (m *Model) Move(newX, newY int) *Model {
-	return m
-}
-
+// OccupiedByOther returns true if a non-current player or enemy occupies (x, y).
 func (m *Model) OccupiedByOther(x, y int) bool {
 	for i, p := range m.Players {
 		if i != m.CurrentPlayer && p.X == x && p.Y == y {

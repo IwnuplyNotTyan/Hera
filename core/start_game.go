@@ -104,6 +104,9 @@ func (m *Model) startGame() {
 }
 
 func (m *Model) navigateTheme(direction int) {
+	if len(m.AvailableThemes) == 0 {
+		return
+	}
 	currentIdx := 0
 	for i, t := range m.AvailableThemes {
 		if m.Config != nil && t == m.Config.ThemeName {

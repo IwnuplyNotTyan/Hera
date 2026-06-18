@@ -1,6 +1,9 @@
 package generate
 
 func (m *Model) doConfirm() *Model {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return m
+	}
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
 	wallBlocked := m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
@@ -25,7 +28,13 @@ func (m *Model) doConfirm() *Model {
 					m.TriggerTimer = 6
 					if m.Players[i].HP <= 0 {
 						m.CurrentScore -= 5
+						if i < m.CurrentPlayer {
+							m.CurrentPlayer--
+						}
 						m.Players = append(m.Players[:i], m.Players[i+1:]...)
+						if len(m.Players) == 0 {
+							return m
+						}
 						if m.CurrentPlayer >= len(m.Players) {
 							m.CurrentPlayer = 0
 						}
@@ -94,6 +103,9 @@ func (m *Model) doConfirm() *Model {
 }
 
 func (m *Model) doUlt() *Model {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return m
+	}
 	current := m.Players[m.CurrentPlayer]
 	if current.UltCharges <= 0 {
 		return m

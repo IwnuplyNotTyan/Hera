@@ -6,6 +6,7 @@ import (
 	"hera/i18n"
 )
 
+// NewModel creates a new Model with the given number of players and enemies, applying starter effects and theme.
 func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect, loc i18n.Localizer, theme ThemeRegistry, centerWindow string, enableBackground bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
@@ -16,6 +17,9 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 	}
 	if enemysCount < 0 {
 		enemysCount = 0
+	}
+	if enemysCount > len(styles.EnemysStyles) {
+		enemysCount = len(styles.EnemysStyles)
 	}
 
 	blocked := make(map[Point]bool)
@@ -40,7 +44,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 			HP:         MaxHP,
 			UltCharges: maxUltCharges,
 			Effects:    effs,
-			Style:      styles.PlayerStyles[i%len(styles.EnemysStyles)],
+			Style:      styles.PlayerStyles[i%len(styles.PlayerStyles)],
 		}
 	}
 
@@ -100,6 +104,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 	}
 }
 
+// SetAvailableThemes populates AvailableThemes from the theme registry if one is set.
 func (m *Model) SetAvailableThemes() {
 	if m.Theme != nil {
 		m.AvailableThemes = m.Theme.TintIDs()

@@ -168,7 +168,7 @@ func (m *Model) viewThemeSelect() string {
 		searchStyle = searchStyle.Bold(true)
 		searchContent = searchStyle.Render(searchLine)
 		hintStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#666666"))
-		searchContent += "\n" + hintStyle.Render("  esc to close")
+		searchContent += "\n" + hintStyle.Render("  "+m.Localizer.T("settings.searchHint"))
 		searchContent = boxStyle.Render(searchContent)
 	} else if m.LastSearchQuery != "" {
 		searchLine := "/ " + m.LastSearchQuery + ""

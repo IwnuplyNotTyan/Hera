@@ -55,7 +55,13 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 					m.BoxTrigger = TriggerDamage
 					m.TriggerTimer = 6
 					if m.Players[j].HP <= 0 {
+						if j < m.CurrentPlayer {
+							m.CurrentPlayer--
+						}
 						m.Players = append(m.Players[:j], m.Players[j+1:]...)
+						if len(m.Players) == 0 {
+							return m
+						}
 						if m.CurrentPlayer >= len(m.Players) {
 							m.CurrentPlayer = 0
 						}
@@ -102,6 +108,12 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 				m.Enemys[idx].Effects = ResolveEffects(
 					m.Enemys[idx].Effects,
 					Effect{Type: EffectWet, Duration: 2},
+				)
+			}
+			if m.SmokeTiles[p] > 0 {
+				m.Enemys[idx].Effects = ResolveEffects(
+					m.Enemys[idx].Effects,
+					Effect{Type: EffectSmoke, Duration: 2},
 				)
 			}
 

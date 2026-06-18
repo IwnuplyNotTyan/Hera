@@ -9,6 +9,7 @@ import (
 	"hera/utils"
 )
 
+// View renders the current screen as a string for the TUI.
 func (m *Model) View() string {
 	m.resetLayout()
 
@@ -159,7 +160,7 @@ func (m *Model) View() string {
 				cellContent = st.Render(symbol)
 			case enemyIdx >= 0:
 				symbol := " ▲ "
-				if enemyIdx == m.CurrentEnemy {
+				if enemyIdx == m.EnemyIdx {
 					symbol = " ♦ "
 				}
 				st := m.Enemys[enemyIdx].Style

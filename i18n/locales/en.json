@@ -35,7 +35,8 @@
     "center": "Center",
     "background": "Background",
     "debug": "Debug",
-    "back": "Back"
+    "back": "Back",
+    "searchHint": "esc to close"
   },
   "center": {
     "topLeft": "Top Left",

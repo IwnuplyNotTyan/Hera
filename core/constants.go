@@ -1,5 +1,6 @@
 package generate
 
+// EffectType represents a type of status effect that can be applied to entities.
 type EffectType string
 
 const (
@@ -18,6 +19,7 @@ const (
 	maxUltCharges = 3
 )
 
+// ElementType identifies the kind of UI element for mouse tracking/hover.
 type ElementType int
 
 const (
@@ -29,6 +31,7 @@ const (
 	ElementCenterItem
 )
 
+// Screen represents which UI screen is currently displayed.
 type Screen int
 
 const (
