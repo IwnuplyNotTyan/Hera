@@ -343,6 +343,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.ShowEffectIdx = 0
 						if m.DebugMode {
 							m.ConsoleMode = true
+							m.help.ShowAll = false
 							fi := m.ConsoleInput.Focus()
 							return m, fi
 						}
