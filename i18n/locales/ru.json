@@ -17,21 +17,46 @@
     "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
     "start": "Начать игру",
     "settings": "Настройки",
-    "exit": "Выход"
+    "exit": "Выход",
+    "create": "Создать",
+    "createProfile": "Создать профиль",
+    "profileHint": "j/k: буква  h/l: выбор  x: подтвердить",
+    "score": "Очки",
+    "profiles": "Профили",
+    "deleteConfirm": "Удалить профиль?",
+    "profilesHint": "z: удалить  h/l: выбрать  esc: назад"
   },
   "settings": {
     "title": "НАСТРОЙКИ",
     "selectTheme": "ВЫБОР ТЕМЫ",
+    "selectCenter": "ВЫБОР ЦЕНТРА",
     "noResults": "нет результатов",
     "language": "Язык",
     "theme": "Тема",
     "center": "Центрирование",
     "background": "Фон",
+    "debug": "Режим отладки",
     "back": "Назад"
   },
-  "game": {
-    "gameOver": " Конец игры "
+  "center": {
+    "topLeft": "Верхний левый",
+    "topCenter": "Верхний центр",
+    "topRight": "Верхний правый",
+    "centerLeft": "Центр слева",
+    "center": "Центр",
+    "centerRight": "Центр справа",
+    "bottomLeft": "Нижний левый",
+    "bottomCenter": "Нижний центр",
+    "bottomRight": "Нижний правый"
   },
+	"game": {
+		"gameOver": " Конец игры ",
+		"anyKey": "Нажмите любую клавишу для продолжения",
+		"seedLabel": "СИД",
+		"seedChoice": "Случайный сид?",
+		"seedEnter": "Введите сид",
+		"seedWarning": "Очки не будут сохранены, если вы введете конкретный сид."
+	},
   "status": {
     "player": "Игрок {n} {hp}",
     "move": "♧ M",
@@ -91,7 +116,17 @@
     "toggleHelp": "Помощь",
     "effectInfo": "Меню",
     "skipTurn": "⏭ Пропустить ход",
-    "quit": "Выход"
+    "quit": "Выход",
+    "confirm": "Подтвердить",
+    "delete": "Удалить",
+    "back": "Назад"
+  },
+  "console": {
+    "title": "КОНСОЛЬ",
+    "regenerating": "Карта перегенерирована.",
+    "unknown": "Неизвестная команда. Введите 'help' для списка команд.",
+    "notInGame": "Команды доступны только во время игры.",
+    "invalidTarget": "Неверная цель. Используйте p1, p2, ... или e1, e2, ..."
   },
   "keys": {
     "up": "↑/K",
@@ -103,6 +138,8 @@
     "ult": "C",
     "help": "?",
     "quit": "q",
-    "effectInfo": "V"
+    "effectInfo": "V",
+    "delete": "Z",
+    "back": "esc"
   }
 }

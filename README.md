@@ -42,24 +42,64 @@ go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
 <details>
-<summary><b>Flags and tags</b></summary>
+<summary><b>✨ Flags, Tags and Commands</b></summary>
 
-**Tags:**
+### 🏳️‍⚧️ Tags
 
-| Tag | Desc                 |
+| Tag | Description                 |
 |-----|----------------------|
 | eng | Only English Locales |
 | notint| Disable themes     |
 
 
-**LDFlags:**
-| Flags | Example | Desc |
+### 💋 LDFlags
+| Flags | Example | Description |
 |-------|---------|------|
 |main.version|-ldflags="-X main.version=1.0.0| --version number|
 |main.commit|-ldflags="-X main.commit=$(git rev-parse HEAD)"| --version commit|
 
 
-**Flags** can be find in help command
+### ❄️ Flags
+
+|Short|Full|Description|
+|-----|-----------|--|
+| -a | --ascii    |        Render text as ASCII banner using assets/Tmplr.flf |
+| -b | --background|       Background fill |
+| -C | --center     |      Window position: tl, tc, tr, cl, c, cr, bl, bc, br (default: c) |
+| -d | --debug      |      Enable debug mode (console, no score saving) |
+| -e | --enemies    |      Number of enemies (0=random) |
+| -E | --enemy-effects|    Starting effects for enemies (comma-separated: fire,wet,smoke) |
+| -h | --help       |      Help for hera |
+| -l | --lang       |      Language code (en, ru) (en) |
+| -P | --player-effects|   Starting effects for players (comma-separated: fire,wet,smoke) |
+| -p | --players    |      Number of players (0=random, 2-4) |
+| -s | --seed       |      Seed for deterministic world generation |
+| -t | --theme   |         Theme name (e.g., dracula, tokyonight, gruvbox) |
+| -v | --version |         Version for hera |
+
+## 🐛 Developer Console
+
+Opened by pressing `v` after enabling **Debug Mode** (`--debug`/`-d` flag or toggle in Settings).
+
+Toggle: `v` cycles effects → skip turn → console (Debug Mode only).
+
+| Command | Description |
+|---------|-------------|
+| `help` | Show this help |
+| `status` | Show all entities with HP, position, effects |
+| `clear` | Clear console output |
+| `regen` | Regenerate walls, water; clear fire/smoke |
+| `add player` | Spawn a new player on a free tile |
+| `add enemy` | Spawn a new enemy on a free tile |
+| `remove player <N>` | Remove player N (1‑based) |
+| `remove enemy <N>` | Remove enemy N (1‑based) |
+| `remove effect <target> <type>` | Remove an effect |
+| `heal <target> <N>` | Heal target by N HP |
+| `damage <target> <N>` | Damage target by N HP |
+| `set hp <target> <N>` | Set exact HP |
+| `effect <target> <type> [dur]` | Add effect (`fire`/`wet`/`smoke`), default duration 3 |
+
+**Target notation:** `p1`, `p2`, … for players, `e1`, `e2`, … for enemies (1‑based).
 
 </details>
 
@@ -79,6 +119,10 @@ go build -o ./bin/hera ./cmd/hera/main.go
 - [Testify](https://github.com/stretchr/testify) —  Enchaned testing
 - [Cobra](https://github.com/spf13/cobra) — Powerfull flags
     - [Fang](https://github.com/charmbracelet/fang) —  Make it pretty
+
+### 🌑 Assets
+
+- [Tmplr](https://github.com/patorjk/figlet.js/blob/main/fonts/Tmplr.flf) —  ASCII font
 
 ---
 

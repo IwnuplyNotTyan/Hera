@@ -2,6 +2,7 @@ package generate
 
 import (
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 
 	"hera/i18n"
@@ -62,6 +63,8 @@ const (
 	ElementMenuItem
 	ElementSettingsItem
 	ElementThemeItem
+	ElementProfileConfirm
+	ElementCenterItem
 )
 
 type Element struct {
@@ -72,21 +75,29 @@ type Element struct {
 	Index         int
 }
 
+type Profile struct {
+	Name  string
+	Score int
+}
+
 type Screen int
 
 const (
 	ScreenMenu Screen = iota
 	ScreenSettings
 	ScreenThemeSelect
+	ScreenCenterSelect
 	ScreenGame
+	ScreenProfiles
+	ScreenProfileCreate
+	ScreenGameOver
+	ScreenSeedPrompt
 )
 
 type Model struct {
 	Theme                    ThemeRegistry
-	ThemeName                string
 	Styles                   Styles
-	EnableBackground         bool
-	CenterWindow             bool
+	Config                   *Config
 	TerminalWidth            int
 	TerminalHeight           int
 	Screen                   Screen
@@ -113,12 +124,15 @@ type Model struct {
 	Shot                     bool
 	keys                     keyMap
 	help                     help.Model
+	menuKeys                 menuKeyMap
 	EnemyTurn                bool
 	EnemyIdx                 int
 	Localizer                i18n.Localizer
 	layoutElements           []Element
 	gridOffsetX, gridOffsetY int
+	CenterRow, CenterCol     int
 
+	BannerText   string
 	BoxTrigger   string
 	TriggerTimer int
 
@@ -126,6 +140,29 @@ type Model struct {
 	startEnemies       int
 	startPlayerEffects []Effect
 	startEnemyEffects  []Effect
+
+	Profiles             [3]*Profile
+	ProfileSlot          int
+	ProfileLetters       [3]rune
+	ProfileCursor        int
+	Font                 *FLFFont
+	ProfileDeleteConfirm bool
+	ProfileConfirmChoice int
+	HoveredConfirm       string
+	CurrentScore         int
+	ActiveSlot           int
+	Seed                 int64
+	SeedLocked           bool
+	SeedConfirmActive    bool
+	SeedConfirmChoice    int
+	SeedPromptInput      textinput.Model
+	DebugMode            bool
+
+	ConsoleMode       bool
+	ConsoleInput      textinput.Model
+	ConsoleOutput     []string
+	ConsoleHistory    []string
+	ConsoleHistoryIdx int
 }
 
 const (

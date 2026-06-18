@@ -129,6 +129,7 @@ func TestTranslator_T_AllKeysPresent(t *testing.T) {
 
 	keys := []string{
 		"game.gameOver",
+		"game.anyKey",
 		"status.player",
 		"status.move",
 		"status.shoot",

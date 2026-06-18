@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect, loc i18n.Localizer, theme ThemeRegistry, centerWindow bool, enableBackground bool, themeName string) Model {
+func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect, loc i18n.Localizer, theme ThemeRegistry, centerWindow string, enableBackground bool, themeName string) Model {
 	styles := NewStyles(theme)
 	if playerCount < 2 {
 		playerCount = 2
@@ -25,8 +25,8 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	blocked := make(map[Point]bool)
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil)
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls)
+	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil, nil)
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls, nil)
 
 	starts := []Point{
 		{X: 1, Y: 1},
@@ -59,7 +59,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		blocked[p] = true
 	}
 
-	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemysCount, blocked)
+	enemyStarts := GenerateTiles(GridW/2, GridH/2, enemysCount, blocked, nil)
 	enemyPositions := make([]Point, 0, enemysCount)
 	for p := range enemyStarts {
 		enemyPositions = append(enemyPositions, p)
@@ -80,10 +80,8 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	return Model{
 		Theme:              theme,
-		ThemeName:          themeName,
+		Config:             &Config{ThemeName: themeName, CenterWindow: centerWindow, Background: enableBackground},
 		Styles:             styles,
-		CenterWindow:       centerWindow,
-		EnableBackground:   enableBackground,
 		Screen:             ScreenMenu,
 		EasterEgg:          loc.RandomEasterEgg(),
 		Players:            players,
@@ -97,6 +95,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		FireTiles:          make(map[Point]int),
 		SmokeTiles:         make(map[Point]int),
 		keys:               newKeyMap(loc),
+		menuKeys:           newMenuKeyMap(loc),
 		help:               help.New(),
 		Localizer:          loc,
 		startPlayers:       playerCount,
@@ -384,30 +383,40 @@ func (m *Model) doConfirm() *Model {
 			return m
 		}
 		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+			var hit bool
 			for i, pl := range m.Players {
 				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
 					m.Players[i].HP--
 					m.BoxTrigger = TriggerDamage
 					m.TriggerTimer = 6
 					if m.Players[i].HP <= 0 {
+						m.CurrentScore -= 5
 						m.Players = append(m.Players[:i], m.Players[i+1:]...)
 						if m.CurrentPlayer >= len(m.Players) {
 							m.CurrentPlayer = 0
 						}
 					}
+					hit = true
 					break
 				}
 			}
-			for i, en := range m.Enemys {
-				if en.X == m.CursorX && en.Y == m.CursorY {
-					m.Enemys[i].HP--
-					m.BoxTrigger = TriggerDamage
-					m.TriggerTimer = 6
-					if m.Enemys[i].HP <= 0 {
-						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+			if !hit {
+				for i, en := range m.Enemys {
+					if en.X == m.CursorX && en.Y == m.CursorY {
+						m.Enemys[i].HP--
+						m.BoxTrigger = TriggerDamage
+						m.TriggerTimer = 6
+						if m.Enemys[i].HP <= 0 {
+							m.CurrentScore += 10
+							m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+						}
+						hit = true
+						break
 					}
-					break
 				}
+			}
+			if hit {
+				m.CurrentScore++
 			}
 			m.Shot = true
 			m.ShootMode = false
@@ -463,6 +472,7 @@ func (m *Model) doUlt() *Model {
 	m.UltMode = false
 	m.UltAxis = ""
 	m.Shot = true
+	m.CurrentScore += 2
 
 	affected := m.ultCross(m.CursorX, m.CursorY)
 
@@ -579,6 +589,7 @@ func (m *Model) nextTurn() *Model {
 	}
 
 	m.CurrentPlayer = (m.CurrentPlayer + 1) % len(m.Players)
+	m.CurrentScore++
 	next := m.Players[m.CurrentPlayer]
 	m.CursorX = next.X
 	m.CursorY = next.Y
@@ -634,12 +645,35 @@ func (m *Model) turnOrder() string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
 
+// endGame saves the current score to the active profile, persists profiles
+// to disk, and returns the UI to the main menu. scoreBonus is added on top
+// of CurrentScore (e.g. win/loss bonus).
+func (m *Model) endGame(scoreBonus int) {
+	score := m.CurrentScore + scoreBonus
+	if score < 0 {
+		score = 0
+	}
+	if !m.SeedLocked && !m.DebugMode {
+		if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
+			m.Profiles[m.ActiveSlot].Score += score
+		}
+		_ = m.SaveProfiles()
+	}
+	m.ActiveSlot = -1
+	if len(m.Players) == 0 {
+		m.Screen = ScreenGameOver
+	} else {
+		m.Screen = ScreenMenu
+	}
+	m.MenuSelected = 0
+}
+
 func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	if m.Screen == ScreenMenu {
 		switch m.MenuSelected {
 		case 0:
-			m.Screen = ScreenGame
-			m.startGame()
+			m.Screen = ScreenProfiles
+			m.ProfileSlot = 0
 		case 1:
 			m.Screen = ScreenSettings
 			m.MenuSelected = 0
@@ -661,7 +695,7 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 					}
 				}
 				nextIdx := (currentIdx + 1) % len(languages)
-				if err := m.Localizer.SetLanguage(languages[nextIdx]); err != nil {
+				if err := m.SetLanguage(languages[nextIdx]); err != nil {
 					return m, nil
 				}
 				return m, nil
@@ -677,12 +711,29 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 			n++
 		}
 		if m.MenuSelected == n {
-			m.CenterWindow = !m.CenterWindow
+			m.Screen = ScreenCenterSelect
+			m.CenterRow, m.CenterCol = centerToGrid(m.Config.CenterWindow)
 			return m, nil
 		}
 		n++
 		if m.MenuSelected == n {
-			m.EnableBackground = !m.EnableBackground
+			if m.Config != nil {
+				m.Config.Background = !m.Config.Background
+				if err := m.SaveConfig(); err != nil {
+					m.Config.Background = !m.Config.Background
+				}
+			}
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
+			m.DebugMode = !m.DebugMode
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
+			m.Screen = ScreenMenu
+			m.MenuSelected = 0
 			return m, nil
 		}
 		m.Screen = ScreenMenu
@@ -690,6 +741,51 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 	} else if m.Screen == ScreenThemeSelect {
 		m.Screen = ScreenSettings
 		m.MenuSelected = 0
+	} else if m.Screen == ScreenProfiles {
+		slot := m.ProfileSlot
+		if m.Profiles[slot] != nil {
+			m.ActiveSlot = slot
+			m.SeedConfirmActive = true
+			m.SeedConfirmChoice = 0
+		} else {
+			m.ProfileLetters = [3]rune{'A', 'A', 'A'}
+			m.ProfileCursor = 0
+			m.Screen = ScreenProfileCreate
+		}
 	}
 	return m, nil
+}
+
+func centerToGrid(mode string) (int, int) {
+	switch mode {
+	case "tl":
+		return 0, 0
+	case "tc":
+		return 0, 1
+	case "tr":
+		return 0, 2
+	case "cl":
+		return 1, 0
+	case "c":
+		return 1, 1
+	case "cr":
+		return 1, 2
+	case "bl":
+		return 2, 0
+	case "bc":
+		return 2, 1
+	case "br":
+		return 2, 2
+	default:
+		return 1, 1
+	}
+}
+
+func gridToCenter(row, col int) string {
+	grid := [3][3]string{
+		{"tl", "tc", "tr"},
+		{"cl", "c", "cr"},
+		{"bl", "bc", "br"},
+	}
+	return grid[row][col]
 }

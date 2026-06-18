@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"hera/assets"
 	generate "hera/core"
 	"hera/i18n"
 
@@ -43,10 +44,13 @@ func parseEffects(s string) []generate.Effect {
 func main() {
 	var lang string
 	var theme string
-	var noCenter bool
+	var centerMode string
 	var background bool
 	var flagPlayers, flagEnemies int
 	var flagPlayerEffects, flagEnemyEffects string
+	var asciiText string
+	var seedStr string
+	var debugMode bool
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -65,7 +69,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			centerWindow := !noCenter
+			centerWindow := centerMode
 			enableBackground := background
 			themeName := theme
 			if themeName == "" {
@@ -80,7 +84,56 @@ func main() {
 				ec = 0
 			}
 			model := generate.NewModel(pc, ec, parseEffects(flagPlayerEffects), parseEffects(flagEnemyEffects), loc, registry, centerWindow, enableBackground, themeName)
+
+			if asciiText != "" {
+				font, ferr := generate.ParseFLF(assets.FontData)
+				if ferr == nil {
+					model.BannerText = font.Render(asciiText)
+				}
+			}
+
+			if err := model.InitConfig(); err != nil {
+				log.Warn("config", "err", err)
+			}
+			if model.Config != nil {
+				if theme != "" {
+					model.Config.ThemeName = theme
+				}
+				if cmd.Flags().Changed("background") {
+					model.Config.Background = background
+				}
+				if cmd.Flags().Changed("center") {
+					model.Config.CenterWindow = centerMode
+				}
+				if model.Config.Language != "" && !cmd.Flags().Changed("lang") {
+					if err := model.SetLanguage(model.Config.Language); err != nil {
+						log.Warn("language", "err", err)
+					}
+				}
+				registry.SetTintID(model.Config.ThemeName)
+				model.Theme = registry
+				model.Styles = generate.NewStyles(model.Theme)
+			}
 			model.SetAvailableThemes()
+
+			if err := model.LoadProfiles(); err != nil {
+				log.Warn("profiles", "err", err)
+			}
+
+			if model.Font == nil {
+				font, ferr := generate.ParseFLF(assets.FontData)
+				if ferr == nil {
+					model.Font = font
+				}
+			}
+
+			if seedStr != "" {
+				model.Seed = generate.ParseSeed(seedStr)
+				model.SeedLocked = true
+			}
+
+			model.DebugMode = debugMode
+
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),
@@ -95,12 +148,15 @@ func main() {
 
 	cmd.Flags().StringVarP(&lang, "lang", "l", "en", "Language code (en, ru)")
 	cmd.Flags().StringVarP(&theme, "theme", "t", "", "Theme name (e.g., dracula, tokyonight, gruvbox)")
-	cmd.Flags().BoolVarP(&noCenter, "no-center", "c", false, "Disable centered window")
+	cmd.Flags().StringVarP(&centerMode, "center", "C", "", "Window position: tl, tc, tr, cl, c, cr, bl, bc, br (default: c)")
 	cmd.Flags().BoolVarP(&background, "background", "b", false, "Background fill")
 	cmd.Flags().IntVarP(&flagPlayers, "players", "p", 0, "Number of players (0=random, 2-4)")
 	cmd.Flags().IntVarP(&flagEnemies, "enemies", "e", 0, "Number of enemies (0=random)")
 	cmd.Flags().StringVarP(&flagPlayerEffects, "player-effects", "P", "", "Starting effects for players (comma-separated: fire,wet,smoke)")
 	cmd.Flags().StringVarP(&flagEnemyEffects, "enemy-effects", "E", "", "Starting effects for enemies (comma-separated: fire,wet,smoke)")
+	cmd.Flags().StringVarP(&asciiText, "ascii", "a", "", "Render text as ASCII banner using assets/Tmplr.flf")
+	cmd.Flags().StringVarP(&seedStr, "seed", "s", "", "Seed for deterministic world generation")
+	cmd.Flags().BoolVarP(&debugMode, "debug", "d", false, "Enable debug mode (console, no score saving)")
 
 	opts := []fang.Option{fang.WithVersion(version)}
 	if commit != "" {

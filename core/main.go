@@ -45,17 +45,53 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.Screen == ScreenMenu {
 						m.MenuSelected = elem.Index
 					}
+					if m.Screen == ScreenProfiles {
+						m.ProfileSlot = elem.Index
+					}
 				case ElementSettingsItem:
 					if m.Screen == ScreenSettings {
 						m.MenuSelected = elem.Index
 					}
 				case ElementThemeItem:
-					if m.Screen == ScreenThemeSelect {
-						m.ThemeName = elem.ID
+					if m.Screen == ScreenThemeSelect && m.Config != nil {
+						old := m.Config.ThemeName
+						m.Config.ThemeName = elem.ID
 						if m.Theme != nil {
 							m.Theme.SetTintID(elem.ID)
 						}
 						m.Styles = NewStyles(m.Theme)
+						if err := m.SaveConfig(); err != nil {
+							m.Config.ThemeName = old
+							if m.Theme != nil {
+								m.Theme.SetTintID(old)
+							}
+							m.Styles = NewStyles(m.Theme)
+						}
+					}
+				case ElementCenterItem:
+					if m.Screen == ScreenCenterSelect {
+						var row, col int
+						if _, err := fmt.Sscanf(elem.ID, "center-%d-%d", &row, &col); err == nil {
+							if m.Config != nil {
+								m.CenterRow = row
+								m.CenterCol = col
+								old := m.Config.CenterWindow
+								m.Config.CenterWindow = gridToCenter(row, col)
+								if err := m.SaveConfig(); err != nil {
+									m.Config.CenterWindow = old
+								}
+							}
+							m.Screen = ScreenSettings
+							m.MenuSelected = 0
+						}
+					}
+				case ElementProfileConfirm:
+					if m.Screen == ScreenProfiles {
+						if elem.ID == "confirm-yes" {
+							m.Profiles[m.ProfileSlot] = nil
+							_ = m.SaveProfiles()
+						}
+						m.ProfileDeleteConfirm = false
 					}
 				}
 			}
@@ -63,6 +99,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Button == tea.MouseButtonRight && msg.Action == tea.MouseActionPress {
 			if m.Screen == ScreenGame && !m.EnemyTurn {
 				m = m.doConfirm()
+				if len(m.Players) == 0 {
+					m.endGame(3)
+					return m, nil
+				}
+				if len(m.Enemys) == 0 {
+					m.endGame(15)
+					return m, nil
+				}
 				if m.Moved && m.Shot {
 					m = m.nextTurn()
 					if m.CurrentPlayer == 0 {
@@ -72,8 +116,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, m.triggerTickCmd()
 			}
-			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+			if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenProfiles {
 				return m.doMenuConfirm()
+			}
+		}
+
+		if msg.Action == tea.MouseActionMotion {
+			m.HoveredConfirm = ""
+			elem := m.hitTest(msg.X, msg.Y)
+			if elem != nil && elem.Type == ElementProfileConfirm {
+				m.HoveredConfirm = elem.ID
 			}
 		}
 
@@ -84,7 +136,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case enemyTurnMsg:
 		if len(m.Players) == 0 {
-			return m, tea.Quit
+			m.endGame(3)
+			return m, nil
 		}
 		if msg.enemyIdx >= len(m.Enemys) {
 			m.EnemyTurn = false
@@ -101,7 +154,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.EnemyIdx = msg.enemyIdx
 		m = m.doEnemyTurn(msg.enemyIdx)
 		if len(m.Players) == 0 {
-			return m, tea.Quit
+			m.endGame(3)
+			return m, nil
 		}
 		return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(msg.enemyIdx+1))
 
@@ -114,8 +168,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect {
+	if m.Screen == ScreenGameOver {
+		switch msg.(type) {
+		case tea.KeyMsg, tea.MouseMsg:
+			m.Screen = ScreenMenu
+			m.MenuSelected = 0
+			return m, nil
+		}
+	}
+
+	if m.Screen == ScreenMenu || m.Screen == ScreenSettings || m.Screen == ScreenThemeSelect || m.Screen == ScreenCenterSelect || m.Screen == ScreenProfiles || m.Screen == ScreenProfileCreate || m.Screen == ScreenSeedPrompt {
 		return m.updateMenu(msg)
+	}
+
+	if m.ConsoleMode {
+		return m.UpdateConsole(msg)
 	}
 
 	if m.EnemyTurn {
@@ -225,20 +292,33 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.Confirm):
 			if m.ShowEffectIdx > 0 {
-				m.ShowEffectIdx = 0
-				m.Moved = true
-				m.Shot = true
-				m = m.nextTurn()
-				cur := m.Players[m.CurrentPlayer]
-				m.CursorX = cur.X
-				m.CursorY = cur.Y
-				if m.CurrentPlayer == 0 {
-					m.EnemyTurn = true
-					return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
+				skipIdx := len(m.effectsAtCursor()) + 1
+				if m.ShowEffectIdx == skipIdx {
+					m.ShowEffectIdx = 0
+					m.Moved = true
+					m.Shot = true
+					m = m.nextTurn()
+					cur := m.Players[m.CurrentPlayer]
+					m.CursorX = cur.X
+					m.CursorY = cur.Y
+					if m.CurrentPlayer == 0 {
+						m.EnemyTurn = true
+						return m, tea.Batch(m.triggerTickCmd(), enemyTurnCmd(0))
+					}
+					return m, m.triggerTickCmd()
 				}
-				return m, m.triggerTickCmd()
+				m.ShowEffectIdx = 0
+				break
 			}
 			m = m.doConfirm()
+			if len(m.Players) == 0 {
+				m.endGame(3)
+				return m, nil
+			}
+			if len(m.Enemys) == 0 {
+				m.endGame(15)
+				return m, nil
+			}
 			if m.Moved && m.Shot {
 				m = m.nextTurn()
 				if m.CurrentPlayer == 0 {
@@ -249,19 +329,41 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keys.EffectInfo):
 			if m.Screen == ScreenGame {
+				if m.ConsoleMode {
+					m.ConsoleMode = false
+					m.ShowEffectIdx = 0
+					m.ConsoleInput.Blur()
+					break
+				}
 				effects := m.effectsAtCursor()
+				maxIdx := 0
 				if len(effects) > 0 {
+					maxIdx = len(effects) + 1
+				} else {
+					maxIdx = 1
+				}
+				if m.ShowEffectIdx > 0 {
 					m.ShowEffectIdx++
-					if m.ShowEffectIdx > len(effects)+1 {
+					if m.ShowEffectIdx > maxIdx {
 						m.ShowEffectIdx = 0
+						if m.DebugMode {
+							m.ConsoleMode = true
+							m.help.ShowAll = false
+							fi := m.ConsoleInput.Focus()
+							return m, fi
+						}
 					}
 				} else {
-					m.ShowEffectIdx = (m.ShowEffectIdx + 1) % 2
+					m.ShowEffectIdx = 1
 				}
 			}
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Quit):
+			if m.Screen == ScreenGame && m.ActiveSlot >= 0 {
+				m.endGame(0)
+				return m, nil
+			}
 			return m, tea.Quit
 		}
 	}
@@ -281,9 +383,32 @@ func (m *Model) renderContent(s string) string {
 		return m.Localizer.T("error.terminalTooSmall")
 	}
 
-	if m.CenterWindow {
-		marginX := (m.TerminalWidth - contentWidth) / 2
-		marginY := (m.TerminalHeight - contentHeight) / 2
+	if m.Config != nil && m.Config.CenterWindow != "" {
+		var marginX, marginY int
+
+		switch m.Config.CenterWindow {
+		case "tl":
+			marginX, marginY = 0, 0
+		case "tc":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, 0
+		case "tr":
+			marginX, marginY = m.TerminalWidth-contentWidth, 0
+		case "cl":
+			marginX, marginY = 0, (m.TerminalHeight-contentHeight)/2
+		case "c":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, (m.TerminalHeight-contentHeight)/2
+		case "cr":
+			marginX, marginY = m.TerminalWidth-contentWidth, (m.TerminalHeight-contentHeight)/2
+		case "bl":
+			marginX, marginY = 0, m.TerminalHeight-contentHeight
+		case "bc":
+			marginX, marginY = (m.TerminalWidth-contentWidth)/2, m.TerminalHeight-contentHeight
+		case "br":
+			marginX, marginY = m.TerminalWidth-contentWidth, m.TerminalHeight-contentHeight
+		default:
+			marginX, marginY = 0, 0
+		}
+
 		s = lipgloss.NewStyle().
 			MarginLeft(marginX).
 			MarginTop(marginY).
@@ -295,7 +420,7 @@ func (m *Model) renderContent(s string) string {
 		m.gridOffsetY = 0
 	}
 
-	if !m.EnableBackground {
+	if m.Config == nil || !m.Config.Background {
 		if m.TerminalWidth > contentWidth {
 			lines := strings.Split(s, "\n")
 			for i, line := range lines {
@@ -323,7 +448,7 @@ func (m *Model) renderContent(s string) string {
 	}
 
 	s = strings.Join(lines, "\n")
-	if m.EnableBackground {
+	if m.Config != nil && m.Config.Background {
 		prefix := strings.SplitN(bgStyle.Render("|"), "|", 2)[0]
 		s = strings.ReplaceAll(s, "\x1b[0m", "\x1b[0m"+prefix) + "\x1b[0m"
 	}
@@ -334,6 +459,12 @@ func (m *Model) renderContent(s string) string {
 func (m *Model) View() string {
 	m.resetLayout()
 
+	if m.Screen == ScreenProfiles {
+		return m.viewProfiles()
+	}
+	if m.Screen == ScreenProfileCreate {
+		return m.viewProfileCreate()
+	}
 	if m.Screen == ScreenMenu {
 		return m.viewMenu()
 	}
@@ -343,15 +474,14 @@ func (m *Model) View() string {
 	if m.Screen == ScreenThemeSelect {
 		return m.viewThemeSelect()
 	}
-
-	if len(m.Players) == 0 {
-		gameOver := m.boxStyle().Render(
-			lipgloss.NewStyle().
-				Foreground(m.Theme.BrightRed()).
-				Bold(true).
-				Render(m.Localizer.T("game.gameOver")),
-		)
-		return m.renderContent(gameOver)
+	if m.Screen == ScreenCenterSelect {
+		return m.viewCenterSelect()
+	}
+	if m.Screen == ScreenGameOver {
+		return m.viewGameOver()
+	}
+	if m.Screen == ScreenSeedPrompt {
+		return m.viewSeedPrompt()
 	}
 
 	current := m.Players[m.CurrentPlayer]
@@ -566,7 +696,14 @@ func (m *Model) View() string {
 	grid := strings.Join(rows, "\n")
 	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
-	content := lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+
+	var content string
+	if m.ConsoleMode {
+		consoleView := m.ConsoleView()
+		content = lipgloss.JoinVertical(lipgloss.Left, box, consoleView, helpView)
+	} else {
+		content = lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
+	}
 
 	return m.renderContent(content)
 }

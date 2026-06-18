@@ -145,7 +145,11 @@ func (m *Model) effectsLine() string {
 	if len(effects) == 0 {
 		if m.ShowEffectIdx == 1 {
 			icon := lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
-			return icon + "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
+			suffix := ""
+			if m.DebugMode {
+				suffix = effectSep + lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render("»")
+			}
+			return icon + suffix + "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
 				Render(m.Localizer.T("help.skipTurn"))
 		}
 		return ""
@@ -163,6 +167,9 @@ func (m *Model) effectsLine() string {
 			result += effectSep + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
 		} else {
 			result += lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(effectSep + " ⏭ ")
+		}
+		if m.DebugMode {
+			result += effectSep + lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render("»")
 		}
 	}
 

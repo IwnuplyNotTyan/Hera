@@ -16,21 +16,46 @@
     "title": "┓       \n┣┓┏┓┏┓┏┓\n┛┗┗ ┛ ┗┻",
     "start": "Start Game",
     "settings": "Settings",
-    "exit": "Exit"
+    "exit": "Exit",
+    "create": "Create",
+    "createProfile": "Create Profile",
+    "profileHint": "j/k: letter  h/l: move  x: confirm",
+    "score": "Score",
+    "profiles": "Profiles",
+    "deleteConfirm": "Delete profile?",
+    "profilesHint": "z: delete  h/l: move  esc: back"
   },
   "settings": {
     "title": "SETTINGS",
     "selectTheme": "SELECT THEME",
+    "selectCenter": "SELECT CENTER",
     "noResults": "no results",
     "language": "Language",
     "theme": "Theme",
     "center": "Center",
     "background": "Background",
+    "debug": "Debug",
     "back": "Back"
   },
-  "game": {
-    "gameOver": " Game Over "
+  "center": {
+    "topLeft": "Top Left",
+    "topCenter": "Top Center",
+    "topRight": "Top Right",
+    "centerLeft": "Center Left",
+    "center": "Center",
+    "centerRight": "Center Right",
+    "bottomLeft": "Bottom Left",
+    "bottomCenter": "Bottom Center",
+    "bottomRight": "Bottom Right"
   },
+	"game": {
+		"gameOver": " Game Over ",
+		"anyKey": "Press any key to continue",
+		"seedLabel": "SEED",
+		"seedChoice": "Use random seed?",
+		"seedEnter": "Enter seed",
+		"seedWarning": "Scores will not be saved if you enter a specific seed."
+	},
   "status": {
     "player": "Player {n} {hp}",
     "move": "♧ M",
@@ -90,7 +115,17 @@
     "toggleHelp": "Help",
     "effectInfo": "Menu",
     "skipTurn": "⏭ Skip Turn",
-    "quit": "Quit"
+    "quit": "Quit",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "back": "Back"
+  },
+  "console": {
+    "title": "CONSOLE",
+    "regenerating": "Map regenerated.",
+    "unknown": "Unknown command. Type 'help' for commands.",
+    "notInGame": "Commands are only available during a game.",
+    "invalidTarget": "Invalid target. Use p1, p2, ... or e1, e2, ..."
   },
   "keys": {
     "up": "↑/K",
@@ -102,6 +137,8 @@
     "ult": "C",
     "help": "?",
     "quit": "q",
-    "effectInfo": "V"
+    "effectInfo": "V",
+    "delete": "Z",
+    "back": "esc"
   }
 }
