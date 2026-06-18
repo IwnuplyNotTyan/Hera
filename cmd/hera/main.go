@@ -50,6 +50,7 @@ func main() {
 	var flagPlayerEffects, flagEnemyEffects string
 	var asciiText string
 	var seedStr string
+	var debugMode bool
 
 	cmd := &cobra.Command{
 		Use:   "hera",
@@ -131,6 +132,8 @@ func main() {
 				model.SeedLocked = true
 			}
 
+			model.DebugMode = debugMode
+
 			p := tea.NewProgram(
 				&model,
 				tea.WithAltScreen(),
@@ -153,6 +156,7 @@ func main() {
 	cmd.Flags().StringVarP(&flagEnemyEffects, "enemy-effects", "E", "", "Starting effects for enemies (comma-separated: fire,wet,smoke)")
 	cmd.Flags().StringVarP(&asciiText, "ascii", "a", "", "Render text as ASCII banner using assets/Tmplr.flf")
 	cmd.Flags().StringVarP(&seedStr, "seed", "s", "", "Seed for deterministic world generation")
+	cmd.Flags().BoolVarP(&debugMode, "debug", "d", false, "Enable debug mode (console, no score saving)")
 
 	opts := []fang.Option{fang.WithVersion(version)}
 	if commit != "" {

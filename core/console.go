@@ -555,6 +555,11 @@ func (m *Model) UpdateConsole(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) ConsoleView() string {
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(m.Theme.Purple()).
+		Padding(0, 1)
+
 	header := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888")).
 		Render("» ── Console ──")
@@ -571,5 +576,5 @@ func (m *Model) ConsoleView() string {
 	}
 
 	lines = append(lines, m.ConsoleInput.View())
-	return strings.Join(lines, "\n")
+	return borderStyle.Render(strings.Join(lines, "\n"))
 }
