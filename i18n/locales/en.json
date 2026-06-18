@@ -34,6 +34,7 @@
     "theme": "Theme",
     "center": "Center",
     "background": "Background",
+    "debug": "Debug",
     "back": "Back"
   },
   "center": {

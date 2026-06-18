@@ -156,6 +156,7 @@ type Model struct {
 	SeedConfirmActive    bool
 	SeedConfirmChoice    int
 	SeedPromptInput      textinput.Model
+	DebugMode            bool
 
 	ConsoleMode       bool
 	ConsoleInput      textinput.Model

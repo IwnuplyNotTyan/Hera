@@ -555,12 +555,12 @@ func (m *Model) UpdateConsole(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) ConsoleView() string {
-	separator := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#555555")).
-		Render(strings.Repeat("─", 40))
+	header := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#888888")).
+		Render("» ── Console ──")
 
 	var lines []string
-	lines = append(lines, separator)
+	lines = append(lines, header)
 
 	start := 0
 	if len(m.ConsoleOutput) > 5 {

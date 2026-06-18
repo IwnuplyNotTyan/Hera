@@ -341,9 +341,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.ShowEffectIdx++
 					if m.ShowEffectIdx > maxIdx {
 						m.ShowEffectIdx = 0
-						m.ConsoleMode = true
-						fi := m.ConsoleInput.Focus()
-						return m, fi
+						if m.DebugMode {
+							m.ConsoleMode = true
+							fi := m.ConsoleInput.Focus()
+							return m, fi
+						}
 					}
 				} else {
 					m.ShowEffectIdx = 1
@@ -687,12 +689,12 @@ func (m *Model) View() string {
 	}
 	grid := strings.Join(rows, "\n")
 	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
+	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 	var content string
 	if m.ConsoleMode {
 		consoleView := m.ConsoleView()
-		content = lipgloss.JoinVertical(lipgloss.Left, box, status, consoleView)
+		content = lipgloss.JoinVertical(lipgloss.Left, box, consoleView, helpView)
 	} else {
-		helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
 		content = lipgloss.JoinVertical(lipgloss.Left, box, status, helpView)
 	}
 

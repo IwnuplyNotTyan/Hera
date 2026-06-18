@@ -653,7 +653,7 @@ func (m *Model) endGame(scoreBonus int) {
 	if score < 0 {
 		score = 0
 	}
-	if !m.SeedLocked {
+	if !m.SeedLocked && !m.DebugMode {
 		if m.ActiveSlot >= 0 && m.ActiveSlot < len(m.Profiles) && m.Profiles[m.ActiveSlot] != nil {
 			m.Profiles[m.ActiveSlot].Score += score
 		}
@@ -723,6 +723,11 @@ func (m *Model) doMenuConfirm() (tea.Model, tea.Cmd) {
 					m.Config.Background = !m.Config.Background
 				}
 			}
+			return m, nil
+		}
+		n++
+		if m.MenuSelected == n {
+			m.DebugMode = !m.DebugMode
 			return m, nil
 		}
 		n++

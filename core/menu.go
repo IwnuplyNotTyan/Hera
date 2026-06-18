@@ -211,6 +211,10 @@ func (m *Model) viewSettings() string {
 	if m.Config != nil && !m.Config.Background {
 		bgStr = "off"
 	}
+	debugStr := "off"
+	if m.DebugMode {
+		debugStr = "on"
+	}
 
 	hasLang := len(m.Localizer.AvailableLanguages()) > 1
 	hasThemes := len(m.AvailableThemes) > 1
@@ -227,9 +231,10 @@ func (m *Model) viewSettings() string {
 	menuItems = append(menuItems,
 		m.Localizer.T("settings.center")+": "+centerStr,
 		m.Localizer.T("settings.background")+": "+bgStr,
+		m.Localizer.T("settings.debug")+": "+debugStr,
 		m.Localizer.T("settings.back"),
 	)
-	figures = append(figures, " ◆ ", " ◆ ", " ● ")
+	figures = append(figures, " ◆ ", " ◆ ", " » ", " ● ")
 
 	var lines []string
 	lines = append(lines, title)
@@ -833,7 +838,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected < 0 {
 					m.MenuSelected = 2
 				} else if m.Screen == ScreenSettings && m.MenuSelected < 0 {
-					maxItem := 2
+					maxItem := 3
 					if len(m.Localizer.AvailableLanguages()) > 1 {
 						maxItem++
 					}
@@ -857,7 +862,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Screen == ScreenMenu && m.MenuSelected > 2 {
 					m.MenuSelected = 0
 				} else if m.Screen == ScreenSettings {
-					maxItem := 2
+					maxItem := 3
 					if len(m.Localizer.AvailableLanguages()) > 1 {
 						maxItem++
 					}
