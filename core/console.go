@@ -564,8 +564,8 @@ func (m *Model) ConsoleView() string {
 
 	var lines []string
 	start := 0
-	if len(m.ConsoleOutput) > 5 {
-		start = len(m.ConsoleOutput) - 5
+	if len(m.ConsoleOutput) > 15 {
+		start = len(m.ConsoleOutput) - 15
 	}
 	for _, l := range m.ConsoleOutput[start:] {
 		lines = append(lines, l)

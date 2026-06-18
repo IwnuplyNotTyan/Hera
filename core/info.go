@@ -158,9 +158,9 @@ func (m *Model) effectsLine() string {
 	}
 
 	if m.ShowEffectIdx == skipIdx {
-		result += " " + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render("⏭")
+		result += effectSep + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render("⏭")
 	} else {
-		result += " " + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("⏭")
+		result += effectSep + lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("⏭")
 	}
 
 	if m.DebugMode {
