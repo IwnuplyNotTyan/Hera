@@ -120,7 +120,7 @@ Toggle: `v` cycles effects → skip turn → console (Debug Mode only).
 - [Cobra](https://github.com/spf13/cobra) — Powerfull flags
     - [Fang](https://github.com/charmbracelet/fang) —  Make it pretty
 
-### 🌑 Assets
+### ⛏️ Assets
 
 - [Tmplr](https://github.com/patorjk/figlet.js/blob/main/fonts/Tmplr.flf) —  ASCII font
 
