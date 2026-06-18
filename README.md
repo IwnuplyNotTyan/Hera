@@ -42,28 +42,40 @@ go build -o ./bin/hera ./cmd/hera/main.go
 ```
 
 <details>
-<summary><b>Flags and tags</b></summary>
+<summary><b>✨ Flags, Tags and Commands</b></summary>
 
-**Tags:**
+### 🏳️‍⚧️ Tags
 
-| Tag | Desc                 |
+| Tag | Description                 |
 |-----|----------------------|
 | eng | Only English Locales |
 | notint| Disable themes     |
 
 
-**LDFlags:**
-| Flags | Example | Desc |
+### 💋 LDFlags
+| Flags | Example | Description |
 |-------|---------|------|
 |main.version|-ldflags="-X main.version=1.0.0| --version number|
 |main.commit|-ldflags="-X main.commit=$(git rev-parse HEAD)"| --version commit|
 
 
-**Flags** can be find in help command
+### ❄️ Flags
 
-</details>
-
----
+|Short|Full|Description|
+|-----|-----------|--|
+| -a | --ascii    |        Render text as ASCII banner using assets/Tmplr.flf |
+| -b | --background|       Background fill |
+| -C | --center     |      Window position: tl, tc, tr, cl, c, cr, bl, bc, br (default: c) |
+| -d | --debug      |      Enable debug mode (console, no score saving) |
+| -e | --enemies    |      Number of enemies (0=random) |
+| -E | --enemy-effects|    Starting effects for enemies (comma-separated: fire,wet,smoke) |
+| -h | --help       |      Help for hera |
+| -l | --lang       |      Language code (en, ru) (en) |
+| -P | --player-effects|   Starting effects for players (comma-separated: fire,wet,smoke) |
+| -p | --players    |      Number of players (0=random, 2-4) |
+| -s | --seed       |      Seed for deterministic world generation |
+| -t | --theme   |         Theme name (e.g., dracula, tokyonight, gruvbox) |
+| -v | --version |         Version for hera |
 
 ## 🐛 Developer Console
 
@@ -88,6 +100,8 @@ Toggle: `v` cycles effects → skip turn → console (Debug Mode only).
 | `effect <target> <type> [dur]` | Add effect (`fire`/`wet`/`smoke`), default duration 3 |
 
 **Target notation:** `p1`, `p2`, … for players, `e1`, `e2`, … for enemies (1‑based).
+
+</details>
 
 ---
 
