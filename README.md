@@ -65,6 +65,32 @@ go build -o ./bin/hera ./cmd/hera/main.go
 
 ---
 
+## 🐛 Developer Console
+
+Opened by pressing `v` after enabling **Debug Mode** (`--debug`/`-d` flag or toggle in Settings).
+
+Toggle: `v` cycles effects → skip turn → console (Debug Mode only).
+
+| Command | Description |
+|---------|-------------|
+| `help` | Show this help |
+| `status` | Show all entities with HP, position, effects |
+| `clear` | Clear console output |
+| `regen` | Regenerate walls, water; clear fire/smoke |
+| `add player` | Spawn a new player on a free tile |
+| `add enemy` | Spawn a new enemy on a free tile |
+| `remove player <N>` | Remove player N (1‑based) |
+| `remove enemy <N>` | Remove enemy N (1‑based) |
+| `remove effect <target> <type>` | Remove an effect |
+| `heal <target> <N>` | Heal target by N HP |
+| `damage <target> <N>` | Damage target by N HP |
+| `set hp <target> <N>` | Set exact HP |
+| `effect <target> <type> [dur]` | Add effect (`fire`/`wet`/`smoke`), default duration 3 |
+
+**Target notation:** `p1`, `p2`, … for players, `e1`, `e2`, … for enemies (1‑based).
+
+---
+
 ## 👩‍💻 Author
 - [iwnuplynottyan](https://github.com/iwnuplynottyan)
 
