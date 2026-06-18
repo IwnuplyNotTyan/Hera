@@ -2,6 +2,7 @@ package generate
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/log"
 )
 
 func (m *Model) endGame(scoreBonus int) {
@@ -14,7 +15,7 @@ func (m *Model) endGame(scoreBonus int) {
 			m.Profiles[m.ActiveSlot].Score += score
 		}
 		if err := m.SaveProfiles(); err != nil {
-			// Save failed — non-fatal, continue
+			log.Error("failed to save profiles", "err", err)
 		}
 	}
 	m.ActiveSlot = -1

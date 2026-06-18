@@ -3,6 +3,7 @@ package generate
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/log"
 )
 
 func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -69,7 +70,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				name := string(m.ProfileLetters[:])
 				m.Profiles[m.ProfileSlot] = &Profile{Name: name, Score: 0}
 				if err := m.SaveProfiles(); err != nil {
-					// non-fatal
+					log.Error("failed to save profiles", "err", err)
 				}
 				m.Screen = ScreenProfiles
 			case "esc", "q":
@@ -261,7 +262,7 @@ func (m *Model) updateMenu(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.ProfileConfirmChoice == 0 {
 					m.Profiles[m.ProfileSlot] = nil
 					if err := m.SaveProfiles(); err != nil {
-						// non-fatal
+						log.Error("failed to save profiles", "err", err)
 					}
 				}
 				m.ProfileDeleteConfirm = false
