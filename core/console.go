@@ -72,6 +72,7 @@ func (m *Model) ExecuteConsoleCmd(cmd ConsoleCmd) string {
 	case "status":
 		return m.cmdStatus()
 	case "clear":
+		m.ConsoleOutput = nil
 		return ""
 	case "regen", "regenerate":
 		return m.cmdRegen()
@@ -476,7 +477,7 @@ func (m *Model) InitConsole() {
 	ti := textinput.New()
 	ti.Placeholder = "type command... (help)"
 	ti.CharLimit = 200
-	ti.Width = 60
+	ti.Width = 44
 	ti.Prompt = "> "
 	m.ConsoleInput = ti
 	m.ConsoleOutput = nil
@@ -558,7 +559,8 @@ func (m *Model) ConsoleView() string {
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(m.Theme.Purple()).
-		Padding(0, 1)
+		Padding(0, 2).
+		Width(52)
 
 	header := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#888888")).

@@ -690,6 +690,11 @@ func (m *Model) View() string {
 	grid := strings.Join(rows, "\n")
 	box := m.boxStyle().Render(lipgloss.JoinVertical(lipgloss.Left, grid))
 	helpView := m.Styles.HelpStyle.Render(m.help.View(m.keys))
+	if m.DebugMode {
+		helpView = lipgloss.NewStyle().
+			Foreground(m.Theme.BrightBlack()).
+			Render("» ") + helpView
+	}
 	var content string
 	if m.ConsoleMode {
 		consoleView := m.ConsoleView()
