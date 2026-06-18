@@ -95,17 +95,17 @@ func (m *Model) ExecuteConsoleCmd(cmd ConsoleCmd) string {
 
 func (m *Model) cmdStatus() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Seed: %d  |  Turn: player %d", m.Seed, m.CurrentPlayer+1))
+	fmt.Fprintf(&b, "Seed: %d  |  Turn: player %d", m.Seed, m.CurrentPlayer+1)
 	for i, pl := range m.Players {
-		b.WriteString(fmt.Sprintf("\n  Player %d: (%d,%d) HP=%d Ult=%d", i+1, pl.X, pl.Y, pl.HP, pl.UltCharges))
+		fmt.Fprintf(&b, "\n  Player %d: (%d,%d) HP=%d Ult=%d", i+1, pl.X, pl.Y, pl.HP, pl.UltCharges)
 		for _, e := range pl.Effects {
-			b.WriteString(fmt.Sprintf(" [%s:%d]", string(e.Type), e.Duration))
+			fmt.Fprintf(&b, " [%s:%d]", string(e.Type), e.Duration)
 		}
 	}
 	for i, en := range m.Enemys {
-		b.WriteString(fmt.Sprintf("\n  Enemy %d: (%d,%d) HP=%d", i+1, en.X, en.Y, en.HP))
+		fmt.Fprintf(&b, "\n  Enemy %d: (%d,%d) HP=%d", i+1, en.X, en.Y, en.HP)
 		for _, e := range en.Effects {
-			b.WriteString(fmt.Sprintf(" [%s:%d]", string(e.Type), e.Duration))
+			fmt.Fprintf(&b, " [%s:%d]", string(e.Type), e.Duration)
 		}
 	}
 	return b.String()
