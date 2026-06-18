@@ -139,41 +139,38 @@ func (m *Model) cursorInfo() string {
 }
 
 func (m *Model) effectsLine() string {
-	if m.ShowEffectIdx == 0 {
-		return ""
-	}
-
 	effects := m.effectsAtCursor()
 	skipIdx := len(effects) + 1
+
+	if len(effects) == 0 {
+		if m.ShowEffectIdx == 1 {
+			icon := lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+			suffix := ""
+			if m.DebugMode {
+				suffix = effectSep + lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render("»")
+			}
+			return icon + suffix + "\n" + m.Styles.BoxStyle.Padding(0, 1).Width(40).
+				Render(m.Localizer.T("help.skipTurn"))
+		}
+		return ""
+	}
 
 	loc := m.Localizer
 	highlightIdx := -1
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
 		highlightIdx = m.ShowEffectIdx - 1
 	}
+	result := renderEffects(effects, loc, highlightIdx, m.Theme)
 
-	var result string
-	if len(effects) > 0 {
-		result = renderEffects(effects, loc, highlightIdx, m.Theme)
-	}
-
-	var skipIcon string
-	if m.ShowEffectIdx == skipIdx {
-		skipIcon = lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render("⏭")
-	} else {
-		skipIcon = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render("⏭")
-	}
-	if result == "" {
-		result = skipIcon
-	} else {
-		result += effectSep + skipIcon
-	}
-
-	if m.DebugMode {
-		consoleIcon := lipgloss.NewStyle().
-			Foreground(m.Theme.BrightBlack()).
-			Render("»")
-		result += effectSep + consoleIcon
+	if m.ShowEffectIdx > 0 {
+		if m.ShowEffectIdx == skipIdx {
+			result += effectSep + lipgloss.NewStyle().Background(lipgloss.Color("#3a3a3a")).Render(" ⏭ ")
+		} else {
+			result += lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(effectSep + " ⏭ ")
+		}
+		if m.DebugMode {
+			result += effectSep + lipgloss.NewStyle().Foreground(m.Theme.BrightBlack()).Render("»")
+		}
 	}
 
 	if m.ShowEffectIdx > 0 && m.ShowEffectIdx <= len(effects) {
