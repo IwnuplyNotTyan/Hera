@@ -35,7 +35,7 @@
 	      "-w"
             ];
 
-            vendorHash = "sha256-YTEHyzFRtYsLRQZ3oAPqIZSklLk97QvCf5Gbx5oJpSE=";
+            vendorHash = "sha256-GdV+7ccktqbsDwfNLBU8fEsOjtHXBKiqjn7m1lMFvUU=";
 
             meta = {
               description = "A tactical turn-based game. Made with ♡";
