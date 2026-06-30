@@ -6,6 +6,7 @@ type EffectType string
 const (
 	GridW      = 14
 	GridH      = 10
+	WallHP     = 2
 	wallCount  = 10
 	waterCount = 10
 	moveRange  = 4

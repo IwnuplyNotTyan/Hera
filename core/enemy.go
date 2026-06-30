@@ -91,7 +91,7 @@ func (m *Model) doEnemyTurn(idx int) *Model {
 			if mv.X < 0 || mv.X >= GridW || mv.Y < 0 || mv.Y >= GridH {
 				continue
 			}
-			if m.Walls[mv] || m.enemyOccupied(mv.X, mv.Y, idx) {
+			if m.IsWall(mv) || m.enemyOccupied(mv.X, mv.Y, idx) {
 				continue
 			}
 			m.Enemys[idx].X = mv.X

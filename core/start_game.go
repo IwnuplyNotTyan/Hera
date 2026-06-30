@@ -53,8 +53,10 @@ func (m *Model) startGame() {
 		blocked[Point{p.X, p.Y}] = true
 	}
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
-	for p := range walls {
+	wallPositions := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
+	walls := make(map[Point]Wall, len(wallPositions))
+	for p := range wallPositions {
+		walls[p] = Wall{HP: WallHP}
 		blocked[p] = true
 	}
 

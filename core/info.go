@@ -56,6 +56,19 @@ func (m *Model) effectsAtCursor() []Effect {
 			return en.Effects
 		}
 	}
+	if m.IsWall(p) {
+		var effs []Effect
+		if m.FireTiles[p] > 0 {
+			effs = append(effs, Effect{Type: EffectFire, Duration: m.FireTiles[p]})
+		}
+		if m.SmokeTiles[p] > 0 {
+			effs = append(effs, Effect{Type: EffectSmoke, Duration: m.SmokeTiles[p]})
+		}
+		if m.Water[p] {
+			effs = append(effs, Effect{Type: EffectWet, Duration: -1})
+		}
+		return effs
+	}
 	return nil
 }
 
@@ -113,8 +126,10 @@ func (m *Model) cursorInfo() string {
 	}
 
 	switch {
-	case m.Walls[p]:
-		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wall"))
+	case m.IsWall(p):
+		w := m.Walls[p]
+		hearts := strings.Repeat("♥ ", w.HP) + strings.Repeat("♡ ", WallHP-w.HP)
+		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wallHP", hearts))
 	case wallBlocked:
 		return m.Styles.BlockedWallStyle.Render(loc.T("cursor.tile.wallInWay"))
 	case m.SmokeTiles[p] > 0:

@@ -25,12 +25,12 @@ func TestIsInRange_BlockedByWall(t *testing.T) {
 }
 
 func TestReachable_BlockedByWall(t *testing.T) {
-	walls := map[generate.Point]bool{
-		{X: 3, Y: 3}: true,
-		{X: 3, Y: 4}: true,
-		{X: 3, Y: 5}: true,
-		{X: 3, Y: 6}: true,
-		{X: 3, Y: 7}: true,
+	walls := map[generate.Point]generate.Wall{
+		{X: 3, Y: 3}: {HP: generate.WallHP},
+		{X: 3, Y: 4}: {HP: generate.WallHP},
+		{X: 3, Y: 5}: {HP: generate.WallHP},
+		{X: 3, Y: 6}: {HP: generate.WallHP},
+		{X: 3, Y: 7}: {HP: generate.WallHP},
 	}
 	players := []generate.Player{
 		{X: 4, Y: 5, HP: generate.MaxHP},

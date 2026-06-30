@@ -14,8 +14,8 @@ import (
 func createTestModel() generate.Model {
 	loc, _ := i18n.NewTranslator("../locales", "en")
 	theme := bubbletint.NewRegistry(bubbletint.TintDraculaPlus, bubbletint.DefaultTints()...)
-	walls := map[generate.Point]bool{
-		{X: 3, Y: 5}: true,
+	walls := map[generate.Point]generate.Wall{
+		{X: 3, Y: 5}: {HP: generate.WallHP},
 	}
 	water := map[generate.Point]bool{
 		{X: 5, Y: 3}: true,
@@ -55,7 +55,7 @@ func TestShoot_ReducesHP(t *testing.T) {
 	m.CursorX, m.CursorY = 5, 5
 
 	p := generate.Point{X: m.CursorX, Y: m.CursorY}
-	if !m.Walls[p] {
+	if !m.IsWall(p) {
 		for i, pl := range m.Players {
 			if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
 				m.Players[i].HP--
