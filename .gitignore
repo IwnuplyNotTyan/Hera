@@ -14,5 +14,6 @@ go.work
 
 bin
 result
+.direnv
 
 docs
