@@ -77,7 +77,7 @@
       "wallBlocked": "▲ Enemy {n} {hp}— wall in the way"
     },
     "tile": {
-      "wall": "■ Wall — impassable",
+      "wallHP": "■ Wall {n}",
       "wallInWay": "⊘ Wall in the way",
       "water": "≈ Water — passable",
       "smoke": "~ Smoke — {n} turns left",

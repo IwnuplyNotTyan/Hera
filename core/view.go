@@ -100,7 +100,7 @@ func (m *Model) View() string {
 		}
 		for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
 			np := Point{cx + dp.X, cy + dp.Y}
-			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.Walls[np] {
+			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
 				ultCrossZone[np] = true
 			}
 		}
@@ -175,8 +175,12 @@ func (m *Model) View() string {
 					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
-			case m.Walls[p]:
-				cellContent = m.Styles.WallStyle.Render(" ■ ")
+			case m.IsWall(p):
+				if m.Walls[p].HP <= 1 {
+					cellContent = m.Styles.WallStyle.Render(" ◧ ")
+				} else {
+					cellContent = m.Styles.WallStyle.Render(" ■ ")
+				}
 			case m.SmokeTiles[p] > 0:
 				cellContent = m.Styles.SteamStyle.Render(" ~ ")
 			case m.Water[p]:

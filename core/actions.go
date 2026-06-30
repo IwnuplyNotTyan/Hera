@@ -19,7 +19,29 @@ func (m *Model) doConfirm() *Model {
 			m.ShootMode = false
 			return m
 		}
-		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
+		if !m.IsInRange(m.CursorX, m.CursorY) {
+			return m
+		}
+
+		if wall, ok := m.Walls[p]; ok {
+			wall.HP--
+			m.BoxTrigger = TriggerDamage
+			m.TriggerTimer = 6
+			if wall.HP <= 0 {
+				delete(m.Walls, p)
+			} else {
+				m.Walls[p] = wall
+			}
+			m.Shot = true
+			m.ShootMode = false
+			m.CurrentScore++
+			cur := m.Players[m.CurrentPlayer]
+			m.CursorX = cur.X
+			m.CursorY = cur.Y
+			return m
+		}
+
+		if !m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY) {
 			var hit bool
 			for i, pl := range m.Players {
 				if i != m.CurrentPlayer && pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -68,7 +90,7 @@ func (m *Model) doConfirm() *Model {
 			m.CursorY = cur.Y
 		}
 	} else if !m.ShootMode && !m.UltMode && !m.Moved {
-		if m.IsInRange(m.CursorX, m.CursorY) && !m.Walls[p] && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
+		if m.IsInRange(m.CursorX, m.CursorY) && !m.IsWall(p) && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 			m.Players[m.CurrentPlayer].X = m.CursorX
 			m.Players[m.CurrentPlayer].Y = m.CursorY
 

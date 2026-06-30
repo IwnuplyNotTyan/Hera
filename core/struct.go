@@ -13,6 +13,10 @@ type Effect struct {
 	Duration int
 }
 
+type Wall struct {
+	HP int
+}
+
 type Point struct {
 	X, Y int
 }
@@ -69,7 +73,7 @@ type Model struct {
 	CurrentPlayer            int
 	CurrentEnemy             int
 	CursorX, CursorY         int
-	Walls                    map[Point]bool
+	Walls                    map[Point]Wall
 	Water                    map[Point]bool
 	FireTiles                map[Point]int
 	SmokeTiles               map[Point]int

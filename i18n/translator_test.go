@@ -142,7 +142,7 @@ func TestTranslator_T_AllKeysPresent(t *testing.T) {
 		"cursor.player.wallBlocked",
 		"cursor.enemy.default",
 		"cursor.enemy.wallBlocked",
-		"cursor.tile.wall",
+		"cursor.tile.wallHP",
 		"cursor.tile.wallInWay",
 		"cursor.tile.water",
 		"cursor.tile.smoke",
