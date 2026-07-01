@@ -64,9 +64,6 @@ func (m *Model) effectsAtCursor() []Effect {
 		if m.SmokeTiles[p] > 0 {
 			effs = append(effs, Effect{Type: EffectSmoke, Duration: m.SmokeTiles[p]})
 		}
-		if m.Water[p] {
-			effs = append(effs, Effect{Type: EffectWet, Duration: -1})
-		}
 		return effs
 	}
 	return nil

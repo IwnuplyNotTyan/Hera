@@ -13,6 +13,7 @@ type Effect struct {
 	Duration int
 }
 
+// Wall represents a destructible stone on the grid with hit points.
 type Wall struct {
 	HP int
 }

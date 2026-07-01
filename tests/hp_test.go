@@ -66,6 +66,30 @@ func TestShoot_ReducesHP(t *testing.T) {
 	assert.Equal(t, generate.MaxHP-1, m.Players[1].HP)
 }
 
+func TestWall_ShotDamage(t *testing.T) {
+	m := createTestModel()
+	p := generate.Point{X: 3, Y: 5}
+	wall := m.Walls[p]
+	wall.HP--
+	m.Walls[p] = wall
+	assert.Equal(t, generate.WallHP-1, m.Walls[p].HP)
+}
+
+func TestWall_Destroyed(t *testing.T) {
+	m := createTestModel()
+	p := generate.Point{X: 3, Y: 5}
+	m.Walls[p] = generate.Wall{HP: 1}
+	wall := m.Walls[p]
+	wall.HP--
+	if wall.HP <= 0 {
+		delete(m.Walls, p)
+	} else {
+		m.Walls[p] = wall
+	}
+	_, ok := m.Walls[p]
+	assert.False(t, ok)
+}
+
 func TestShoot_PlayerDiesAt0HP(t *testing.T) {
 	m := createTestModel()
 	m.Players[1].X, m.Players[1].Y = 5, 5

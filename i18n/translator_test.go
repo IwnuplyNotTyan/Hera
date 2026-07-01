@@ -181,6 +181,14 @@ func TestTranslator_T_AllKeysPresent(t *testing.T) {
 	}
 }
 
+func TestTranslator_T_WallHP(t *testing.T) {
+	loc, err := NewTranslator("../locales", "en")
+	require.NoError(t, err)
+
+	result := loc.T("cursor.tile.wallHP", "♥ ♡ ")
+	assert.Equal(t, "■ Wall ♥ ♡ ", result)
+}
+
 func TestTranslator_LocalesDir(t *testing.T) {
 	loc, err := NewTranslator("./nonexistent", "en")
 	require.NoError(t, err)
