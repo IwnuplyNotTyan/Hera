@@ -190,9 +190,9 @@ func (m *Model) View() string {
 				cellContent = m.Styles.SteamStyle.Render(" ~ ")
 			case m.Water[p]:
 				switch {
-				case isUltCross:
+				case isUltCross && !m.PushStrikeMode:
 					cellContent = m.Styles.SteamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
-				case isUltAxis:
+				case isUltAxis && !m.PushStrikeMode:
 					cellContent = m.Styles.WaterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
 				case m.IsInRange(col, row):
 					cellContent = m.Styles.WaterRangeStyle.Render(" ≈ ")
@@ -202,13 +202,17 @@ func (m *Model) View() string {
 			case m.FireTiles[p] > 0:
 				cellContent = m.Styles.FireStyle.Render(" ⚹ ")
 			case isUltCross:
-				cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
+				if m.PushStrikeMode {
+					cellContent = m.Styles.UltZoneStyle.Render(" + ")
+				} else {
+					cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
+				}
 			case isUltAxis:
 				cellContent = m.Styles.UltAxisStyle.Render(" · ")
 			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cellContent = m.Styles.ShootRangeStyle.Render(" · ")
-				} else if m.UltMode {
+				} else if m.UltMode || m.PushStrikeMode {
 					cellContent = m.Styles.CellStyle.Render(" · ")
 				} else {
 					cellContent = m.Styles.RangeStyle.Render(" · ")

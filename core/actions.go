@@ -295,23 +295,117 @@ func (m *Model) doPushStrike() *Model {
 			continue
 		}
 
-		pushed := false
+		var srcPl, srcEn = -1, -1
 		for i, pl := range m.Players {
 			if pl.X == src.X && pl.Y == src.Y {
-				m.Players[i].X = dst.X
-				m.Players[i].Y = dst.Y
-				pushed = true
+				srcPl = i
 				break
 			}
 		}
-		if !pushed {
+		if srcPl == -1 {
 			for i, en := range m.Enemys {
 				if en.X == src.X && en.Y == src.Y {
-					m.Enemys[i].X = dst.X
-					m.Enemys[i].Y = dst.Y
+					srcEn = i
 					break
 				}
 			}
+		}
+		if srcPl == -1 && srcEn == -1 {
+			continue
+		}
+
+		var dstPl, dstEn = -1, -1
+		for i, pl := range m.Players {
+			if pl.X == dst.X && pl.Y == dst.Y {
+				dstPl = i
+				break
+			}
+		}
+		if dstPl == -1 {
+			for i, en := range m.Enemys {
+				if en.X == dst.X && en.Y == dst.Y {
+					dstEn = i
+					break
+				}
+			}
+		}
+
+		if dstPl >= 0 {
+			m.Players[dstPl].HP--
+			m.BoxTrigger = TriggerDamage
+			m.TriggerTimer = 6
+			if m.Players[dstPl].HP <= 0 {
+				m.CurrentScore -= 5
+				if dstPl < m.CurrentPlayer {
+					m.CurrentPlayer--
+				}
+				m.Players = append(m.Players[:dstPl], m.Players[dstPl+1:]...)
+				if len(m.Players) == 0 {
+					return m
+				}
+				if m.CurrentPlayer >= len(m.Players) {
+					m.CurrentPlayer = 0
+				}
+				if srcPl > dstPl {
+					srcPl--
+				}
+			}
+			m.CurrentScore++
+		} else if dstEn >= 0 {
+			m.Enemys[dstEn].HP--
+			m.BoxTrigger = TriggerDamage
+			m.TriggerTimer = 6
+			if m.Enemys[dstEn].HP <= 0 {
+				m.CurrentScore += 10
+				m.Enemys = append(m.Enemys[:dstEn], m.Enemys[dstEn+1:]...)
+				if srcEn > dstEn {
+					srcEn--
+				}
+			} else {
+				m.CurrentScore++
+			}
+		}
+
+		if dstPl >= 0 || dstEn >= 0 {
+			if srcPl >= 0 {
+				m.Players[srcPl].HP--
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Players[srcPl].HP <= 0 {
+					m.CurrentScore -= 5
+					if srcPl < m.CurrentPlayer {
+						m.CurrentPlayer--
+					}
+					m.Players = append(m.Players[:srcPl], m.Players[srcPl+1:]...)
+					if len(m.Players) == 0 {
+						return m
+					}
+					if m.CurrentPlayer >= len(m.Players) {
+						m.CurrentPlayer = 0
+					}
+				} else {
+					m.CurrentScore++
+				}
+			} else {
+				m.Enemys[srcEn].HP--
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Enemys[srcEn].HP <= 0 {
+					m.CurrentScore += 10
+					m.Enemys = append(m.Enemys[:srcEn], m.Enemys[srcEn+1:]...)
+				} else {
+					m.CurrentScore++
+				}
+			}
+			continue
+		}
+
+		if srcPl >= 0 {
+			m.Players[srcPl].X = dst.X
+			m.Players[srcPl].Y = dst.Y
+		} else {
+			m.Enemys[srcEn].X = dst.X
+			m.Enemys[srcEn].Y = dst.Y
 		}
 	}
 
