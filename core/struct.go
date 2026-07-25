@@ -28,6 +28,7 @@ type Player struct {
 	Effects    []Effect
 	UltCharges int
 	Style      lipgloss.Style
+	AttackType AttackType
 }
 
 type Enemy struct {
@@ -80,6 +81,7 @@ type Model struct {
 	SmokeTiles               map[Point]int
 	ShowEffectIdx            int
 	ShootMode                bool
+	PushStrikeMode           bool
 	UltMode                  bool
 	UltAxis                  string
 	Moved                    bool

@@ -62,6 +62,7 @@
     "player": "Игрок {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
+    "pushStrike": "✦ Т",
     "ult": "⚹ U",
     "ultCharges": "⚹×{n}",
     "ultChargesZero": "⚹×0"
@@ -86,6 +87,7 @@
     },
     "range": {
       "ult": "⚹ Цель ульты",
+      "pushStrike": "✦ Цель толчка",
       "outOfUltAxis": "· Вне оси ульты",
       "inShootRange": "· В зоне выстрела",
       "inMoveRange": "· В зоне движения",

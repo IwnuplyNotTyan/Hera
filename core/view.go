@@ -53,6 +53,11 @@ func (m *Model) View() string {
 			Foreground(m.Theme.Red()).
 			Bold(true).
 			Render(m.Localizer.T("status.ult"))
+	case m.PushStrikeMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.Red()).
+			Bold(true).
+			Render(m.Localizer.T("status.pushStrike"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(m.Theme.BrightRed()).
@@ -77,7 +82,7 @@ func (m *Model) View() string {
 	}
 
 	var reachableZone map[Point]bool
-	if !m.EnemyTurn && !m.UltMode && len(m.Players) > 0 {
+	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		r := m.currentRange()
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
@@ -85,7 +90,7 @@ func (m *Model) View() string {
 
 	ultAxisZone := make(map[Point]bool)
 	ultCrossZone := make(map[Point]bool)
-	if m.UltMode && len(m.Players) > 0 {
+	if (m.UltMode || m.PushStrikeMode) && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		cx, cy := m.CursorX, m.CursorY
 		for x := 0; x < GridW; x++ {

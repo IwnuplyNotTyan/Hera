@@ -61,6 +61,7 @@
     "player": "Player {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
+    "pushStrike": "✦ P",
     "ult": "⚹ U",
     "ultCharges": "⚹×{n}",
     "ultChargesZero": "⚹×0"
@@ -85,6 +86,7 @@
     },
     "range": {
       "ult": "⚹ Ult target",
+      "pushStrike": "✦ Push Strike target",
       "outOfUltAxis": "· Out of ult axis",
       "inShootRange": "· In shoot range",
       "inMoveRange": "· In move range",

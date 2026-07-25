@@ -93,7 +93,7 @@ func (m *Model) cursorInfo() string {
 	loc := m.Localizer
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
-	wallBlocked := !m.UltMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+	wallBlocked := !m.UltMode && !m.PushStrikeMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -138,6 +138,11 @@ func (m *Model) cursorInfo() string {
 	case m.UltMode:
 		if m.ultInAxisRange(m.CursorX, m.CursorY) {
 			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ult"))
+		}
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+	case m.PushStrikeMode:
+		if m.ultInAxisRange(m.CursorX, m.CursorY) {
+			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.pushStrike"))
 		}
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
 	case m.IsInRange(m.CursorX, m.CursorY):

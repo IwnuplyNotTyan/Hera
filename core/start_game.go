@@ -38,6 +38,10 @@ func (m *Model) startGame() {
 	for i := 0; i < playerCount; i++ {
 		effs := make([]Effect, len(m.startPlayerEffects))
 		copy(effs, m.startPlayerEffects)
+		atk := AttackShoot
+		if intn(2) == 0 {
+			atk = AttackPushStrike
+		}
 		players = append(players, Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
@@ -45,6 +49,7 @@ func (m *Model) startGame() {
 			UltCharges: maxUltCharges,
 			Effects:    effs,
 			Style:      m.Styles.PlayerStyles[i%len(m.Styles.PlayerStyles)],
+			AttackType: atk,
 		})
 	}
 
@@ -97,6 +102,7 @@ func (m *Model) startGame() {
 	m.Moved = false
 	m.Shot = false
 	m.ShootMode = false
+	m.PushStrikeMode = false
 	m.UltMode = false
 	m.UltAxis = ""
 	m.EnemyTurn = false

@@ -13,6 +13,11 @@ func (m *Model) doConfirm() *Model {
 		cur := m.Players[m.CurrentPlayer]
 		m.CursorX = cur.X
 		m.CursorY = cur.Y
+	} else if m.PushStrikeMode && !m.Shot {
+		m = m.doPushStrike()
+		cur := m.Players[m.CurrentPlayer]
+		m.CursorX = cur.X
+		m.CursorY = cur.Y
 	} else if m.ShootMode && !m.Shot {
 		if HasEffect(m.Players[m.CurrentPlayer].Effects, EffectSmoke) {
 			m.Shot = true
@@ -89,7 +94,7 @@ func (m *Model) doConfirm() *Model {
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
 		}
-	} else if !m.ShootMode && !m.UltMode && !m.Moved {
+	} else if !m.ShootMode && !m.UltMode && !m.PushStrikeMode && !m.Moved {
 		if m.IsInRange(m.CursorX, m.CursorY) && !m.IsWall(p) && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 			m.Players[m.CurrentPlayer].X = m.CursorX
 			m.Players[m.CurrentPlayer].Y = m.CursorY
@@ -201,5 +206,117 @@ func (m *Model) doUlt() *Model {
 		}
 	}
 
+	return m
+}
+
+func (m *Model) doPushStrike() *Model {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return m
+	}
+	current := m.Players[m.CurrentPlayer]
+
+	if HasEffect(current.Effects, EffectSmoke) {
+		m.PushStrikeMode = false
+		m.Shot = true
+		return m
+	}
+
+	if !m.ultInAxisRange(m.CursorX, m.CursorY) {
+		return m
+	}
+
+	m.PushStrikeMode = false
+	m.UltAxis = ""
+	m.Shot = true
+
+	cx, cy := m.CursorX, m.CursorY
+	center := Point{cx, cy}
+
+	if wall, ok := m.Walls[center]; ok {
+		wall.HP--
+		m.BoxTrigger = TriggerDamage
+		m.TriggerTimer = 6
+		if wall.HP <= 0 {
+			delete(m.Walls, center)
+		} else {
+			m.Walls[center] = wall
+		}
+		m.CurrentScore++
+	} else {
+		var hit bool
+		for i, pl := range m.Players {
+			if pl.X == cx && pl.Y == cy {
+				m.Players[i].HP--
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Players[i].HP <= 0 {
+					m.CurrentScore -= 5
+					if i < m.CurrentPlayer {
+						m.CurrentPlayer--
+					}
+					m.Players = append(m.Players[:i], m.Players[i+1:]...)
+					if len(m.Players) == 0 {
+						return m
+					}
+					if m.CurrentPlayer >= len(m.Players) {
+						m.CurrentPlayer = 0
+					}
+				}
+				hit = true
+				break
+			}
+		}
+		if !hit {
+			for i, en := range m.Enemys {
+				if en.X == cx && en.Y == cy {
+					m.Enemys[i].HP--
+					m.BoxTrigger = TriggerDamage
+					m.TriggerTimer = 6
+					if m.Enemys[i].HP <= 0 {
+						m.CurrentScore += 10
+						m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+					}
+					hit = true
+					break
+				}
+			}
+		}
+		if hit {
+			m.CurrentScore++
+		}
+	}
+
+	pushOffsets := []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	for _, po := range pushOffsets {
+		src := Point{cx + po.X, cy + po.Y}
+		dst := Point{cx + 2*po.X, cy + 2*po.Y}
+
+		if dst.X < 0 || dst.X >= GridW || dst.Y < 0 || dst.Y >= GridH {
+			continue
+		}
+
+		pushed := false
+		for i, pl := range m.Players {
+			if pl.X == src.X && pl.Y == src.Y {
+				m.Players[i].X = dst.X
+				m.Players[i].Y = dst.Y
+				pushed = true
+				break
+			}
+		}
+		if !pushed {
+			for i, en := range m.Enemys {
+				if en.X == src.X && en.Y == src.Y {
+					m.Enemys[i].X = dst.X
+					m.Enemys[i].Y = dst.Y
+					break
+				}
+			}
+		}
+	}
+
+	cur := m.Players[m.CurrentPlayer]
+	m.CursorX = cur.X
+	m.CursorY = cur.Y
 	return m
 }
