@@ -35,18 +35,15 @@ func (m *Model) startGame() {
 		enemyCount = len(m.Styles.EnemysStyles)
 	}
 
+	attackTypes := []AttackType{AttackShoot, AttackPushStrike, AttackRam, AttackMeleePush}
+	rng.Shuffle(len(attackTypes), func(i, j int) {
+		attackTypes[i], attackTypes[j] = attackTypes[j], attackTypes[i]
+	})
+
 	for i := 0; i < playerCount; i++ {
 		effs := make([]Effect, len(m.startPlayerEffects))
 		copy(effs, m.startPlayerEffects)
-		atk := AttackShoot
-		switch intn(4) {
-		case 0:
-			atk = AttackPushStrike
-		case 1:
-			atk = AttackRam
-		case 2:
-			atk = AttackMeleePush
-		}
+		atk := attackTypes[i%len(attackTypes)]
 		players = append(players, Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
