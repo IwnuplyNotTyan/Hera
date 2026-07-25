@@ -78,16 +78,22 @@ func (m *Model) startGame() {
 		enemyPositions = append(enemyPositions, p)
 	}
 
+	enemyAttackTypes := []AttackType{AttackShoot, AttackPushStrike, AttackRam, AttackMeleePush}
+	rng.Shuffle(len(enemyAttackTypes), func(i, j int) {
+		enemyAttackTypes[i], enemyAttackTypes[j] = enemyAttackTypes[j], enemyAttackTypes[i]
+	})
+
 	enemys := make([]Enemy, enemyCount)
 	for i := range enemys {
 		effs := make([]Effect, len(m.startEnemyEffects))
 		copy(effs, m.startEnemyEffects)
 		enemys[i] = Enemy{
-			X:       enemyPositions[i].X,
-			Y:       enemyPositions[i].Y,
-			HP:      MaxHP,
-			Effects: effs,
-			Style:   m.Styles.EnemysStyles[i],
+			X:          enemyPositions[i].X,
+			Y:          enemyPositions[i].Y,
+			HP:         MaxHP,
+			Effects:    effs,
+			Style:      m.Styles.EnemysStyles[i],
+			AttackType: enemyAttackTypes[i%len(enemyAttackTypes)],
 		}
 	}
 

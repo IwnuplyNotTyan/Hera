@@ -32,10 +32,11 @@ type Player struct {
 }
 
 type Enemy struct {
-	X, Y    int
-	HP      int
-	Effects []Effect
-	Style   lipgloss.Style
+	X, Y       int
+	HP         int
+	Effects    []Effect
+	Style      lipgloss.Style
+	AttackType AttackType
 }
 
 type enemyTurnMsg struct {
