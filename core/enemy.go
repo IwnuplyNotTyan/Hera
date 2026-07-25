@@ -292,7 +292,13 @@ func (m *Model) enemyPushStrike(idx, tx, ty int) bool {
 			}
 		}
 		if !blocked {
-			if _, ok := m.Walls[dst]; ok {
+			if w, ok := m.Walls[dst]; ok {
+				w.HP--
+				if w.HP <= 0 {
+					delete(m.Walls, dst)
+				} else {
+					m.Walls[dst] = w
+				}
 				blocked = true
 			}
 		}
@@ -362,7 +368,7 @@ func (m *Model) enemyRam(idx, tx, ty int) bool {
 		cell := Point{cx + dx*step, cy + dy*step}
 
 		if wall, ok := m.Walls[cell]; ok {
-			wall.HP--
+			wall.HP -= 2
 			if wall.HP <= 0 {
 				delete(m.Walls, cell)
 			} else {

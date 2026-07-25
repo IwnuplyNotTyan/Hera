@@ -415,6 +415,44 @@ func (m *Model) doPushStrike() *Model {
 			continue
 		}
 
+		if w, ok := m.Walls[dst]; ok {
+			w.HP--
+			if w.HP <= 0 {
+				delete(m.Walls, dst)
+			} else {
+				m.Walls[dst] = w
+			}
+			if srcPl >= 0 {
+				m.Players[srcPl].HP--
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Players[srcPl].HP <= 0 {
+					m.CurrentScore -= 5
+					if srcPl < m.CurrentPlayer {
+						m.CurrentPlayer--
+					}
+					m.Players = append(m.Players[:srcPl], m.Players[srcPl+1:]...)
+					if len(m.Players) == 0 {
+						return m
+					}
+					if m.CurrentPlayer >= len(m.Players) {
+						m.CurrentPlayer = 0
+					}
+				} else {
+					m.CurrentScore++
+				}
+			} else {
+				m.Enemys[srcEn].HP--
+				if m.Enemys[srcEn].HP <= 0 {
+					m.CurrentScore += 10
+					m.Enemys = append(m.Enemys[:srcEn], m.Enemys[srcEn+1:]...)
+				} else {
+					m.CurrentScore++
+				}
+			}
+			continue
+		}
+
 		if srcPl >= 0 {
 			m.Players[srcPl].X = dst.X
 			m.Players[srcPl].Y = dst.Y
@@ -473,7 +511,7 @@ func (m *Model) doRam() *Model {
 		cell := Point{cx + dx*step, cy + dy*step}
 
 		if wall, ok := m.Walls[cell]; ok {
-			wall.HP--
+			wall.HP -= 2
 			m.BoxTrigger = TriggerDamage
 			m.TriggerTimer = 6
 			m.CurrentScore++
