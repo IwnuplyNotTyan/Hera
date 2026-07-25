@@ -15,6 +15,14 @@ func (m *Model) doConfirm() *Model {
 		cur := m.Players[m.CurrentPlayer]
 		m.CursorX = cur.X
 		m.CursorY = cur.Y
+	} else if m.MeleePushMode && !m.Shot {
+		m = m.doMeleePush()
+		if len(m.Players) > 0 && m.CurrentPlayer < len(m.Players) {
+			cur := m.Players[m.CurrentPlayer]
+			m.CursorX = cur.X
+			m.CursorY = cur.Y
+		}
+		return m
 	} else if m.RamMode && !m.Shot {
 		m = m.doRam()
 		cur := m.Players[m.CurrentPlayer]
@@ -101,7 +109,7 @@ func (m *Model) doConfirm() *Model {
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
 		}
-	} else if !m.ShootMode && !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.Moved {
+	} else if !m.ShootMode && !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.MeleePushMode && !m.Moved {
 		if m.IsInRange(m.CursorX, m.CursorY) && !m.IsWall(p) && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 			m.Players[m.CurrentPlayer].X = m.CursorX
 			m.Players[m.CurrentPlayer].Y = m.CursorY
@@ -599,5 +607,104 @@ func (m *Model) doRam() *Model {
 		m.CursorX = cur.X
 		m.CursorY = cur.Y
 	}
+	return m
+}
+
+func (m *Model) doMeleePush() *Model {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return m
+	}
+	cur := m.Players[m.CurrentPlayer]
+
+	if HasEffect(cur.Effects, EffectSmoke) {
+		m.MeleePushMode = false
+		m.Shot = true
+		return m
+	}
+
+	cx, cy := cur.X, cur.Y
+	tx, ty := m.CursorX, m.CursorY
+
+	dist := utils.Abs(tx-cx) + utils.Abs(ty-cy)
+	if dist != 1 {
+		return m
+	}
+
+	target := Point{tx, ty}
+	m.MeleePushMode = false
+	m.Shot = true
+
+	if wall, ok := m.Walls[target]; ok {
+		wall.HP--
+		m.BoxTrigger = TriggerDamage
+		m.TriggerTimer = 6
+		if wall.HP <= 0 {
+			delete(m.Walls, target)
+		} else {
+			m.Walls[target] = wall
+		}
+		m.CurrentScore++
+		return m
+	}
+
+	pushDst := Point{tx + (tx - cx), ty + (ty - cy)}
+	canPush := pushDst.X >= 0 && pushDst.X < GridW && pushDst.Y >= 0 && pushDst.Y < GridH &&
+		!m.IsWall(pushDst) && !m.OccupiedByOther(pushDst.X, pushDst.Y)
+
+	dmg := 2
+	if canPush {
+		dmg = 1
+	}
+
+	var hit bool
+	for i := range m.Players {
+		if m.Players[i].X == tx && m.Players[i].Y == ty {
+			m.Players[i].HP -= dmg
+			m.BoxTrigger = TriggerDamage
+			m.TriggerTimer = 6
+			if m.Players[i].HP <= 0 {
+				m.CurrentScore -= 5
+				if i < m.CurrentPlayer {
+					m.CurrentPlayer--
+				}
+				m.Players = append(m.Players[:i], m.Players[i+1:]...)
+				if len(m.Players) == 0 {
+					return m
+				}
+				if m.CurrentPlayer >= len(m.Players) {
+					m.CurrentPlayer = 0
+				}
+			} else if canPush && i < len(m.Players) {
+				m.Players[i].X = pushDst.X
+				m.Players[i].Y = pushDst.Y
+			}
+			hit = true
+			break
+		}
+	}
+
+	if !hit {
+		for i := range m.Enemys {
+			if m.Enemys[i].X == tx && m.Enemys[i].Y == ty {
+				m.Enemys[i].HP -= dmg
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Enemys[i].HP <= 0 {
+					m.CurrentScore += 10
+					m.Enemys = append(m.Enemys[:i], m.Enemys[i+1:]...)
+				} else if canPush && i < len(m.Enemys) {
+					m.Enemys[i].X = pushDst.X
+					m.Enemys[i].Y = pushDst.Y
+				}
+				hit = true
+				break
+			}
+		}
+	}
+
+	if hit {
+		m.CurrentScore++
+	}
+
 	return m
 }

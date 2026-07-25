@@ -63,6 +63,7 @@
     "shoot": "♡ S",
     "pushStrike": "✦ P",
     "ram": "▸ R",
+    "meleePush": "⚔ M",
     "ult": "⚹ U",
     "ultCharges": "⚹×{n}",
     "ultChargesZero": "⚹×0"
@@ -89,6 +90,7 @@
       "ult": "⚹ Ult target",
       "pushStrike": "✦ Push Strike target",
       "ram": "▸ Ram target",
+      "meleePush": "⚔ Melee target",
       "outOfUltAxis": "· Out of ult axis",
       "inShootRange": "· In shoot range",
       "inMoveRange": "· In move range",

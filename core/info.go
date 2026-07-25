@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"hera/i18n"
+	"hera/utils"
 )
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
@@ -93,7 +94,7 @@ func (m *Model) cursorInfo() string {
 	loc := m.Localizer
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
-	wallBlocked := !m.UltMode && !m.PushStrikeMode && !m.RamMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+	wallBlocked := !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.MeleePushMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -148,6 +149,12 @@ func (m *Model) cursorInfo() string {
 	case m.RamMode:
 		if m.ultInAxisRange(m.CursorX, m.CursorY) {
 			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ram"))
+		}
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+	case m.MeleePushMode:
+		dist := utils.Abs(m.CursorX-current.X) + utils.Abs(m.CursorY-current.Y)
+		if dist == 1 {
+			return m.Styles.ShootRangeStyle.Render(loc.T("cursor.range.meleePush"))
 		}
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
 	case m.IsInRange(m.CursorX, m.CursorY):

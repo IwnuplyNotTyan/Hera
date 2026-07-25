@@ -63,6 +63,11 @@ func (m *Model) View() string {
 			Foreground(m.Theme.BrightGreen()).
 			Bold(true).
 			Render(m.Localizer.T("status.ram"))
+	case m.MeleePushMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.BrightGreen()).
+			Bold(true).
+			Render(m.Localizer.T("status.meleePush"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(m.Theme.BrightRed()).
@@ -87,7 +92,7 @@ func (m *Model) View() string {
 	}
 
 	var reachableZone map[Point]bool
-	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && !m.RamMode && len(m.Players) > 0 {
+	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.MeleePushMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		r := m.currentRange()
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
@@ -147,6 +152,17 @@ func (m *Model) View() string {
 		}
 	}
 
+	meleePushZone := make(map[Point]bool)
+	if m.MeleePushMode && len(m.Players) > 0 {
+		cur := m.Players[m.CurrentPlayer]
+		for _, dp := range []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+			np := Point{cur.X + dp.X, cur.Y + dp.Y}
+			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
+				meleePushZone[np] = true
+			}
+		}
+	}
+
 	var rows []string
 	for row := 0; row < GridH; row++ {
 		var cells []string
@@ -171,6 +187,7 @@ func (m *Model) View() string {
 			isUltCross := ultCrossZone[p]
 			isUltAxis := ultAxisZone[p]
 			isReachable := reachableZone[p]
+			isMeleePushTarget := meleePushZone[p]
 
 			cellContent := ""
 			switch {
@@ -195,6 +212,8 @@ func (m *Model) View() string {
 					st = st.Background(lipgloss.Color("#2a0800"))
 				case isUltAxis:
 					st = st.Background(lipgloss.Color("#1a0a00"))
+				case isMeleePushTarget:
+					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
@@ -212,6 +231,8 @@ func (m *Model) View() string {
 					st = st.Background(lipgloss.Color("#2a0800"))
 				case isUltAxis:
 					st = st.Background(lipgloss.Color("#1a0a00"))
+				case isMeleePushTarget:
+					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
@@ -247,10 +268,12 @@ func (m *Model) View() string {
 				}
 			case isUltAxis:
 				cellContent = m.Styles.UltAxisStyle.Render(" · ")
+			case isMeleePushTarget:
+				cellContent = m.Styles.ShootRangeStyle.Render(" · ")
 			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cellContent = m.Styles.ShootRangeStyle.Render(" · ")
-				} else if m.UltMode || m.PushStrikeMode || m.RamMode {
+				} else if m.UltMode || m.PushStrikeMode || m.RamMode || m.MeleePushMode {
 					cellContent = m.Styles.CellStyle.Render(" · ")
 				} else {
 					cellContent = m.Styles.RangeStyle.Render(" · ")

@@ -10,6 +10,7 @@ const (
 	AttackShoot AttackType = iota
 	AttackPushStrike
 	AttackRam
+	AttackMeleePush
 )
 
 const (

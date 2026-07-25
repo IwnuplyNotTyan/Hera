@@ -64,6 +64,7 @@
     "shoot": "♡ S",
     "pushStrike": "✦ Т",
     "ram": "▸ Тр",
+    "meleePush": "⚔ Р",
     "ult": "⚹ U",
     "ultCharges": "⚹×{n}",
     "ultChargesZero": "⚹×0"
@@ -90,6 +91,7 @@
       "ult": "⚹ Цель ульты",
       "pushStrike": "✦ Цель толчка",
       "ram": "▸ Цель тарана",
+      "meleePush": "⚔ Цель рукопашной",
       "outOfUltAxis": "· Вне оси ульты",
       "inShootRange": "· В зоне выстрела",
       "inMoveRange": "· В зоне движения",

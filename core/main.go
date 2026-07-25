@@ -146,6 +146,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.UltMode = false
 				m.PushStrikeMode = false
 				m.RamMode = false
+				m.MeleePushMode = false
 				m.UltAxis = ""
 			}
 			return m, m.triggerTickCmd()
@@ -195,11 +196,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.PushStrikeMode = true
 		case AttackRam:
 			m.RamMode = true
+		case AttackMeleePush:
+			m.MeleePushMode = true
 		default:
 			m.ShootMode = true
 		}
 	} else {
 		m.ShootMode = false
+		m.MeleePushMode = false
 	}
 
 	switch msg := msg.(type) {
@@ -281,6 +285,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ShootMode = false
 				m.PushStrikeMode = false
 				m.RamMode = false
+				m.MeleePushMode = false
 				if m.UltMode {
 					cur := m.Players[m.CurrentPlayer]
 					m.CursorX = cur.X
@@ -301,14 +306,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.PushStrikeMode = !m.PushStrikeMode
 					m.ShootMode = false
 					m.RamMode = false
+					m.MeleePushMode = false
 				case AttackRam:
 					m.RamMode = !m.RamMode
 					m.ShootMode = false
 					m.PushStrikeMode = false
+					m.MeleePushMode = false
+				case AttackMeleePush:
+					m.MeleePushMode = !m.MeleePushMode
+					m.ShootMode = false
+					m.PushStrikeMode = false
+					m.RamMode = false
 				default:
 					m.ShootMode = !m.ShootMode
 					m.PushStrikeMode = false
 					m.RamMode = false
+					m.MeleePushMode = false
 				}
 			}
 

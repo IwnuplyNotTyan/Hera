@@ -83,6 +83,7 @@ type Model struct {
 	ShootMode                bool
 	PushStrikeMode           bool
 	RamMode                  bool
+	MeleePushMode            bool
 	UltMode                  bool
 	UltAxis                  string
 	Moved                    bool
