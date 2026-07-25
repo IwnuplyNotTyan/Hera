@@ -9,6 +9,7 @@ type AttackType int
 const (
 	AttackShoot AttackType = iota
 	AttackPushStrike
+	AttackRam
 )
 
 const (

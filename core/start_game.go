@@ -39,8 +39,11 @@ func (m *Model) startGame() {
 		effs := make([]Effect, len(m.startPlayerEffects))
 		copy(effs, m.startPlayerEffects)
 		atk := AttackShoot
-		if intn(2) == 0 {
+		switch intn(3) {
+		case 0:
 			atk = AttackPushStrike
+		case 1:
+			atk = AttackRam
 		}
 		players = append(players, Player{
 			X:          starts[i].X,
@@ -103,6 +106,7 @@ func (m *Model) startGame() {
 	m.Shot = false
 	m.ShootMode = false
 	m.PushStrikeMode = false
+	m.RamMode = false
 	m.UltMode = false
 	m.UltAxis = ""
 	m.EnemyTurn = false

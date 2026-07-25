@@ -1,5 +1,7 @@
 package generate
 
+import "hera/utils"
+
 func (m *Model) doConfirm() *Model {
 	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
 		return m
@@ -10,6 +12,11 @@ func (m *Model) doConfirm() *Model {
 
 	if m.UltMode && !m.Shot {
 		m = m.doUlt()
+		cur := m.Players[m.CurrentPlayer]
+		m.CursorX = cur.X
+		m.CursorY = cur.Y
+	} else if m.RamMode && !m.Shot {
+		m = m.doRam()
 		cur := m.Players[m.CurrentPlayer]
 		m.CursorX = cur.X
 		m.CursorY = cur.Y
@@ -94,7 +101,7 @@ func (m *Model) doConfirm() *Model {
 			m.CursorX = cur.X
 			m.CursorY = cur.Y
 		}
-	} else if !m.ShootMode && !m.UltMode && !m.PushStrikeMode && !m.Moved {
+	} else if !m.ShootMode && !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.Moved {
 		if m.IsInRange(m.CursorX, m.CursorY) && !m.IsWall(p) && !wallBlocked && !m.OccupiedByOther(m.CursorX, m.CursorY) {
 			m.Players[m.CurrentPlayer].X = m.CursorX
 			m.Players[m.CurrentPlayer].Y = m.CursorY
@@ -412,5 +419,185 @@ func (m *Model) doPushStrike() *Model {
 	cur := m.Players[m.CurrentPlayer]
 	m.CursorX = cur.X
 	m.CursorY = cur.Y
+	return m
+}
+
+func (m *Model) doRam() *Model {
+	if len(m.Players) == 0 || m.CurrentPlayer >= len(m.Players) {
+		return m
+	}
+	cur := m.Players[m.CurrentPlayer]
+
+	if HasEffect(cur.Effects, EffectSmoke) {
+		m.RamMode = false
+		m.Shot = true
+		return m
+	}
+
+	if !m.ultInAxisRange(m.CursorX, m.CursorY) {
+		return m
+	}
+
+	cx, cy := cur.X, cur.Y
+	tx, ty := m.CursorX, m.CursorY
+
+	dx := 0
+	if tx > cx {
+		dx = 1
+	} else if tx < cx {
+		dx = -1
+	}
+	dy := 0
+	if ty > cy {
+		dy = 1
+	} else if ty < cy {
+		dy = -1
+	}
+
+	steps := utils.Abs(tx-cx) + utils.Abs(ty-cy)
+
+	m.RamMode = false
+	m.UltAxis = ""
+	m.Shot = true
+	m.CurrentScore += 2
+
+	for step := 1; step <= steps; step++ {
+		cell := Point{cx + dx*step, cy + dy*step}
+
+		if wall, ok := m.Walls[cell]; ok {
+			wall.HP--
+			m.BoxTrigger = TriggerDamage
+			m.TriggerTimer = 6
+			m.CurrentScore++
+			if wall.HP <= 0 {
+				delete(m.Walls, cell)
+				m.Players[m.CurrentPlayer].X = cell.X
+				m.Players[m.CurrentPlayer].Y = cell.Y
+			} else {
+				m.Walls[cell] = wall
+			}
+			break
+		}
+
+		var plAtCell, enAtCell = -1, -1
+		for i := range m.Players {
+			if i != m.CurrentPlayer && m.Players[i].X == cell.X && m.Players[i].Y == cell.Y {
+				plAtCell = i
+				break
+			}
+		}
+		if plAtCell == -1 {
+			for i := range m.Enemys {
+				if m.Enemys[i].X == cell.X && m.Enemys[i].Y == cell.Y {
+					enAtCell = i
+					break
+				}
+			}
+		}
+
+		if plAtCell >= 0 || enAtCell >= 0 {
+			pushDst := Point{cell.X + dx, cell.Y + dy}
+			blocked := pushDst.X < 0 || pushDst.X >= GridW || pushDst.Y < 0 || pushDst.Y >= GridH
+			if !blocked {
+				if m.IsWall(pushDst) {
+					blocked = true
+				} else if m.OccupiedByOther(pushDst.X, pushDst.Y) {
+					blocked = true
+				}
+			}
+
+			if !blocked {
+				if plAtCell >= 0 {
+					m.Players[plAtCell].X = pushDst.X
+					m.Players[plAtCell].Y = pushDst.Y
+				} else {
+					m.Enemys[enAtCell].X = pushDst.X
+					m.Enemys[enAtCell].Y = pushDst.Y
+				}
+				m.Players[m.CurrentPlayer].X = cell.X
+				m.Players[m.CurrentPlayer].Y = cell.Y
+			}
+
+			dmg := 2
+			if blocked {
+				dmg = 3
+			}
+
+			if plAtCell >= 0 {
+				m.Players[plAtCell].HP -= dmg
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Players[plAtCell].HP <= 0 {
+					m.CurrentScore -= 5
+					if plAtCell < m.CurrentPlayer {
+						m.CurrentPlayer--
+					}
+					m.Players = append(m.Players[:plAtCell], m.Players[plAtCell+1:]...)
+					if len(m.Players) == 0 {
+						return m
+					}
+					if m.CurrentPlayer >= len(m.Players) {
+						m.CurrentPlayer = 0
+					}
+				}
+			} else {
+				m.Enemys[enAtCell].HP -= dmg
+				m.BoxTrigger = TriggerDamage
+				m.TriggerTimer = 6
+				if m.Enemys[enAtCell].HP <= 0 {
+					m.CurrentScore += 10
+					m.Enemys = append(m.Enemys[:enAtCell], m.Enemys[enAtCell+1:]...)
+				}
+			}
+			break
+		}
+
+		m.Players[m.CurrentPlayer].X = cell.X
+		m.Players[m.CurrentPlayer].Y = cell.Y
+		cur = m.Players[m.CurrentPlayer]
+
+		if m.Water[cell] {
+			m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+				m.Players[m.CurrentPlayer].Effects,
+				Effect{Type: EffectWet, Duration: 2},
+			)
+		}
+		if m.FireTiles[cell] > 0 {
+			if !HasEffect(m.Players[m.CurrentPlayer].Effects, EffectWet) {
+				m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+					m.Players[m.CurrentPlayer].Effects,
+					Effect{Type: EffectFire, Duration: 2},
+				)
+			}
+		}
+		if m.SmokeTiles[cell] > 0 {
+			m.Players[m.CurrentPlayer].Effects = ResolveEffects(
+				m.Players[m.CurrentPlayer].Effects,
+				Effect{Type: EffectSmoke, Duration: 2},
+			)
+		}
+	}
+
+	if m.CurrentPlayer < len(m.Players) {
+		m.Players[m.CurrentPlayer].HP--
+		m.BoxTrigger = TriggerDamage
+		m.TriggerTimer = 6
+		if m.Players[m.CurrentPlayer].HP <= 0 {
+			m.CurrentScore -= 5
+			m.Players = append(m.Players[:m.CurrentPlayer], m.Players[m.CurrentPlayer+1:]...)
+			if len(m.Players) == 0 {
+				return m
+			}
+			if m.CurrentPlayer >= len(m.Players) {
+				m.CurrentPlayer = 0
+			}
+		}
+	}
+
+	if m.CurrentPlayer < len(m.Players) {
+		cur = m.Players[m.CurrentPlayer]
+		m.CursorX = cur.X
+		m.CursorY = cur.Y
+	}
 	return m
 }

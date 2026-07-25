@@ -58,6 +58,11 @@ func (m *Model) View() string {
 			Foreground(m.Theme.Red()).
 			Bold(true).
 			Render(m.Localizer.T("status.pushStrike"))
+	case m.RamMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.BrightGreen()).
+			Bold(true).
+			Render(m.Localizer.T("status.ram"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(m.Theme.BrightRed()).
@@ -82,7 +87,7 @@ func (m *Model) View() string {
 	}
 
 	var reachableZone map[Point]bool
-	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && len(m.Players) > 0 {
+	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && !m.RamMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		r := m.currentRange()
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
@@ -90,23 +95,54 @@ func (m *Model) View() string {
 
 	ultAxisZone := make(map[Point]bool)
 	ultCrossZone := make(map[Point]bool)
-	if (m.UltMode || m.PushStrikeMode) && len(m.Players) > 0 {
+	if (m.UltMode || m.PushStrikeMode || m.RamMode) && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		cx, cy := m.CursorX, m.CursorY
-		for x := 0; x < GridW; x++ {
-			if x != cur.X {
+
+		if m.RamMode {
+			for x := cur.X + 1; x < GridW; x++ {
 				ultAxisZone[Point{x, cur.Y}] = true
+				if m.IsWall(Point{x, cur.Y}) || m.OccupiedByOther(x, cur.Y) {
+					break
+				}
 			}
-		}
-		for y := 0; y < GridH; y++ {
-			if y != cur.Y {
+			for x := cur.X - 1; x >= 0; x-- {
+				ultAxisZone[Point{x, cur.Y}] = true
+				if m.IsWall(Point{x, cur.Y}) || m.OccupiedByOther(x, cur.Y) {
+					break
+				}
+			}
+			for y := cur.Y + 1; y < GridH; y++ {
 				ultAxisZone[Point{cur.X, y}] = true
+				if m.IsWall(Point{cur.X, y}) || m.OccupiedByOther(cur.X, y) {
+					break
+				}
+			}
+			for y := cur.Y - 1; y >= 0; y-- {
+				ultAxisZone[Point{cur.X, y}] = true
+				if m.IsWall(Point{cur.X, y}) || m.OccupiedByOther(cur.X, y) {
+					break
+				}
+			}
+		} else {
+			for x := 0; x < GridW; x++ {
+				if x != cur.X {
+					ultAxisZone[Point{x, cur.Y}] = true
+				}
+			}
+			for y := 0; y < GridH; y++ {
+				if y != cur.Y {
+					ultAxisZone[Point{cur.X, y}] = true
+				}
 			}
 		}
-		for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
-			np := Point{cx + dp.X, cy + dp.Y}
-			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
-				ultCrossZone[np] = true
+
+		if m.UltMode || m.PushStrikeMode {
+			for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+				np := Point{cx + dp.X, cy + dp.Y}
+				if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
+					ultCrossZone[np] = true
+				}
 			}
 		}
 	}
@@ -143,6 +179,8 @@ func (m *Model) View() string {
 					cellContent = m.Styles.CursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
 				} else if enemyIdx >= 0 {
 					cellContent = m.Styles.CursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
+				} else if m.RamMode {
+					cellContent = m.Styles.CursorStyle.Render(" + ")
 				} else {
 					cellContent = m.Styles.CursorStyle.Render(" · ")
 				}
@@ -212,7 +250,7 @@ func (m *Model) View() string {
 			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cellContent = m.Styles.ShootRangeStyle.Render(" · ")
-				} else if m.UltMode || m.PushStrikeMode {
+				} else if m.UltMode || m.PushStrikeMode || m.RamMode {
 					cellContent = m.Styles.CellStyle.Render(" · ")
 				} else {
 					cellContent = m.Styles.RangeStyle.Render(" · ")

@@ -82,6 +82,7 @@ type Model struct {
 	ShowEffectIdx            int
 	ShootMode                bool
 	PushStrikeMode           bool
+	RamMode                  bool
 	UltMode                  bool
 	UltAxis                  string
 	Moved                    bool

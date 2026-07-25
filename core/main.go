@@ -145,6 +145,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.CursorY = cur.Y
 				m.UltMode = false
 				m.PushStrikeMode = false
+				m.RamMode = false
 				m.UltAxis = ""
 			}
 			return m, m.triggerTickCmd()
@@ -189,9 +190,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if !m.Moved && !m.Shot {
 	} else if m.Moved {
-		if m.Players[m.CurrentPlayer].AttackType == AttackPushStrike {
+		switch m.Players[m.CurrentPlayer].AttackType {
+		case AttackPushStrike:
 			m.PushStrikeMode = true
-		} else {
+		case AttackRam:
+			m.RamMode = true
+		default:
 			m.ShootMode = true
 		}
 	} else {
@@ -205,7 +209,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ShowEffectIdx = 0
 			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY-1, 0, GridH-1)
-			if m.UltMode || m.PushStrikeMode {
+			if m.UltMode || m.PushStrikeMode || m.RamMode {
 				cur := m.Players[m.CurrentPlayer]
 				if m.CursorX == cur.X && m.CursorY == cur.Y {
 					m.UltAxis = ""
@@ -221,7 +225,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ShowEffectIdx = 0
 			m.BoxTrigger = TriggerNone
 			newY := utils.Clamp(m.CursorY+1, 0, GridH-1)
-			if m.UltMode || m.PushStrikeMode {
+			if m.UltMode || m.PushStrikeMode || m.RamMode {
 				cur := m.Players[m.CurrentPlayer]
 				if m.CursorX == cur.X && m.CursorY == cur.Y {
 					m.UltAxis = ""
@@ -237,7 +241,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ShowEffectIdx = 0
 			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX-1, 0, GridW-1)
-			if m.UltMode || m.PushStrikeMode {
+			if m.UltMode || m.PushStrikeMode || m.RamMode {
 				cur := m.Players[m.CurrentPlayer]
 				if m.CursorX == cur.X && m.CursorY == cur.Y {
 					m.UltAxis = ""
@@ -253,7 +257,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ShowEffectIdx = 0
 			m.BoxTrigger = TriggerNone
 			newX := utils.Clamp(m.CursorX+1, 0, GridW-1)
-			if m.UltMode || m.PushStrikeMode {
+			if m.UltMode || m.PushStrikeMode || m.RamMode {
 				cur := m.Players[m.CurrentPlayer]
 				if m.CursorX == cur.X && m.CursorY == cur.Y {
 					m.UltAxis = ""
@@ -276,6 +280,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.UltAxis = ""
 				m.ShootMode = false
 				m.PushStrikeMode = false
+				m.RamMode = false
 				if m.UltMode {
 					cur := m.Players[m.CurrentPlayer]
 					m.CursorX = cur.X
@@ -289,16 +294,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cur := m.Players[m.CurrentPlayer]
 				m.CursorX = cur.X
 				m.CursorY = cur.Y
-				if cur.AttackType == AttackPushStrike {
+				m.UltMode = false
+				m.UltAxis = ""
+				switch cur.AttackType {
+				case AttackPushStrike:
 					m.PushStrikeMode = !m.PushStrikeMode
-					m.UltMode = false
 					m.ShootMode = false
-					m.UltAxis = ""
-				} else {
-					m.ShootMode = !m.ShootMode
-					m.UltMode = false
+					m.RamMode = false
+				case AttackRam:
+					m.RamMode = !m.RamMode
+					m.ShootMode = false
 					m.PushStrikeMode = false
-					m.UltAxis = ""
+				default:
+					m.ShootMode = !m.ShootMode
+					m.PushStrikeMode = false
+					m.RamMode = false
 				}
 			}
 
