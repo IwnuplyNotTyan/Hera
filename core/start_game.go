@@ -35,9 +35,15 @@ func (m *Model) startGame() {
 		enemyCount = len(m.Styles.EnemysStyles)
 	}
 
+	attackTypes := []AttackType{AttackShoot, AttackPushStrike, AttackRam, AttackMeleePush}
+	rng.Shuffle(len(attackTypes), func(i, j int) {
+		attackTypes[i], attackTypes[j] = attackTypes[j], attackTypes[i]
+	})
+
 	for i := 0; i < playerCount; i++ {
 		effs := make([]Effect, len(m.startPlayerEffects))
 		copy(effs, m.startPlayerEffects)
+		atk := attackTypes[i%len(attackTypes)]
 		players = append(players, Player{
 			X:          starts[i].X,
 			Y:          starts[i].Y,
@@ -45,6 +51,7 @@ func (m *Model) startGame() {
 			UltCharges: maxUltCharges,
 			Effects:    effs,
 			Style:      m.Styles.PlayerStyles[i%len(m.Styles.PlayerStyles)],
+			AttackType: atk,
 		})
 	}
 
@@ -53,8 +60,10 @@ func (m *Model) startGame() {
 		blocked[Point{p.X, p.Y}] = true
 	}
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
-	for p := range walls {
+	wallPositions := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
+	walls := make(map[Point]Wall, len(wallPositions))
+	for p := range wallPositions {
+		walls[p] = Wall{HP: WallHP}
 		blocked[p] = true
 	}
 
@@ -69,16 +78,22 @@ func (m *Model) startGame() {
 		enemyPositions = append(enemyPositions, p)
 	}
 
+	enemyAttackTypes := []AttackType{AttackShoot, AttackPushStrike, AttackRam, AttackMeleePush}
+	rng.Shuffle(len(enemyAttackTypes), func(i, j int) {
+		enemyAttackTypes[i], enemyAttackTypes[j] = enemyAttackTypes[j], enemyAttackTypes[i]
+	})
+
 	enemys := make([]Enemy, enemyCount)
 	for i := range enemys {
 		effs := make([]Effect, len(m.startEnemyEffects))
 		copy(effs, m.startEnemyEffects)
 		enemys[i] = Enemy{
-			X:       enemyPositions[i].X,
-			Y:       enemyPositions[i].Y,
-			HP:      MaxHP,
-			Effects: effs,
-			Style:   m.Styles.EnemysStyles[i],
+			X:          enemyPositions[i].X,
+			Y:          enemyPositions[i].Y,
+			HP:         MaxHP,
+			Effects:    effs,
+			Style:      m.Styles.EnemysStyles[i],
+			AttackType: enemyAttackTypes[i%len(enemyAttackTypes)],
 		}
 	}
 
@@ -95,6 +110,9 @@ func (m *Model) startGame() {
 	m.Moved = false
 	m.Shot = false
 	m.ShootMode = false
+	m.PushStrikeMode = false
+	m.RamMode = false
+	m.MeleePushMode = false
 	m.UltMode = false
 	m.UltAxis = ""
 	m.EnemyTurn = false

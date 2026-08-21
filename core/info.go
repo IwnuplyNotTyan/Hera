@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"hera/i18n"
+	"hera/utils"
 )
 
 var effectSep = lipgloss.NewStyle().Foreground(lipgloss.Color("#555555")).Render(" · ")
@@ -56,6 +57,16 @@ func (m *Model) effectsAtCursor() []Effect {
 			return en.Effects
 		}
 	}
+	if m.IsWall(p) {
+		var effs []Effect
+		if m.FireTiles[p] > 0 {
+			effs = append(effs, Effect{Type: EffectFire, Duration: m.FireTiles[p]})
+		}
+		if m.SmokeTiles[p] > 0 {
+			effs = append(effs, Effect{Type: EffectSmoke, Duration: m.SmokeTiles[p]})
+		}
+		return effs
+	}
 	return nil
 }
 
@@ -83,7 +94,7 @@ func (m *Model) cursorInfo() string {
 	loc := m.Localizer
 	p := Point{m.CursorX, m.CursorY}
 	current := m.Players[m.CurrentPlayer]
-	wallBlocked := !m.UltMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
+	wallBlocked := !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.MeleePushMode && m.HasWallBetweenPoints(current.X, current.Y, m.CursorX, m.CursorY)
 
 	for i, pl := range m.Players {
 		if pl.X == m.CursorX && pl.Y == m.CursorY {
@@ -113,8 +124,10 @@ func (m *Model) cursorInfo() string {
 	}
 
 	switch {
-	case m.Walls[p]:
-		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wall"))
+	case m.IsWall(p):
+		w := m.Walls[p]
+		hearts := strings.Repeat("♥ ", w.HP) + strings.Repeat("♡ ", WallHP-w.HP)
+		return m.Styles.WallStyle.Render(loc.T("cursor.tile.wallHP", hearts))
 	case wallBlocked:
 		return m.Styles.BlockedWallStyle.Render(loc.T("cursor.tile.wallInWay"))
 	case m.SmokeTiles[p] > 0:
@@ -126,6 +139,22 @@ func (m *Model) cursorInfo() string {
 	case m.UltMode:
 		if m.ultInAxisRange(m.CursorX, m.CursorY) {
 			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ult"))
+		}
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+	case m.PushStrikeMode:
+		if m.ultInAxisRange(m.CursorX, m.CursorY) {
+			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.pushStrike"))
+		}
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+	case m.RamMode:
+		if m.ultInAxisRange(m.CursorX, m.CursorY) {
+			return m.Styles.UltRangeStyle.Render(loc.T("cursor.range.ram"))
+		}
+		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
+	case m.MeleePushMode:
+		dist := utils.Abs(m.CursorX-current.X) + utils.Abs(m.CursorY-current.Y)
+		if dist == 1 {
+			return m.Styles.ShootRangeStyle.Render(loc.T("cursor.range.meleePush"))
 		}
 		return m.Styles.CellStyle.Render(loc.T("cursor.range.outOfUltAxis"))
 	case m.IsInRange(m.CursorX, m.CursorY):

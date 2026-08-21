@@ -24,8 +24,13 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	blocked := make(map[Point]bool)
 
-	walls := GenerateTiles(GridW/2, GridH/2, wallCount, nil, nil)
-	water := GenerateTiles(GridW/2, GridH/2, waterCount, walls, nil)
+	wallPositions := GenerateTiles(GridW/2, GridH/2, wallCount, nil, nil)
+	walls := make(map[Point]Wall, len(wallPositions))
+	for p := range wallPositions {
+		walls[p] = Wall{HP: WallHP}
+		blocked[p] = true
+	}
+	water := GenerateTiles(GridW/2, GridH/2, waterCount, blocked, nil)
 
 	starts := []Point{
 		{X: 1, Y: 1},
@@ -50,9 +55,6 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 
 	for _, p := range players {
 		blocked[Point{p.X, p.Y}] = true
-	}
-	for p := range walls {
-		blocked[p] = true
 	}
 	for p := range water {
 		blocked[p] = true
