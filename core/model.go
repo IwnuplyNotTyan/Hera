@@ -66,11 +66,11 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		enemyPositions = append(enemyPositions, p)
 	}
 
-	enemys := make([]Enemy, enemysCount)
-	for i := range enemys {
+	enemy := make([]Enemy, enemysCount)
+	for i := range enemy {
 		effs := make([]Effect, len(enemyEffects))
 		copy(effs, enemyEffects)
-		enemys[i] = Enemy{
+		enemy[i] = Enemy{
 			X:       enemyPositions[i].X,
 			Y:       enemyPositions[i].Y,
 			HP:      MaxHP,
@@ -86,7 +86,7 @@ func NewModel(playerCount, enemysCount int, playerEffects, enemyEffects []Effect
 		Screen:             ScreenMenu,
 		EasterEgg:          loc.RandomEasterEgg(),
 		Players:            players,
-		Enemys:             enemys,
+		Enemys:             enemy,
 		CurrentPlayer:      0,
 		CurrentEnemy:       0,
 		CursorX:            players[0].X,
