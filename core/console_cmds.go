@@ -90,10 +90,13 @@ func (m *Model) cmdRegen() string {
 		blocked[Point{en.X, en.Y}] = true
 	}
 	rng := rand.New(rand.NewSource(m.Seed))
-	m.Walls = GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
-	for p := range m.Walls {
+	wallPositions := GenerateTiles(GridW/2, GridH/2, wallCount, blocked, rng)
+	walls := make(map[Point]Wall, len(wallPositions))
+	for p := range wallPositions {
+		walls[p] = Wall{HP: WallHP}
 		blocked[p] = true
 	}
+	m.Walls = walls
 	m.Water = GenerateTiles(GridW/2, GridH/2, waterCount, blocked, rng)
 	m.FireTiles = make(map[Point]int)
 	m.SmokeTiles = make(map[Point]int)
@@ -405,7 +408,7 @@ func (m *Model) findFreeTile() *Point {
 	for x := 0; x < GridW; x++ {
 		for y := 0; y < GridH; y++ {
 			p := Point{x, y}
-			if m.Walls[p] {
+			if m.IsWall(p) {
 				continue
 			}
 			occupied := false

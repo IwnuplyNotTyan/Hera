@@ -17,8 +17,8 @@ func testModel() generate.Model {
 	bubbletint.NewDefaultRegistry()
 	generate.RegisterDefaults()
 	theme := bubbletint.DefaultRegistry
-	walls := map[generate.Point]bool{
-		{X: 3, Y: 5}: true,
+	walls := map[generate.Point]generate.Wall{
+		{X: 3, Y: 5}: {HP: generate.WallHP},
 	}
 	water := map[generate.Point]bool{
 		{X: 5, Y: 3}: true,
@@ -47,7 +47,7 @@ func TestMove_Normal(t *testing.T) {
 	m := testModel()
 	m.CursorX, m.CursorY = 4, 4
 	p := generate.Point{X: m.CursorX, Y: m.CursorY}
-	if !m.Walls[p] && !m.Water[p] {
+	if !m.IsWall(p) && !m.Water[p] {
 		m.Players[m.CurrentPlayer].X = m.CursorX
 		m.Players[m.CurrentPlayer].Y = m.CursorY
 	}
@@ -59,7 +59,7 @@ func TestMove_BlockedByWall(t *testing.T) {
 	m := testModel()
 	m.CursorX, m.CursorY = 3, 5
 	p := generate.Point{X: m.CursorX, Y: m.CursorY}
-	if !m.Walls[p] && !m.Water[p] {
+	if !m.IsWall(p) && !m.Water[p] {
 		m.Players[m.CurrentPlayer].X = m.CursorX
 		m.Players[m.CurrentPlayer].Y = m.CursorY
 	}
@@ -67,16 +67,23 @@ func TestMove_BlockedByWall(t *testing.T) {
 	assert.Equal(t, 5, m.Players[0].Y)
 }
 
-func TestMove_BlockedByWater(t *testing.T) {
+func TestMove_EntersWater(t *testing.T) {
 	m := testModel()
 	m.CursorX, m.CursorY = 5, 3
 	p := generate.Point{X: m.CursorX, Y: m.CursorY}
-	if !m.Walls[p] && !m.Water[p] {
+	if !m.IsWall(p) {
 		m.Players[m.CurrentPlayer].X = m.CursorX
 		m.Players[m.CurrentPlayer].Y = m.CursorY
+		if m.Water[p] {
+			m.Players[m.CurrentPlayer].Effects = generate.ResolveEffects(
+				m.Players[m.CurrentPlayer].Effects,
+				generate.Effect{Type: generate.EffectWet, Duration: 2},
+			)
+		}
 	}
-	assert.Equal(t, 4, m.Players[0].X)
-	assert.Equal(t, 5, m.Players[0].Y)
+	assert.Equal(t, 5, m.Players[0].X)
+	assert.Equal(t, 3, m.Players[0].Y)
+	assert.True(t, generate.HasEffect(m.Players[0].Effects, generate.EffectWet))
 }
 
 func TestMove_ClampedAtBorder(t *testing.T) {

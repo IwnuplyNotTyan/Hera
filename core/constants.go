@@ -3,9 +3,20 @@ package generate
 // EffectType represents a type of status effect that can be applied to entities.
 type EffectType string
 
+// AttackType defines the type of basic attack a player has.
+type AttackType int
+
+const (
+	AttackShoot AttackType = iota
+	AttackPushStrike
+	AttackRam
+	AttackMeleePush
+)
+
 const (
 	GridW      = 14
 	GridH      = 10
+	WallHP     = 2
 	wallCount  = 10
 	waterCount = 10
 	moveRange  = 4

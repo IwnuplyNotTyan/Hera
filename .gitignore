@@ -15,5 +15,6 @@ go.work
 bin
 result
 .direnv
+.idea
 
 docs

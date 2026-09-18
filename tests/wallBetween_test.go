@@ -23,8 +23,8 @@ func TestHasWallBetween_StartNotCounted(t *testing.T) {
 	bubbletint.NewDefaultRegistry()
 	generate.RegisterDefaults()
 	theme := bubbletint.DefaultRegistry
-	walls := map[generate.Point]bool{
-		{X: 4, Y: 5}: true,
+	walls := map[generate.Point]generate.Wall{
+		{X: 4, Y: 5}: {HP: generate.WallHP},
 	}
 	players := []generate.Player{
 		{X: 4, Y: 5, HP: generate.MaxHP, Style: lipgloss.NewStyle()},

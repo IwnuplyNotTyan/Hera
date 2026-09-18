@@ -61,6 +61,9 @@
     "player": "Player {n} {hp}",
     "move": "♧ M",
     "shoot": "♡ S",
+    "pushStrike": "✦ P",
+    "ram": "▸ R",
+    "meleePush": "⚔ M",
     "ult": "⚹ U",
     "ultCharges": "⚹×{n}",
     "ultChargesZero": "⚹×0"
@@ -77,7 +80,7 @@
       "wallBlocked": "▲ Enemy {n} {hp}— wall in the way"
     },
     "tile": {
-      "wall": "■ Wall — impassable",
+      "wallHP": "■ Wall {n}",
       "wallInWay": "⊘ Wall in the way",
       "water": "≈ Water — passable",
       "smoke": "~ Smoke — {n} turns left",
@@ -85,6 +88,9 @@
     },
     "range": {
       "ult": "⚹ Ult target",
+      "pushStrike": "✦ Push Strike target",
+      "ram": "▸ Ram target",
+      "meleePush": "⚔ Melee target",
       "outOfUltAxis": "· Out of ult axis",
       "inShootRange": "· In shoot range",
       "inMoveRange": "· In move range",
