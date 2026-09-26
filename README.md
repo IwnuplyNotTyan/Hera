@@ -30,7 +30,7 @@
 
 ## ❄️ Nix
 ``` bash
-nix run github:iwnuplynottyan/koi
+nix run github:iwnuplynottyan/hera
 ```
 
 
