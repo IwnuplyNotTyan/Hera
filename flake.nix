@@ -22,7 +22,7 @@
           commit = self.rev or "dirty";
         in
         {
-          default = pkgs.buildGoModule {
+          default = pkgs.buildGo126Module {
             pname = "hera";
             inherit version;
             src = self;
@@ -35,7 +35,7 @@
 	      "-w"
             ];
 
-            vendorHash = "sha256-GdV+7ccktqbsDwfNLBU8fEsOjtHXBKiqjn7m1lMFvUU=";
+            vendorHash = "sha256-LIHX1m5OkLlcqM2nM8zliiH3GtGhykdCb+pcoMP4aEE=";
 
             meta = {
               description = "A tactical turn-based game. Made with ♡";
