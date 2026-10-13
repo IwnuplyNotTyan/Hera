@@ -53,6 +53,21 @@ func (m *Model) View() string {
 			Foreground(m.Theme.Red()).
 			Bold(true).
 			Render(m.Localizer.T("status.ult"))
+	case m.PushStrikeMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.Red()).
+			Bold(true).
+			Render(m.Localizer.T("status.pushStrike"))
+	case m.RamMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.BrightGreen()).
+			Bold(true).
+			Render(m.Localizer.T("status.ram"))
+	case m.MeleePushMode:
+		modeStr = lipgloss.NewStyle().
+			Foreground(m.Theme.BrightGreen()).
+			Bold(true).
+			Render(m.Localizer.T("status.meleePush"))
 	case m.ShootMode:
 		modeStr = lipgloss.NewStyle().
 			Foreground(m.Theme.BrightRed()).
@@ -77,7 +92,7 @@ func (m *Model) View() string {
 	}
 
 	var reachableZone map[Point]bool
-	if !m.EnemyTurn && !m.UltMode && len(m.Players) > 0 {
+	if !m.EnemyTurn && !m.UltMode && !m.PushStrikeMode && !m.RamMode && !m.MeleePushMode && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		r := m.currentRange()
 		reachableZone = m.Reachable(cur.X, cur.Y, r)
@@ -85,23 +100,65 @@ func (m *Model) View() string {
 
 	ultAxisZone := make(map[Point]bool)
 	ultCrossZone := make(map[Point]bool)
-	if m.UltMode && len(m.Players) > 0 {
+	if (m.UltMode || m.PushStrikeMode || m.RamMode) && len(m.Players) > 0 {
 		cur := m.Players[m.CurrentPlayer]
 		cx, cy := m.CursorX, m.CursorY
-		for x := 0; x < GridW; x++ {
-			if x != cur.X {
+
+		if m.RamMode {
+			for x := cur.X + 1; x < GridW; x++ {
 				ultAxisZone[Point{x, cur.Y}] = true
+				if m.IsWall(Point{x, cur.Y}) || m.OccupiedByOther(x, cur.Y) {
+					break
+				}
 			}
-		}
-		for y := 0; y < GridH; y++ {
-			if y != cur.Y {
+			for x := cur.X - 1; x >= 0; x-- {
+				ultAxisZone[Point{x, cur.Y}] = true
+				if m.IsWall(Point{x, cur.Y}) || m.OccupiedByOther(x, cur.Y) {
+					break
+				}
+			}
+			for y := cur.Y + 1; y < GridH; y++ {
 				ultAxisZone[Point{cur.X, y}] = true
+				if m.IsWall(Point{cur.X, y}) || m.OccupiedByOther(cur.X, y) {
+					break
+				}
+			}
+			for y := cur.Y - 1; y >= 0; y-- {
+				ultAxisZone[Point{cur.X, y}] = true
+				if m.IsWall(Point{cur.X, y}) || m.OccupiedByOther(cur.X, y) {
+					break
+				}
+			}
+		} else {
+			for x := 0; x < GridW; x++ {
+				if x != cur.X {
+					ultAxisZone[Point{x, cur.Y}] = true
+				}
+			}
+			for y := 0; y < GridH; y++ {
+				if y != cur.Y {
+					ultAxisZone[Point{cur.X, y}] = true
+				}
 			}
 		}
-		for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
-			np := Point{cx + dp.X, cy + dp.Y}
-			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.Walls[np] {
-				ultCrossZone[np] = true
+
+		if m.UltMode || m.PushStrikeMode {
+			for _, dp := range []Point{{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+				np := Point{cx + dp.X, cy + dp.Y}
+				if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
+					ultCrossZone[np] = true
+				}
+			}
+		}
+	}
+
+	meleePushZone := make(map[Point]bool)
+	if m.MeleePushMode && len(m.Players) > 0 {
+		cur := m.Players[m.CurrentPlayer]
+		for _, dp := range []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+			np := Point{cur.X + dp.X, cur.Y + dp.Y}
+			if np.X >= 0 && np.X < GridW && np.Y >= 0 && np.Y < GridH && !m.IsWall(np) {
+				meleePushZone[np] = true
 			}
 		}
 	}
@@ -130,6 +187,7 @@ func (m *Model) View() string {
 			isUltCross := ultCrossZone[p]
 			isUltAxis := ultAxisZone[p]
 			isReachable := reachableZone[p]
+			isMeleePushTarget := meleePushZone[p]
 
 			cellContent := ""
 			switch {
@@ -138,6 +196,8 @@ func (m *Model) View() string {
 					cellContent = m.Styles.CursorStyle.Render(m.Players[playerIdx].Style.Render(" ■ "))
 				} else if enemyIdx >= 0 {
 					cellContent = m.Styles.CursorStyle.Render(m.Enemys[enemyIdx].Style.Render(" ▲ "))
+				} else if m.RamMode {
+					cellContent = m.Styles.CursorStyle.Render(" + ")
 				} else {
 					cellContent = m.Styles.CursorStyle.Render(" · ")
 				}
@@ -152,6 +212,8 @@ func (m *Model) View() string {
 					st = st.Background(lipgloss.Color("#2a0800"))
 				case isUltAxis:
 					st = st.Background(lipgloss.Color("#1a0a00"))
+				case isMeleePushTarget:
+					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
@@ -169,21 +231,27 @@ func (m *Model) View() string {
 					st = st.Background(lipgloss.Color("#2a0800"))
 				case isUltAxis:
 					st = st.Background(lipgloss.Color("#1a0a00"))
+				case isMeleePushTarget:
+					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable && m.ShootMode:
 					st = st.Background(lipgloss.Color("#1a0505"))
 				case isReachable:
 					st = st.Background(m.Theme.Bg())
 				}
 				cellContent = st.Render(symbol)
-			case m.Walls[p]:
-				cellContent = m.Styles.WallStyle.Render(" ■ ")
+			case m.IsWall(p):
+				if m.Walls[p].HP <= 1 {
+					cellContent = m.Styles.WallStyle.Render(" ◧ ")
+				} else {
+					cellContent = m.Styles.WallStyle.Render(" ■ ")
+				}
 			case m.SmokeTiles[p] > 0:
 				cellContent = m.Styles.SteamStyle.Render(" ~ ")
 			case m.Water[p]:
 				switch {
-				case isUltCross:
+				case isUltCross && !m.PushStrikeMode:
 					cellContent = m.Styles.SteamStyle.Background(lipgloss.Color("#001a2a")).Render(" ~ ")
-				case isUltAxis:
+				case isUltAxis && !m.PushStrikeMode:
 					cellContent = m.Styles.WaterStyle.Background(lipgloss.Color("#0d0800")).Render(" ≈ ")
 				case m.IsInRange(col, row):
 					cellContent = m.Styles.WaterRangeStyle.Render(" ≈ ")
@@ -193,13 +261,19 @@ func (m *Model) View() string {
 			case m.FireTiles[p] > 0:
 				cellContent = m.Styles.FireStyle.Render(" ⚹ ")
 			case isUltCross:
-				cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
+				if m.PushStrikeMode {
+					cellContent = m.Styles.UltZoneStyle.Render(" + ")
+				} else {
+					cellContent = m.Styles.UltZoneStyle.Render(" ⚹ ")
+				}
 			case isUltAxis:
 				cellContent = m.Styles.UltAxisStyle.Render(" · ")
+			case isMeleePushTarget:
+				cellContent = m.Styles.ShootRangeStyle.Render(" · ")
 			case m.IsInRange(col, row):
 				if m.ShootMode {
 					cellContent = m.Styles.ShootRangeStyle.Render(" · ")
-				} else if m.UltMode {
+				} else if m.UltMode || m.PushStrikeMode || m.RamMode || m.MeleePushMode {
 					cellContent = m.Styles.CellStyle.Render(" · ")
 				} else {
 					cellContent = m.Styles.RangeStyle.Render(" · ")
