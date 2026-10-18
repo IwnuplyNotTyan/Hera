@@ -13,6 +13,11 @@ type Effect struct {
 	Duration int
 }
 
+// Wall represents a destructible stone on the grid with hit points.
+type Wall struct {
+	HP int
+}
+
 type Point struct {
 	X, Y int
 }
@@ -23,13 +28,15 @@ type Player struct {
 	Effects    []Effect
 	UltCharges int
 	Style      lipgloss.Style
+	AttackType AttackType
 }
 
 type Enemy struct {
-	X, Y    int
-	HP      int
-	Effects []Effect
-	Style   lipgloss.Style
+	X, Y       int
+	HP         int
+	Effects    []Effect
+	Style      lipgloss.Style
+	AttackType AttackType
 }
 
 type enemyTurnMsg struct {
@@ -69,12 +76,15 @@ type Model struct {
 	CurrentPlayer            int
 	CurrentEnemy             int
 	CursorX, CursorY         int
-	Walls                    map[Point]bool
+	Walls                    map[Point]Wall
 	Water                    map[Point]bool
 	FireTiles                map[Point]int
 	SmokeTiles               map[Point]int
 	ShowEffectIdx            int
 	ShootMode                bool
+	PushStrikeMode           bool
+	RamMode                  bool
+	MeleePushMode            bool
 	UltMode                  bool
 	UltAxis                  string
 	Moved                    bool

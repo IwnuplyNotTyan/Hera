@@ -15,8 +15,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "dev"
-var commit = ""
+var (
+	version = "dev"
+	commit  = ""
+)
 
 func parseEffects(s string) []generate.Effect {
 	if s == "" {
@@ -42,15 +44,17 @@ func parseEffects(s string) []generate.Effect {
 }
 
 func main() {
-	var lang string
-	var theme string
-	var centerMode string
-	var background bool
-	var flagPlayers, flagEnemies int
-	var flagPlayerEffects, flagEnemyEffects string
-	var asciiText string
-	var seedStr string
-	var debugMode bool
+	var (
+		lang                                string
+		theme                               string
+		centerMode                          string
+		background                          bool
+		flagPlayers, flagEnemies            int
+		flagPlayerEffects, flagEnemyEffects string
+		asciiText                           string
+		seedStr                             string
+		debugMode                           bool
+	)
 
 	cmd := &cobra.Command{
 		Use:   "hera",

@@ -142,7 +142,7 @@ func TestTranslator_T_AllKeysPresent(t *testing.T) {
 		"cursor.player.wallBlocked",
 		"cursor.enemy.default",
 		"cursor.enemy.wallBlocked",
-		"cursor.tile.wall",
+		"cursor.tile.wallHP",
 		"cursor.tile.wallInWay",
 		"cursor.tile.water",
 		"cursor.tile.smoke",
@@ -179,6 +179,14 @@ func TestTranslator_T_AllKeysPresent(t *testing.T) {
 		result := loc.T(key)
 		assert.NotEqual(t, key, result, "Key %s should have a translation", key)
 	}
+}
+
+func TestTranslator_T_WallHP(t *testing.T) {
+	loc, err := NewTranslator("../locales", "en")
+	require.NoError(t, err)
+
+	result := loc.T("cursor.tile.wallHP", "♥ ♡ ")
+	assert.Equal(t, "■ Wall ♥ ♡ ", result)
 }
 
 func TestTranslator_LocalesDir(t *testing.T) {

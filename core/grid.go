@@ -67,7 +67,7 @@ func (m *Model) Reachable(sx, sy, r int) map[Point]bool {
 			if visited[np] {
 				continue
 			}
-			if m.Walls[np] {
+			if m.IsWall(np) {
 				continue
 			}
 			visited[np] = true
@@ -101,7 +101,7 @@ func (m *Model) HasWallBetweenPoints(x0, y0, x1, y1 int) bool {
 		isStart := x0 == startX && y0 == startY
 		isEnd := x0 == x1 && y0 == y1
 		if !isStart && !isEnd {
-			if m.Walls[Point{x0, y0}] {
+			if m.IsWall(Point{x0, y0}) {
 				return true
 			}
 		}
@@ -131,9 +131,6 @@ func (m *Model) ultCross(cx, cy int) []Point {
 		if p.X < 0 || p.X >= GridW || p.Y < 0 || p.Y >= GridH {
 			continue
 		}
-		if m.Walls[p] {
-			continue
-		}
 		pts = append(pts, p)
 	}
 	return pts
@@ -145,6 +142,12 @@ func (m *Model) ultInAxisRange(cx, cy int) bool {
 	}
 	current := m.Players[m.CurrentPlayer]
 	return cx == current.X || cy == current.Y
+}
+
+// IsWall reports whether a wall exists at the given point.
+func (m *Model) IsWall(p Point) bool {
+	_, ok := m.Walls[p]
+	return ok
 }
 
 // OccupiedByOther returns true if a non-current player or enemy occupies (x, y).
